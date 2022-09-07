@@ -16,7 +16,7 @@ colnames(mergedId)<-c("uuid", "Experiment_Taxa")
 
 mergedId$Experiment_Taxa<-gsub("s__", "", mergedId$Experiment_Taxa)
 ###
-prevID<-readr::read_csv("./metaData/metaDat.csv")
+prevID<-readr::read_csv("./metadata/metadata.csv")
 #metaDat <- readr::read_csv("~/ICMC/run_03-14-22/metaData/metaDat.csv")
 
 control1<-prevID[, c(1,5)]

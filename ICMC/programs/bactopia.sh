@@ -11,10 +11,10 @@ bactopia prepare ./input > fastqs.txt
 bactopia --fastqs fastqs.txt \
 	--datasets /home/ubuntu/bactopia/datasets \
 	--species "$organism" \
-	--coverage 100 \
+	--coverage 150 \
 	--genome_size median \
-	--outdir ./output/ \
-	--max_cpus 8
+	--outdir ./output
+#	--max_cpus 8
 
 cd ../
 done

@@ -11,6 +11,7 @@ echo "$sample" >> ./bactopia_gtdbtk/"$bucket"/samples.list
 done 
 done
 
+echo ""
 echo "samples moved"
 echo ""
 

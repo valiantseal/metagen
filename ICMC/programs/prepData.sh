@@ -5,6 +5,7 @@ mkdir -p input
 mkdir -p original_files/R1
 mkdir -p original_files/R2
 mkdir -p gtdbtk/input
+mkdir -p metadata
 
 echo " Renaming files"
 
@@ -12,8 +13,9 @@ for i in ./original_files/*_R1_001.fastq.gz; do mv "$i" ./original_files/R1/; do
 for i in ./original_files/*_R2_001.fastq.gz; do mv "$i" ./original_files/R2/; done
 (cd ./original_files/R1 && ls *_R1_001.fastq.gz) > inputList.txt
 #cat inputList.txt |cut -f1 -d"_" > newdir.txt # remove everything after first _
-cp inputList.txt ./newdir.txt
-sed -i 's/\_R1_001.fastq.gz//g' newdir.txt # remove specific string
+cat inputList.txt |cut -f1,2 -d"_" > newdir.txt # cut first and second element after _
+#cp inputList.txt ./newdir.txt
+#sed -i 's/\_R1_001.fastq.gz//g' newdir.txt # remove specific string
 
  
 #(cd ./input/ && ls *_R1_001.fastq.gz) > inputList.txt
