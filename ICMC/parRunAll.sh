@@ -1,13 +1,18 @@
-# version 1.01
+# version 1.02
+# run ec2 m5a.4xlarge
 
 #Need improvements
-# write test for bactopia databasets
-# write test to verify samples number for antimicrobial resistance
-# rewrite checkGtdbTk.R so it would not be so messy and would include cases to deal with NA in metadata
+# Fill the table for antimicrobial resistances with NONE if nothing found for the sample
+# evaluate a test for bactopia databasets
+# write test to verify samples number for pipeline outpusts: AMR, MLST, pangenome
+# evaluate in whcih casses bactopia makes regular tree (not the fast tree) and edit so it would happen everytime
+# for unresolved gtdb-tk taxa add editional tests with other methods kaiju/kraken/blast/gambit
+
+sh ./programs/preprocessing.sh
 
 sh ./programs/prepData.sh
 
-cd process_par; ls -d */ | parallel -j 12 'cd {} && sh ../../programs/trimgalore.sh'; cd ../
+cd process_par; ls -d */ | parallel -j 14 'cd {} && sh ../../programs/trimgalore.sh'; cd ../
 
 echo "Finished Trimgalore"
 
@@ -30,9 +35,11 @@ echo "Finished GTDB-Tk"
 
 Rscript --vanilla ./programs/formatMetadata.R
 
-Rscript --vanilla ./programs/findMismatchGtdk.R
+Rscript --vanilla ./programs/checkGtdb.R
 
 bash -i ./programs/forBactopiaGtdbtk.sh
+
+Rscript --vanilla ./programs/bactopDataTest.R
 
 bash -i ./programs/bactopia.sh
 
@@ -41,11 +48,21 @@ sleep 10s
 
 bash -i ./programs/pangenome.sh
 
-iqtree -s core_alignment.fasta -m TEST -nt 4 -b 200 # make a program to run with all samples
+#iqtree -s core_alignment.fasta -m TEST -nt 4 -b 200 # may be make a program to run with all samples
 
-sh ./programs/pack.sh
+sh ./programs/transferS3All.sh
 
-sh ./programs/transferAws.sh
+# make summaries for cutsom output
+sh ./programs/sumAMR.sh
+
+bash -i ./programs/sumBactopia.sh
+
+sh ./programs/sumMlst.sh
+
+sh ./programs/transferS3Custom.sh
+
+
+
 
 
 
