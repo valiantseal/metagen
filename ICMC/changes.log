@@ -1,0 +1,22 @@
+# changes v1.00
+# updates from Hflu version
+# added numeric check for trimgalore results
+# added verbal check for spades results
+# use gtdbtk-2.1.0 reduced nessesary instance from m5.16xlarge to m6a.4xlarge (16CPUs 64G mem)
+# specified to use 8 cpus for spades
+
+
+-- changes v1.01
+- added function to format metadata
+- edited Spades test to count completed and failed samples
+- added program for simple tree vizualization
+
+-- cahnges v1.02
+- added program for downloading input files
+- added nes species in metadata formating program and added some custom modifications of IDs
+- replaced findMismatch programs with checkGtdb.R for evaluating the difference between expected and observed GTDB-Tk results. Currently the program does not account for alternative taxa and does not make final dessisions in case of mismatch.
+- added program to transfer all bactopia and pangenome outputs to S3 bucket
+- Write run info in the bucket for fast download
+- added programs to sum ML sequence types, AMR, and bactopia quality 
+- added program to transfer custom output to S3 bucket
+

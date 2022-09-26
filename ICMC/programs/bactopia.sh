@@ -13,7 +13,7 @@ bactopia --fastqs fastqs.txt \
 	--species "$organism" \
 	--coverage 150 \
 	--genome_size median \
-	--outdir ./output
+	--outdir ./output | tee bactopiaRun.log;
 #	--max_cpus 8
 
 cd ../

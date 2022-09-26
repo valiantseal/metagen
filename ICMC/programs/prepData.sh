@@ -35,4 +35,4 @@ for i in $(cat newdir.txt); do mkdir -p process_par/"$i"; mv ./input/"$i"_* ./pr
   echo "$i" > process_par/"$i"/sample.name; done
 
 echo "Prepared all files for pipeline"
-sleep 10s
+sleep 8s

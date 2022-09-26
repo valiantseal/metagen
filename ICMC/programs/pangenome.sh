@@ -8,7 +8,7 @@ bactopia --wf pangenome \
 --bactopia ./output \
 --outdir ./panOut \
 --iqtree_model TEST \
---max_cpus 16 | tee pangenome.log;
+--max_cpus 16 | tee pangenomeRun.log;
 
 cd ../
 done

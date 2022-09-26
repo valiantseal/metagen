@@ -20,6 +20,12 @@ renameSpecies<-function(df){
       df$Species_full[i]<-'Klebsiella aerogenes'
     } else if (df$Species[i]=='C. freundii') {
       df$Species_full[i]<-'Citrobacter freundii'
+    } else if (df$Species[i]=='R. ornithinolytica') {
+      df$Species_full[i]<-'Raoultella ornithinolytica'
+    } else if (df$Species[i]=='unknown') {
+      df$Species_full[i]<-'unknown'
+    } else if (df$Species[i]=='P. rettgeri') {
+      df$Species_full[i]<-'Providencia rettgeri'
     }
   }
   colnames(df)[1]<-'uuid'
@@ -29,4 +35,22 @@ renameSpecies<-function(df){
 
 formatMetadata<-renameSpecies(metadata)
 
-write.csv(formatMetadata, 'metadata.csv', row.names = F)
+# custom formatting
+numbMeta<-formatMetadata[is.na(formatMetadata$`Fastq Name`),]
+numbMeta$uuid<-gsub('028_00', '', numbMeta$uuid)
+selMeta<-numbMeta[(numbMeta$uuid >= 4311 & numbMeta$uuid <= 4453),]
+selMeta$new_id<-gtdbtk.bac120.summary[1:16, 1]
+selMeta$uuid<-selMeta$new_id
+numMetFin<-selMeta[, 1:10]
+
+
+charMeta<-formatMetadata[!is.na(formatMetadata$`Fastq Name`),]
+charMeta$uuid<-charMeta$`Fastq Name`
+charMeta$uuid<-gsub('-', '_', charMeta$uuid)
+charMeta$uuid<-gsub(' ', '_', charMeta$uuid)
+charMeta$uuid[(charMeta$uuid=='MU_8237')]<-'Mu_8237'
+charMeta$uuid[(charMeta$uuid=='MU_8174')]<-'Mu_8174'
+
+finalMeta<-rbind(numMetFin, charMeta)
+
+write.csv(finalMeta, 'metadata.csv', row.names = F)
