@@ -16,7 +16,7 @@ echo ''
 for j in $(cat bacteria.list)
 do
 cd ./bactopia_gtdbtk/"$j"/antimic_res
-Rscript --vanilla ../../../programs/combineRes.R
+Rscript --vanilla ../../../programs/main/combineAMR.R
 cd ../../../
 done
 
@@ -31,7 +31,7 @@ cp ./bactopia_gtdbtk/*/antimic_res/combined/*.tsv ./antimic_res
 
 cd antimic_res
 mkdir combined
-Rscript --vanilla ../programs/combResAllBact.R
+Rscript --vanilla ../programs/main/combAmrAllBact.R
 
 echo ''
 echo 'combined all bacteria that were used in a run together'

@@ -1,14 +1,15 @@
 library(readr)
+library(plyr)
 
 ## genes
 
 filesList<-list.files(pattern = "genes_combined.tsv")
 
-combGene<-data.frame(matrix(ncol=24, nrow=0))
+combGene<-data.frame(matrix(ncol=0, nrow=0))
 
 for (i in filesList){
   df <-read_delim(i, delim='\t')
-  combGene<-rbind(combGene, df)
+  combGene<-rbind.fill(combGene, df)
   
 }
 
@@ -16,11 +17,11 @@ for (i in filesList){
 
 protList<-list.files(pattern = "proteins_combined.tsv")
 
-combProt<-data.frame(matrix(ncol=20, nrow=0))
+combProt<-data.frame(matrix(ncol=0, nrow=0))
 
 for (j in protList){
   data <-read_delim(j, delim='\t')
-  combProt<-rbind(combProt, data)
+  combProt<-rbind.fill(combProt, data)
   
 }
 

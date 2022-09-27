@@ -6,8 +6,17 @@ else
 fi
 done
 
+echo ''
 echo 'Successful'
 wc -l ./gtdbtk/completeSpades.txt
+echo ''
 
+echo ''
 echo 'Failed'
-wc -l  ./gtdbtk/failedSpades.txt
+FILE=./gtdbtk/failedSpades.txt
+if [ -f "$FILE" ]; then
+    wc -l  ./gtdbtk/failedSpades.txt
+else 
+    echo 0
+fi
+

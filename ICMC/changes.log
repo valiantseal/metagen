@@ -20,3 +20,9 @@
 - added programs to sum ML sequence types, AMR, and bactopia quality 
 - added program to transfer custom output to S3 bucket
 
+-- cahnges v1.03
+- updated test for spades results to account for 0 failures
+- edited format metadata to create my own metadata
+- added a check between gtdb and ncbi names for unmatched samples in checkGtdb.R
+- reorgonized programs to be in specific folders: main, tests, development, outdated
+- if no AMR genes/proteins found for a sample fill rows with 'NONE'

@@ -1,4 +1,5 @@
 library(readr)
+library(plyr)
 #setwd("/home/ubuntu/ICMC/cre_witt-cecile/bactopia/Enterobacter_cloacae/antimic_res")
 setwd("./")
 
@@ -13,7 +14,7 @@ setwd("./")
 
 genesList<-list.files(pattern = "-gene-report.txt")
 
-combined<-data.frame(matrix(nrow=0, ncol=23))
+combined<-data.frame(matrix(nrow=0, ncol=0))
 #colnames(combined)[1]<-'sample_Id'
 #colnames(combined)[2:23]<-geneRefColName
 
@@ -23,8 +24,13 @@ for ( i in genesList){
   df<-read_delim(i, delim = "\t")
   #colnames(df)<-geneRefColName
   sampleId<-gsub("-gene-report.txt", "", i)
+  if (nrow(df)==0){
+    for (j in 1:ncol(df)){
+      df[1, j]<-'NONE'
+    }
+  }
   df<-tibble::add_column(df, Sample=sampleId, .before = 1)
-  combined<-rbind(combined, df)
+  combined<-rbind.fill(combined, df)
 }
 
 # add species
@@ -44,7 +50,7 @@ rm(list=ls())
 ## protein
 genesList<-list.files(pattern = "-protein-report.txt")
 
-combined<-data.frame(matrix(nrow=0, ncol=18))
+combined<-data.frame(matrix(nrow=0, ncol=0))
 #colnames(combined)[1]<-'sample_Id'
 #colnames(combined)[2:23]<-geneRefColName
 
@@ -54,8 +60,13 @@ for ( i in genesList){
   df<-read_delim(i, delim = "\t")
   #colnames(df)<-geneRefColName
   sampleId<-gsub("-protein-report.txt", "", i)
+  if (nrow(df)==0){
+    for (j in 1:ncol(df)){
+      df[1, j]<-'NONE'
+    }
+  }
   df<-tibble::add_column(df, Sample=sampleId, .before = 1)
-  combined<-rbind(combined, df)
+  combined<-rbind.fill(combined, df)
 }
 
 # add species

@@ -54,3 +54,11 @@ charMeta$uuid[(charMeta$uuid=='MU_8174')]<-'Mu_8174'
 finalMeta<-rbind(numMetFin, charMeta)
 
 write.csv(finalMeta, 'metadata.csv', row.names = F)
+
+
+
+### make own metadata 
+metadata<-data.frame(list.files('./process_par'))
+metadata$Species_full<-'Escherichia coli'
+colnames(metadata)[1]<-'uuid'
+write.csv(metadata, './metadata/metadata.csv', row.names = F)

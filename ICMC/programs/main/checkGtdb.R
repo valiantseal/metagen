@@ -29,10 +29,11 @@ processMetadata<-function(x){
 }
 
 metadataID<-processMetadata(metadata)
-mergedData<-plyr::join(gtdb_result, metadataID, by="uuid", type="left", match="first")
-
 
 # merge metadata and gtdb
+mergedData<-plyr::join(gtdb_result, metadataID, by="uuid", type="left", match="first")
+
+# check if gtdb or original taxa are not identified
 checkMatch<-function(x){
   df<-x
   df$Final_taxa<-'unknown'
@@ -50,10 +51,12 @@ checkMatch<-function(x){
 
 checkedSamples<-checkMatch(mergedData)
 
+# extract matched samples
 firstMatch<-checkedSamples[!(checkedSamples$Final_taxa=='unknown'),]
-firstUnmatch<-mergedData[!(mergedData$uuid%in%firstMatch$uuid),]
+# extract mismatch
+firstMismatch<-mergedData[!(mergedData$uuid%in%firstMatch$uuid),]
 
-
+# check spelling
 checkSpelling<-function(x){
   spellCheck<-x
   spellCheck$LS<-RecordLinkage::levenshteinSim(spellCheck$Experiment_taxa, spellCheck$Control_taxa)
@@ -61,17 +64,36 @@ checkSpelling<-function(x){
   checkPass<-spellCheck[!(spellCheck$Final_taxa=="unknown"),]
   matched_samples=checkPass[, c('uuid', 'Experiment_taxa', 'Experiment_genus', 'Control_taxa', 'Final_taxa')]
   matched_samples<-matched_samples[!(is.na(matched_samples$uuid)),]
-  rownames(matched_samples)<-1:nrow(matched_samples)
+  if (nrow(matched_samples>0)){
+    rownames(matched_samples)<-1:nrow(matched_samples)
+  }
   return(matched_samples)
 }
 
-secondMatch<-checkSpelling(firstUnmatch)
+#extract matched
+secondMatch<-checkSpelling(firstMismatch)
 
-combineMatched<-rbind(firstMatch, secondMatch)
+matched_1_2<-rbind(firstMatch, secondMatch)
+
+# extract mismatch
+secondMismatch<-mergedData[!(mergedData$uuid%in%matched_1_2$uuid),]
+
+# check if Gtdb names corresponds to ncbi names
+checkNCBI<-function(x){
+  ncbi<-read.delim('/home/ubuntu/gtdbtk/conversion/dictionary/gtdbtkNcbiDictSpecies.tsv', T, sep='\t')
+  colnames(ncbi)[1]<-'Experiment_taxa'
+  ncbiMatch<-plyr::join(x, ncbi, by='Experiment_taxa', match='first', type='left')
+  names(ncbiMatch)[names(ncbiMatch) == "ncbi_organism_name"] <- "Final_taxa"
+  thrirdMatch<-ncbiMatch[, c("uuid","Experiment_taxa","Experiment_genus","Control_taxa","Final_taxa" )]
+  return(thrirdMatch)
+}
+
+#extract matched
+thirdMatch<-checkNCBI(secondMismatch)
+
+combineMatched<-rbind(firstMatch, secondMatch, thirdMatch)
 
 taxa<-unique(combineMatched$Final_taxa)
-
-secondUnmatch<-mergedData[!(mergedData$uuid%in%combineMatched$uuid),]
 
 # write files
 writeSamples<-function(){

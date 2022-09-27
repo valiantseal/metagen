@@ -9,7 +9,7 @@ cp ./bactopia_summary/bactopia-report.txt ../../bactopia_summary/"$i".tsv
 cd ../../
 done
 
-Rscript --vanilla ./programs/combSummary.R
+Rscript --vanilla ./programs/main/combSummary.R
 
 
 
