@@ -6,10 +6,11 @@ library(writexl)
 library(ggplot2)
 library(gridExtra)
 library(clustree)
+library(openxlsx)
 
 #please set the working directory after cleaning the memory
 setwd("C:/Users/abomb/Projects/AU/wang/SingleCellStress/data")
-
+#setwd('C:/Users/shyan/Box/Wang_and_Jiao_sequencing_projects/Project1_Wang_single_cell_sequencing/Andrei/')
 
 #please set the working directory after cleaning the memory
 setwd("C:/Users/abomb/Projects/AU/wang/SingleCellStress/data")
@@ -29,9 +30,18 @@ RNA_stress$group = "Stress" #create a group label to identify the two groups
 # quality control 
 RNA_control[["percent.mt"]] <- PercentageFeatureSet(RNA_control, pattern = "^mt-")
 
+median(RNA_control$nFeature_RNA)
+sd(RNA_control$nFeature_RNA)
+
+VlnPlot(RNA_control, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+
 controlFiltered <- subset(RNA_control, subset = nFeature_RNA > 200 & nFeature_RNA < 2500 & percent.mt < 5)
 
 RNA_stress[["percent.mt"]] <- PercentageFeatureSet(RNA_stress, pattern = "^mt-")
+
+median(RNA_stress$nFeature_RNA)
+
+VlnPlot(RNA_stress, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
 
 stressFiltered <- subset(RNA_stress, subset = nFeature_RNA > 200 & nFeature_RNA < 2500 & percent.mt < 5)
 
@@ -112,7 +122,7 @@ plotUmap(resols)
 # differential expression
 DefaultAssay(RNA.combined.norm) <- "RNA"
 DefaultAssay(RNA.combined.norm)
-Idents(RNA.combined.norm)<-'integrated_snn_res.0.2'
+Idents(RNA.combined.norm)<-'integrated_snn_res.0.3'
 
 # check for normalization
 q1<-RNA.combined.norm@assays$RNA@counts
@@ -126,7 +136,8 @@ RNA.combined.norm<-readRDS('intergratedRNA')
 ###
 
 # make lists with gene names
-all_select_genes<-c("Rbfox3", "Snap25", "Syt1", "Slc17a6", "Grin2b", "Gad1", "Gad2","Slc1a3", "Gfap", "Aldoc", "Glul", "Rarres2", "Slc6a13", "Plp1", "Vcan", "Hmha1", "Iba-1","Alf-1","CX3CR1", "P2ry12", "Reln", "Ndnf")
+all_select_genes<-c("Rbfox3", "Snap25", "Syt1", "Slc17a6", "Grin2b", "Gad1", "Gad2","Slc1a3", "Gfap", "Aldoc", 
+                    "Glul", "Rarres2", "Slc6a13", "Plp1", "Vcan", "Hmha1", "Iba-1","Alf-1","CX3CR1", "P2ry12", "Reln", "Ndnf")
 neuron<-c("Rbfox3", "Snap25", "Syt1", "Slc17a6", "Grin2b", "Gad1", "Gad2")
 astrocyte<-c("Slc1a3", "Gfap", "Aldoc", "Glul", "Rarres2", "Slc6a13")
 oligodendrocytes<-c("Plp1")
@@ -140,11 +151,12 @@ DG<-c("Prox1", "Glis3")
 all_neuron_subtypes<-c("Reln", "Ndnf", "Mpped1", "Satb2", "Map3k15", "Gram4","Cdh24", "Npy2r",  "Prox1", "Glis3")
 additional_markers<-c("Cx3cr1", "Ephb1", "Vwc2I", "Csf2rb2", "Fibcd1", "Wfs1","DCN",  "Slc4a4", "Plk5" , "Cntn6", "Amigo2")
 addMarkSet2<-c("Kcnh5", "Bok", "CSmd3","PCDH9", "Akt2", "Acsl3", "Trf", "Ptgds", "Hexb", "Kcnc1", "Npy1r", "Calb2", "Calb1")
+addMarkSet3<-c("Olig2", "Gramd4", "Vwc2l")
 # merge lists
 cell_type_list<-list(neuron, astrocyte, oligodendrocytes, oligodendrocytes_prec, microglia, HexbC, CA1, CA2, CA3,DG, all_neuron_subtypes, 
-                     additional_markers, addMarkSet2)
+                     additional_markers, addMarkSet2, addMarkSet3)
 names_cells<-c('neuron', 'astrocyte', 'oligodendrocytes', 'oligodendrocytes_prec', 'microglia', 'HexbC', 'CA1', 'CA2', 'CA3','DG', 'all_neuron_subtypes', 
-               'additional_markers', 'addMarkSet2')
+               'additional_markers', 'addMarkSet2', 'addMarkSet3')
 names(cell_type_list)<-names_cells
 
 # plot function
@@ -158,6 +170,37 @@ exprPlot<-function(x) {
 
 exprPlot(names_cells)
 
+FeaturePlot(RNA.combined.norm, features = "lyd", min.cutoff = "q9")
+ggsave('./output/featurePlot_addMarkSet3.jpeg', height = 10, width = 16, units = 'in', dpi = 300)
 
 
+# cluster analysis
+metadata<-data.frame(RNA.combined.norm@meta.data)
 
+cellsPerClust<-data.frame(table(metadata$integrated_snn_res.0.3, metadata$group))
+colnames(cellsPerClust)<-c('Cluster', 'Group', 'Cells_number')
+write.xlsx(cellsPerClust, './output/Cells_per_cluster_group_res0.3.xlsx')
+
+
+# more markers
+pyr_markers<-read.csv('../data/pyr_markers.csv')
+
+pyr_set1<-pyr_markers[1:10,]
+pyr_set2<-pyr_markers[11:20,]
+pyr_set3<-pyr_markers[21:30,]
+
+
+pyr_list<-list(pyr_set1, pyr_set2, pyr_set3)
+names(pyr_list)<-c('pyr_set1', 'pyr_set2', 'pyr_set3')
+pyr_names<-c('pyr_set1', 'pyr_set2', 'pyr_set3')
+
+# plot function
+exprPlot<-function(x, y) {
+  for (cell_name in x) {
+    genes<-y[[cell_name]]
+    fPlot<-FeaturePlot(RNA.combined.norm, features = genes, min.cutoff = "q9")
+    ggsave(paste0('featurePlot_',cell_name,".jpeg"), plot=fPlot, height = 10, width = 16, units = 'in', dpi = 300)
+  }
+}
+
+exprPlot(pyr_names, pyr_list)
