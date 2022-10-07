@@ -1,14 +1,10 @@
 conda activate krakenuniq
 
-for j in $(cat merged.list)
-do 
-cd "$j"
+cd process
 
-sample=$(cat merge.type)
-
-krakenuniq --threads 8 --db /home/ubuntu/extraVol/krakenUniq/viral \
+ls -d */ | parallel -j 5 'cd {} && krakenuniq --threads 5 --db /home/ubuntu/extraVol/krakenUniq/viral \
 --report-file krakUniq_sample.report --output krakUniq_sample.kraken \
---classified-out krakUniq_classified.reads "$sample".fa
+--classified-out krakUniq_classified.reads merged_reads.fa'
 
-cd ../
-done
+
+
