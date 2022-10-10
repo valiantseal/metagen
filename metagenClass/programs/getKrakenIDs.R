@@ -60,4 +60,8 @@ for (sample in krakenReads){
 
 allKrakenReads$Sample<-gsub('.reads', '', allKrakenReads$Sample)
 
+allReadsSum<-data.frame(table(allKrakenReads$Sample, allKrakenReads$Virus))
+colnames(allReadsSum)[1:2]<-c('Sample', 'Virus')
+write.csv(allReadsSum, './combined/krakUniqSelVirResultsUniq.csv', row.names = F)
+
 write.table(allKrakenReads, './combined/krakenSelVirReads.tsv', row.names = F, sep = '\t', quote = F)

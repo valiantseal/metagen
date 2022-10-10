@@ -1,4 +1,4 @@
-
+# summarize instances of virus based on all the names of the virus and kraken symmary file. Likely kraken can classify one read several times.
 
 setwd('/home/ubuntu/extraVol/metagenClass/2022-02-25/fastpKrakUniq/kraqSummary')
 

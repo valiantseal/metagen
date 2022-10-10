@@ -1,10 +1,11 @@
 # write functions sumAll() count the match for all viruses and sumSelVirus() count matches for specifc virus
 
 
-kraken<-krakenSelVirReads
+kraken<-read.delim('/home/ubuntu/extraVol/metagenClass/2022-02-25/fastpKrakUniq/kraqSummary/combined/krakenSelVirReads.tsv', T, sep = '\t')
 kraken$read_sample_virus<-paste(kraken$Read, kraken$Sample, kraken$Virus, sep='_')
 
-blast<-blastNtSelVirReads
+blast<-read.delim('/home/ubuntu/extraVol/metagenClass/2022-02-25/fastpKrakUniq/blastNtSummary/results/combined/blastNtSelVirReads.tsv', 
+                  T, sep = '\t')
 
 blast$read_sample_virus<-paste(blast$Read, blast$Sample, blast$Virus, sep='_')
 
