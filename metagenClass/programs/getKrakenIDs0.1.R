@@ -5,6 +5,7 @@ setwd('/home/ubuntu/extraVol/metagenClass/2022-02-25/fastpKrakUniq/kraqSummary')
 virusId<-function(x){
   filesList<-list.files(pattern = '.report')
   virusTable<-data.frame(matrix(ncol=0, nrow=1))
+  # for each kraken sample file extract rows with matching viruses
   for ( i in filesList){
     sumVirus<-data.frame(matrix(ncol=0, nrow=1))
     df<-read.delim(i, comment.char="#")
@@ -13,8 +14,8 @@ virusId<-function(x){
     colnames(virusID)<-'ID'
     virusTable<-rbind(virusTable,virusID)
   }
+  # make sure function works if no tarket virus is found and keep only unique kraken IDs
   if (nrow(virusTable)>0){
-    #fileName<-gsub(" ", "_", x)
     uniqID<-data.frame(unique(virusTable$ID))
     colnames(uniqID)<-'krakenID'
   } else {
@@ -22,16 +23,14 @@ virusId<-function(x){
     colnames(uniqID)<-'krakenID'
   }
   uniqID$Virus<-x
-  #write.table(uniqID, paste0(fileName, ".krakenid"), row.names = F, col.names = F, quote = F)
   return(uniqID)
 }
 
-
-mast<-virusId(x='Human mastadenovirus D')
-
+# read list of target viruses
 virusList<-read.table('../../virus.list', F, sep='\t')
 virus.list<-virusList$V1
 
+# bind kraken id's for all viruses from the list
 sumStat<-data.frame(matrix(ncol=0, nrow=0))
 for (virus in virus.list){
   pattern<-gsub(" ", "_", virus)

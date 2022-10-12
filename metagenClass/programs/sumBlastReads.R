@@ -9,14 +9,14 @@ setwd('/home/ubuntu/extraVol/metagenClass/2022-02-25/fastpKrakUniq/blastNtSummar
 # x = pattern for file, y= exact string match for virus
 sumBlast<-function(x, y){
   
-  
+  # names of the blast columns that we have 
   blastNames<-c('qseqid', 'sseqid', 'stitle', 'pident', 'length', 'mismatch',
                 'gapopen' , 'qstart' , 'qend', 'sstart' , 'send', 'evalue', 'bitscore')
   # final summary
   sumRes<-data.frame(matrix(ncol = 0, nrow = 0))
   # final reads table
   allReads<-data.frame(matrix(ncol = 0, nrow = 0))
-  # list files
+  # list files with samples for each virus
   filesList<-list.files(pattern = x)
   
   for ( i in filesList){
@@ -32,9 +32,10 @@ sumBlast<-function(x, y){
     
     blastResFiltStr<-as.data.frame(blastResFilt[grep(y, blastResFilt$stitle, ignore.case=T),])
     if ( nrow(blastResFiltStr) > 0 ) {
+      # count unique reads per virus per sample
       resCount$Sample<-i
       resCount$Reads_numb<-length(unique(blastResFiltStr$qseqid))
-      # get unique reads
+      # get unique reads per virus per sample
       reads<-data.frame(unique(blastResFiltStr$qseqid))
       reads$Sample<-i
       colnames(reads)[1]<-'Reads'
@@ -49,16 +50,19 @@ sumBlast<-function(x, y){
       reads$Virus<-y
       resCount$Virus<-y
     }
+    # bind summary statistics per virus for all samples
     sumRes<-rbind(sumRes, resCount)
+    # bind unique reads per virus for all samples
     allReads<-rbind(allReads,  reads)
   }
   return(list(sumRes, allReads))
 }
 
-
+# read list with target viruses
 virusList<-read.table('../../virus.list', F, sep='\t')
 virus.list<-virusList$V1
 
+# get summaries and reads for each virus in the list across all samples
 sumStat<-list()
 for (virus in virus.list){
   pattern<-gsub(" ", "_", virus)
@@ -66,13 +70,17 @@ for (virus in virus.list){
   sumStat<-c(sumStat, sumVirus)
 }
 
+# remove spaces and repeat viral names twice
 virNames<-gsub(" ", "_", virus.list)
 sumNames<-rep(virNames, each=2)
 
+# make seuqence with increments by 2 
 readsIndex<- seq(2, length(sumStat), by=2)
 
+# name the results list with viral names
 names(sumStat)<-sumNames
 
+# mark reads tables
 for (i in readsIndex){
   names(sumStat)[i]
   oldName<-names(sumStat)[i]
