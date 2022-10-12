@@ -104,5 +104,4 @@ for (i in readNames){
 
 sumAllReads$Sample<-gsub("\\__.*","", sumAllReads$Sample)
 
-
 write.table(sumAllReads, '../blastNtSelVirReads.tsv', row.names = F, sep = '\t', quote = F)
