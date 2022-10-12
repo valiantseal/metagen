@@ -1,4 +1,4 @@
-for i in $(cat newdir.list); do mkdir -p ./process/"$i"/;
-cp ./input/"$i"* ./process/"$i"/;
-echo "$i" > ./process/"$i"/sample.name;
+for i in $(cat newdir.list); do mkdir -p ./trimKrUnVipr/"$i"/;
+cp ./input/"$i"* ./trimKrUnVipr/"$i"/;
+echo "$i" > ./trimKrUnVipr/"$i"/sample.name;
 done

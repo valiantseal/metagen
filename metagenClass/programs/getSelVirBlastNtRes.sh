@@ -1,13 +1,10 @@
-mkdir -p ./blastNtSummary/results
-output_dir=$(readlink -f ./blastNtSummary/results)
-
-rm "$output_dir"/*.txt
+mkdir -p krUnVipr/blastNtSummary/results
+output_dir=$(readlink -f krUnVipr/blastNtSummary/results)
 
 for i in $(cat newdir.list);
 do
-for virus in $(cat virus.list)
-do
-cat process/"$i"/splitSeq10K/*/"$virus".sel >> "$output_dir"/"$i"_"$virus".txt
-done
+cat krUnVipr/"$i"/all_classified_reads/splitSeq10K/*/alphaherpesvirus.sel >> "$output_dir"/"$i"_alphaherpesvirus.txt
+cat krUnVipr/"$i"/all_classified_reads/splitSeq10K/*/mastadenovirus.sel >> "$output_dir"/"$i"_mastadenovirus.txt
+cat krUnVipr/"$i"/all_classified_reads/splitSeq10K/*/polyomavirus.sel >> "$output_dir"/"$i"_polyomavirus.txt
 done
 
