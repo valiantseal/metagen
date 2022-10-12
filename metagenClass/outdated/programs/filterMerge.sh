@@ -12,7 +12,7 @@ fastp -i "$r1" -I "$r2" \
 --detect_adapter_for_pe \
 --adapter_fasta /home/ubuntu/trimmomatic/Trimmomatic-0.39/adapters/NexteraPE-PE.fa \
 --merge --merged_out merged_reads.fastq \
---include_unmerged \
+--include_unmerged
 --thread 8
 
 cd ../../

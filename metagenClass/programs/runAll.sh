@@ -21,3 +21,4 @@ Rscript --vanilla ./programs/countSummedReads.R
 mkdir kraqSummary
 
 for i in $(cat newdir.list);do cp process/"$i"/krakUniq_sample.report ./kraqSummary/"$i".report; done
+

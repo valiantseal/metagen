@@ -53,11 +53,19 @@ sumBlast<-function(x, y){
 mastedSum<-sumBlast(x='mastadenovirus', y='Human mastadenovirus D')[[1]]
 mastedReads<-sumBlast(x='mastadenovirus', y='Human mastadenovirus D')[[2]]
 
-alphaSum<-sumBlast(x='alphaherpesvirus', y='human alphaherpesvirus 2')[[1]]
-alphaReads<-sumBlast(x='alphaherpesvirus', y='human alphaherpesvirus 2')[[2]]
+alphaSum<-sumBlast(x='alphaherpesvirus', y='Human alphaherpesvirus 2')[[1]]
+alphaReads<-sumBlast(x='alphaherpesvirus', y='Human alphaherpesvirus 2')[[2]]
 
 polySum<-sumBlast(x='polyomavirus', y='JC polyomavirus')[[1]]
 polyReads<-sumBlast(x='polyomavirus', y='JC polyomavirus')[[2]]
+
+herpis2Sum<-sumBlast(x='herpesvirus2', y='Human herpesvirus 2')[[1]]
+herpis2Reads<-sumBlast(x='herpesvirus2', y='Human herpesvirus 2')[[2]]
+
+herpis2Sum<-sumBlast(x='herpesvirus2', y='Human herpesvirus 2')[[1]]
+herpis2Reads<-sumBlast(x='herpesvirus2', y='Human herpesvirus 2')[[2]]
+
+simplex2Sum<-sumBlast(x='herpessimplex2', y='herpes simplex virus 2')[[1]]
 
 #mastedSum$Virus<-'Human mastadenovirus D'
 #alphaSum$Virus<-'Human alphaherpesvirus 2'

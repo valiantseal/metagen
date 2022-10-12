@@ -4,18 +4,18 @@ output_dir=$(readlink -f ./blastNtSummary)
 
 for i in $(cat newdir.list);
 do
-rm "$output_dir"/"$i".txt
+#rm "$output_dir"/"$i".txt
 cd process/"$i"/splitSeq10K
 
 
-ls -d */ | parallel -j 12 'cd {} && sh ../../../../programs/selVirusBlastNt.sh'
+ls -d */ | parallel -j 80 'cd {} && sh ../../../../programs/selVirusBlastNt.sh'
 
-for dir in $(ls -d */)
-do
-cd "$dir"
-wc -l *.sel >> "$output_dir"/"$i".txt
-cd ../
-done 
+#for dir in $(ls -d */)
+#do
+#cd "$dir"
+#wc -l *.sel >> "$output_dir"/"$i".txt
+#cd ../
+#done 
 
 cd ../../../
 done
