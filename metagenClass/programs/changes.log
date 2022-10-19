@@ -1,0 +1,5 @@
+-- v1.00 
+- first completed release, mai programs are in bin folder.
+- for blast sequences are grouped in files with 2K reads each.
+- in theory the number of used paralel blast searches can be increased to 33 assuming m5a.24xlarge (better try with 32 first)
+
