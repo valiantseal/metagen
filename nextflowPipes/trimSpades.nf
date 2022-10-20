@@ -6,7 +6,7 @@ process trim {
   tuple val(sample_id), path(sample_id)
 
   output:
-  tuple val(sample_id), path("trimmed_val_{1,2}.fq.gz")
+  path "trimmed_*"
 
   script:
   """
@@ -16,7 +16,22 @@ process trim {
   """
 }
 
+process spades {
+    input:
+    path x
+
+    output:
+    path "spades_output/contigs.fasta" 
+
+    script:
+    """
+    /home/ubuntu/spades/SPAdes-3.15.4-Linux/bin/spades.py -1 trimmed_val_1.fq.gz \
+    -2 trimmed_val_2.fq.gz -o spades_output \
+    -t 8 --isolate
+    """
+}
+
 workflow {
-    trim_ch = trim(readsCh)
+    trim_ch = trim(readsCh) | spades
     trim_ch.view()
 }
