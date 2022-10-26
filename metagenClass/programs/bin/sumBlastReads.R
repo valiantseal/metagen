@@ -31,12 +31,14 @@ sumBlast<-function(x, y){
     }
     
     blastResFiltStr<-as.data.frame(blastResFilt[grep(y, blastResFilt$stitle, ignore.case=T),])
-    if ( nrow(blastResFiltStr) > 0 ) {
+    blastResFiltSyn<-as.data.frame(blastResFiltStr[!(grepl('Synthetic', blastResFiltStr$stitle, ignore.case=T)),])
+    blastResFiltCl<-as.data.frame(blastResFiltSyn[!(grepl('clone', blastResFiltSyn$stitle, ignore.case=T)),])
+    if ( nrow(blastResFiltCl) > 0 ) {
       # count unique reads per virus per sample
       resCount$Sample<-i
-      resCount$Reads_numb<-length(unique(blastResFiltStr$qseqid))
+      resCount$Reads_numb<-length(unique(blastResFiltCl$qseqid))
       # get unique reads per virus per sample
-      reads<-data.frame(unique(blastResFiltStr$qseqid))
+      reads<-data.frame(unique(blastResFiltCl$qseqid))
       reads$Sample<-i
       colnames(reads)[1]<-'Reads'
       reads$Virus<-y
