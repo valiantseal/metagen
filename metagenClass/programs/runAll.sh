@@ -38,6 +38,11 @@ Rscript --vanilla ./programs/bin/sumBlastReads.R
 
 Rscript --vanilla ./programs/bin/checkBlastKrakReadId.R
 
+mkdir testReads
+
+cd testReads
+
+
 sh ./programs/bin/transferS3.sh
 
 

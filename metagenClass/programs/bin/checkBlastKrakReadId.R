@@ -34,6 +34,8 @@ combReads<-plyr::join(kraken, blast, by='read_sample', type='left', match='first
 # merge kraken and blast by unique column keeping only matching combinations
 mergeReads<-merge(kraken, blast, by='read_sample_virus')
 
+confRead<-unique(mergeReads[, c('Sample.x', 'Read', "Virus")])
+write.table(confRead, './testReads/confirmedReads.list', row.names = F, col.names = T, sep = '\t')
 # make sure that merged inputs are identical
 identical(mergeReads$Virus, mergeReads$Blast_virus)
 
