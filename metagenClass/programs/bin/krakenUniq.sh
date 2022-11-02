@@ -1,4 +1,4 @@
-conda activate krakenuniq
+conda activate /home/ubuntu/anaconda3/envs/krakenuniq
 
 cd process
 

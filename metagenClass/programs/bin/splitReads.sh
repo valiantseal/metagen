@@ -1,4 +1,4 @@
-conda activate seqkit
+conda activate /home/ubuntu/anaconda3/envs/seqkit
 
 for i in $(cat newdir.list)
 do

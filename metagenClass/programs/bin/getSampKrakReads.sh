@@ -1,4 +1,4 @@
-conda activate seqtk
+conda activate /home/ubuntu/anaconda3/envs/seqtk
 
 for i in $(cat newdir.list)
 do

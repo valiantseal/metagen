@@ -1,4 +1,5 @@
-conda activate ivar
+conda activate /home/ubuntu/anaconda3/envs/ivar
+
 
 for i in $(cat newdir.list);
 do
