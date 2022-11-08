@@ -33,7 +33,7 @@ bash -i ./programs/main/gtdbtk.sh
 
 echo "Finished GTDB-Tk"
 
-Rscript --vanilla ./programs/main/formatMetadata.R
+Rscript --vanilla ./programs/main/formatMetadata.R # or Rscript --vanilla ./programs/main/makeMetadata.R
 
 Rscript --vanilla ./programs/main/checkGtdb.R
 

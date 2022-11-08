@@ -6,6 +6,7 @@ mkdir -p original_files/R1
 mkdir -p original_files/R2
 mkdir -p gtdbtk/input
 mkdir -p metadata
+mkdir -p run_info
 
 echo " Renaming files"
 

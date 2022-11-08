@@ -1,5 +1,5 @@
 # transfer
-mkdir run_info
+mkdir -p run_info
 pwd > ./run_info/run.path
 cat ./run_info/run.path |cut -f5 -d"/" > run_info/client.name
 cat ./run_info/run.path |cut -f6 -d"/" > run_info/run.name

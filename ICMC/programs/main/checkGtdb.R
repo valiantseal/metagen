@@ -32,6 +32,7 @@ metadataID<-processMetadata(metadata)
 
 # merge metadata and gtdb
 mergedData<-plyr::join(gtdb_result, metadataID, by="uuid", type="left", match="first")
+write.csv(mergedData, './run_info/taxaInfo.csv', row.names = F)
 
 # check if gtdb or original taxa are not identified
 checkMatch<-function(x){

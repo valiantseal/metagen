@@ -8,7 +8,7 @@ organism=$(cat bacteria.id)
 
 bactopia prepare ./input > fastqs.txt
 
-bactopia --fastqs fastqs.txt \
+bactopia --samples fastqs.txt \
 	--datasets /home/ubuntu/bactopia/datasets \
 	--species "$organism" \
 	--coverage 150 \
