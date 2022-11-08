@@ -11,3 +11,5 @@ grep "$id" ./process/"$sample"/krakUniq_sample.kraken >> ./kraqSummary/"$sample"
 
 done
 done
+
+

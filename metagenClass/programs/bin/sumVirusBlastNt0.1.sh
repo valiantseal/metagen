@@ -8,7 +8,7 @@ cd process/"$i"/splitSeq10K
 
 inst=$(ls | wc -l)
 
-ls -d */ | parallel -j 27 'cd {} && sh ../../../../programs/bin/selVirusBlastNt0.1.sh'
+ls -d */ | parallel -j 36 'cd {} && sh ../../../../programs/bin/selVirusBlastNt0.1.sh'
 
 cd ../../../
 done

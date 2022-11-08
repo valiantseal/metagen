@@ -33,9 +33,9 @@ write.table(allKrakenReads, 'krakenSelVirReads.tsv', row.names = F, sep = '\t', 
 
 
 # check that all reads identyfy only with one virus
-idCheck<-data.frame(table(allKrakenReads$Sample, allKrakenReads$Read))
+#idCheck<-data.frame(table(allKrakenReads$Sample, allKrakenReads$Read))
 
-extrCh<-allKrakenReads[(allKrakenReads$Read=='M01541:32:000000000-K7WN6:1:1101:12606:18147'),]
+#extrCh<-allKrakenReads[(allKrakenReads$Read=='M01541:32:000000000-K7WN6:1:1101:12606:18147'),]
 
 
 
