@@ -26,9 +26,9 @@ time bash -i ./programs/bin/getSampKrakReads.sh
 
 time bash -i ./programs/bin/splitReads.sh
 
-time sh ./programs/bin/runBlastNt.sh # took 37 minutes
+time sh ./programs/bin/runBlastNt.sh 
 
-time sh ./programs/bin/sumVirusBlastNt0.1.sh # took less than a minute
+time sh ./programs/bin/sumVirusBlastNt0.1.sh 
 
 time sh ./programs/bin/splitTargVirus.sh
 

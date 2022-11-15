@@ -6,7 +6,14 @@ rm ./blastNtSummary/*_target.viruses
 rm ./blastNtSummary/current.vir
 # combine all matches for a virus per sample
 for i in $(cat newdir.list); do rm ./blastNtSummary/"$i"_target.viruses; 
-cat ./process/"$i"/splitSeq10K/*/*.par >> ./blastNtSummary/"$i"_target.viruses; done 
+cd ./process/"$i"/splitSeq10K
+for dir in *.reads_dir
+do cd "$dir"
+cat *.par >> ../../../../blastNtSummary/"$i"_target.viruses
+cd ../
+done
+cd ../../../
+done
 
 cd blastNtSummary
 
@@ -23,6 +30,3 @@ virus=$(sed -n '1p' current.vir)
 grep -i "$virus" "$sample"_target.viruses > ./target_results/"$sample"__"$i"
 done
 done
-
-
-

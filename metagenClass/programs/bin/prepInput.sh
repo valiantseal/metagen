@@ -1,4 +1,6 @@
 mkdir kraqSummary
+mkdir testReads
+
 cp ./programs/virus.list ./
 
 cd input; for i in *R1_001.fastq.gz; do echo "$i" >> ../inputList.txt; done; cd ../
