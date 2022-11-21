@@ -20,7 +20,7 @@ combineMatched<-unique(metadataID)
 idSummary<-metadataID
 colnames(idSummary)[2]<-'Original_species'
 idSummary$Gtdb_species<-'Not_tested'
-write.csv(idSummary, 'idSummary.csv', row.names = F)
+write.csv(idSummary, './metadata/idSummary.csv', row.names = F)
 
 colnames(combineMatched)[2]<-'Final_taxa'
 
