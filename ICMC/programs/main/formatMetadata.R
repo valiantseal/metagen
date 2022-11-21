@@ -7,7 +7,7 @@ inFile<-list.files('./', pattern = 'xlsx')
 
 metadata<-read_excel(inFile)
 
-metadata<-tibble::add_column(metadata, Species_full=NA, .before = 5)
+metadata<-tibble::add_column(metadata, Species_full=metadata$Species, .before = 5)
 
 
 renameSpecies<-function(df){
@@ -26,6 +26,10 @@ renameSpecies<-function(df){
       df$Species_full[i]<-'unknown'
     } else if (df$Species[i]=='P. rettgeri') {
       df$Species_full[i]<-'Providencia rettgeri'
+    } else if (df$Species[i]=='E. coli') {
+      df$Species_full[i]<-'Escherichia coli'
+    } else if (df$Species[i]=='Klebsiella/Enterobacter aerogenes') {
+      df$Species_full[i]<-'Klebsiella aerogenes'
     }
   }
   colnames(df)[1]<-'uuid'
@@ -34,6 +38,14 @@ renameSpecies<-function(df){
 }
 
 formatMetadata<-renameSpecies(metadata)
+
+write.csv(formatMetadata, 'metadata.csv', row.names = F)
+
+# write samples list
+samples<-metadata$SRA
+write.table(samples, '../samples.list', row.names = F, col.names = F, quote = F)
+
+
 
 # custom formatting
 numbMeta<-formatMetadata[is.na(formatMetadata$`Fastq Name`),]
@@ -55,10 +67,3 @@ finalMeta<-rbind(numMetFin, charMeta)
 
 write.csv(finalMeta, 'metadata.csv', row.names = F)
 
-
-
-### make own metadata 
-metadata<-data.frame(list.files('./process_par'))
-metadata$Species_full<-'Escherichia coli'
-colnames(metadata)[1]<-'uuid'
-write.csv(metadata, './metadata/metadata.csv', row.names = F)

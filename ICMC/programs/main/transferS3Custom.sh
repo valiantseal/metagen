@@ -4,8 +4,14 @@ for i in $(cat bacteria.list)
 do
 mkdir -p custom_output/pangenome/"$i"
 cp ./bactopia_gtdbtk/"$i"/panOut/bactopia-tools/pangenome/pangenome/core-genome.distance.tsv ./custom_output/pangenome/"$i"/
-cp ./bactopia_gtdbtk/"$i"/panOut/bactopia-tools/pangenome/pangenome/iqtree/core-genome.contree ./custom_output/pangenome/"$i"/
+cp ./iqtree/"$i"/*.contree ./custom_output/pangenome/"$i"/
+cp ./iqtree/"$i"/*.treefile ./custom_output/pangenome/"$i"/
+# place plasmid result too
+cp bactopia_gtdbtk/"$i"/plasmidOut/bactopia-tools/plasmidfinder/plasmidfinder/plasmidfinder.tsv ./custom_output/pangenome/"$i"/
+
 done
+
+Rscript --vanilla ./programs/main/adjDistMat.R
 
 #AMR
 mkdir ./custom_output/antimicrobial_resistance
@@ -19,13 +25,13 @@ cp ./bactopia_gtdbtk/*/output/*/assembly/*.fna.gz ./custom_output/assembled_geno
 cp ./bactopia_summary/combined/summary_combined.csv ./custom_output/quality_bactopia_summary_combined.csv
 
 #MLST
-cp ./mlst_summary/mlst_types.txt ./custom_output/mlst_types.csv
+#cp ./mlst_summary/mlst_types.txt ./custom_output/mlst_types.csv
 
 # transfer
-mkdir run_info
+mkdir -p run_info
 pwd > ./run_info/run.path
-cat ./run_info/run.path |cut -f5 -d"/" > run_info/client.name
-cat ./run_info/run.path |cut -f6 -d"/" > run_info/run.name
+cat ./run_info/run.path |cut -f6 -d"/" > run_info/client.name
+cat ./run_info/run.path |cut -f7 -d"/" > run_info/run.name
 
 client=$(cat run_info/client.name)
 run=$(cat run_info/run.name)

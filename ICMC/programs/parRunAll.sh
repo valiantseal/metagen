@@ -48,6 +48,8 @@ sleep 10s
 
 bash -i ./programs/main/pangenome.sh
 
+bash -i ./programs/main/mlst.sh
+
 #iqtree -s core_alignment.fasta -m TEST -nt 4 -b 200 # may be make a program to run with all samples
 
 sh ./programs/main/transferS3All.sh

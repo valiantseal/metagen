@@ -8,7 +8,8 @@ bactopia --wf pangenome \
 --bactopia ./output \
 --outdir ./panOut \
 --iqtree_model TEST \
---max_cpus 16 | tee pangenomeRun.log;
+--max_cpus 16 \
+--skip_phylogeny | tee pangenomeRun.log;
 
 cd ../
 done
