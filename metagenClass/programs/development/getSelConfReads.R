@@ -23,7 +23,7 @@ for (sample in samples){
     virusName<-gsub(" ", "_", virus)
     fileName<-paste0(sample, "_", virusName, '.fasta')
     virusReads<-fasta[(fasta$seq.name%in%dfVir$Read),]
-    if (nrow(virusReads)) {
+    if (nrow(virusReads) > 0) {
       print(sample)
       print(virus)
       print(nrow(dfVir))
