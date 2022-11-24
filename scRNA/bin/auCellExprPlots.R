@@ -24,9 +24,9 @@ RNA.combined.norm <- ScaleData(RNA.combined.norm, assay = 'AUC', features = rown
 
 kegg<-rownames(AUCmat)
 
-allHeat<-DoHeatmap(RNA.combined.norm, features = kegg)  + NoLegend()
+#allHeat<-DoHeatmap(RNA.combined.norm, features = kegg)  + NoLegend()
 
-ggsave(paste0('./heatmap_aucKeggClustProf_', curDate, '.jpeg'), plot = allHeat, height = 35, width = 35, units = 'in', dpi = 300)
+#ggsave(paste0('./heatmap_aucKeggClustProf_', curDate, '.jpeg'), plot = allHeat, height = 35, width = 35, units = 'in', dpi = 300)
 
 
 
@@ -34,7 +34,7 @@ ggsave(paste0('./heatmap_aucKeggClustProf_', curDate, '.jpeg'), plot = allHeat, 
 
 allMarkers <- FindAllMarkers(RNA.combined.norm , only.pos = T, min.pct = 0.1, logfc.threshold = 0, test.use = "wilcox")
 
-write.csv(allMarkers, paste0('auCellPosMarkersClustProf_',curDate, '.csv'), row.names = F)
+#write.csv(allMarkers, paste0('auCellPosMarkersClustProf_',curDate, '.csv'), row.names = F)
 
 allMarkersSign<-allMarkers[(allMarkers$p_val_adj<0.05),]
 
