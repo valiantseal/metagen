@@ -60,16 +60,18 @@ curDir<-sub(".*\\/", "", curPath)
 
 dir.create('./topMatch')
 
-outPath<-paste0('topMatch/', curDir,  '_krakBlastMatchLenFiltTop_', topResult, '.csv')
-
-write.csv(combReadsSel, outPath, row.names = F)
-
-
-# make summary
+# filter matched
 confReads<-combReadsSel[(combReadsSel$Match==TRUE),]
 
 confReadsSel<-unique(confReads[, c('Sample', 'Read', 'Virus')])
 
+# write filtered reads names
+
+outPath<-paste0('topMatch/', curDir,  '_krakBlastMatchLenFiltTop_', topResult, '.csv')
+
+write.csv(confReadsSel, outPath, row.names = F)
+
+# make summary
 sumTab<-data.frame(table(confReadsSel$Sample, confReadsSel$Virus))
 
 sumTabSel<-sumTab[(sumTab$Freq > 0),]
@@ -81,7 +83,7 @@ sumPath<-paste0('topMatch/', curDir,  '_krakBlastMatchLenFilt_Sum_Top_', topResu
 write.csv(sumTabSel, sumPath, row.names = F)
 
 
-s3Path<-paste0('s3://abombin/metagenClass/', curDir, '/custom_output/topMatch/')
+s3Path<-paste0('s3://transfer-files-emory/metagenClass/', curDir, '/custom_output/topMatch/')
 
 s3CommandSum<-paste0('aws s3 cp ', sumPath, ' ', s3Path)
 

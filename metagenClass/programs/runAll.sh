@@ -38,10 +38,17 @@ time Rscript --vanilla ./programs/bin/checkBlastKrakReadId.R
 
 mkdir testReads
 
-cd testReads
+#cd testReads
+
+#time sh ./programs/bin/transferS3.sh
+
+Rscript --vanilla ~/github/DailyWork/metagenClass/programs/development/filterVirReadsLength.R
+
+sh ~/github/DailyWork/metagenClass/programs/development/runGetFiltLenReads.sh
+
+Rscript --vanilla ~/github/DailyWork/metagenClass/programs/development/krakBlastTopMatch.R
 
 
-time sh ./programs/bin/transferS3.sh
 
 
 

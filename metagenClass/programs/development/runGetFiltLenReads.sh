@@ -10,7 +10,7 @@ mkdir -p virReadsFiltLen
 
 cd splitSeq10K
 
-time ls -d */ | parallel -j 40 'cd {} && sh ~/github/DailyWork/metagenClass/programs/development/getFiltLenReads.sh'
+time ls -d */ | parallel -j 30 'cd {} && sh ~/github/DailyWork/metagenClass/programs/development/getFiltLenReads.sh'
 
 cd ../
 
