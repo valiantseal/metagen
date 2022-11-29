@@ -1,3 +1,6 @@
+
+
+
 sumDat<-read.table('./testReads/confirmedReads.list', T)
 
 samples<-unique(sumDat$Sample.x)
@@ -7,21 +10,28 @@ samples<-unique(sumDat$Sample.x)
 
 #df<-files.list[1]
 
-allRes<-data.frame(matrix(ncol=0, nrow = 0))
+topResult<-1
 
-for ( i in samples){
+selectTop<-function(x){
+  allRes<-data.frame(matrix(ncol=0, nrow = 0))
+  for ( i in samples){
   targPath<-paste0('./process/', i, '/virReadsFiltLen/')
   files.list<-list.files(targPath, pattern = '.par')
   for (df in files.list){
     dfPath<-paste0(targPath, df)
     blastRes<-read_delim(dfPath, delim = "\t", escape_double = FALSE,  col_names = FALSE, trim_ws = TRUE, skip = 1)
-    if (nrow(blastRes) > 0){
-      blastTop<-head(blastRes, 1)
+    if (nrow(blastRes) > 0) {
+      blastTop<-head(blastRes, x)
       blastTop$Sample<-i
       allRes<-rbind(allRes, blastTop)
+      
+      }
     }
   }
+  return(allRes)
 }
+
+allRes<-selectTop(x=topResult)
 
 blastNames<-c('qseqid', 'sseqid', 'stitle', 'pident', 'length', 'mismatch',
                             'gapopen' , 'qstart' , 'qend', 'sstart' , 'send', 'evalue', 'bitscore')
@@ -44,4 +54,39 @@ for (i in 1:nrow(combReadsSel)){
   combReadsSel$Match[i]<-grepl(combReadsSel$Virus[i], combReadsSel$stitle[i], ignore.case = T)
 }
 
-write.csv(combReadsSel, 'krakBlastMatchLenFiltTop1.csv', row.names = F)
+curPath<-getwd()
+
+curDir<-sub(".*\\/", "", curPath)
+
+dir.create('./topMatch')
+
+outPath<-paste0('topMatch/', curDir,  '_krakBlastMatchLenFiltTop_', topResult, '.csv')
+
+write.csv(combReadsSel, outPath, row.names = F)
+
+
+# make summary
+confReads<-combReadsSel[(combReadsSel$Match==TRUE),]
+
+confReadsSel<-unique(confReads[, c('Sample', 'Read', 'Virus')])
+
+sumTab<-data.frame(table(confReadsSel$Sample, confReadsSel$Virus))
+
+sumTabSel<-sumTab[(sumTab$Freq > 0),]
+
+colnames(sumTabSel)[1:2]<-c('Sample', 'Virus')
+
+sumPath<-paste0('topMatch/', curDir,  '_krakBlastMatchLenFilt_Sum_Top_', topResult, '.csv')
+
+write.csv(sumTabSel, sumPath, row.names = F)
+
+
+s3Path<-paste0('s3://abombin/metagenClass/', curDir, '/custom_output/topMatch/')
+
+s3CommandSum<-paste0('aws s3 cp ', sumPath, ' ', s3Path)
+
+s3CommandTab<-paste0('aws s3 cp ', outPath, ' ', s3Path)
+
+system(s3CommandSum)
+
+system(s3CommandTab)
