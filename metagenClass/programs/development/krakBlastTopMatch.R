@@ -10,7 +10,7 @@ samples<-unique(sumDat$Sample.x)
 
 #df<-files.list[1]
 
-topResult<-1
+topResult<-10
 
 selectTop<-function(x){
   allRes<-data.frame(matrix(ncol=0, nrow = 0))
