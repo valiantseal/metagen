@@ -27,11 +27,11 @@ addEnrich<-function(x){
 }
 
 # add AUcell data
-RNA.combined.norm<-addEnrich(x='./cellsAUC_kegg2019Mouse.RData')
+RNA.combined.norm<-addEnrich(x='./cellsAUC_keggClustProf.RData')
 
 DefaultAssay(RNA.combined.norm)
 
-targetDir<-'./Enrichment/AUcell/Kegg_enrichR/'
+targetDir<-'./Enrichment/AUcell/Kegg_ClustProfiler/pos_and_neg/'
 
 dir.create(targetDir, recursive = T)
 
@@ -55,7 +55,7 @@ findMarkersGr<-function(dat, clust, pos){
   return(combMarkers)
 }
 
-groupMarkers<-findMarkersGr(dat=RNA.combined.norm, clust=clusters, pos=T)
+groupMarkers<-findMarkersGr(dat=RNA.combined.norm, clust=clusters, pos=F)
 write.csv(groupMarkers, paste0(targetDir, 'All_ContrVsStress_',curDate, '.csv'), row.names = F)
 
 # make heatmaps

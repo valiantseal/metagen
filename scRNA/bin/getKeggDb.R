@@ -26,13 +26,13 @@ colnames(entr)<-c('kegg_id', 'entrez')
 
 colnames(keggGen)<-c('Gene', 'entrez')
 
-allGenes<-plyr::join(keggGen, entr, by='entrez', type='left', match='first')
+allGenes<-plyr::join(keggGen, entr, by='entrez', type='left', match='all')
 
 # add pathway names
 
 colnames(keggPath)<-c('kegg_id', 'Kegg_path')
 
-allKegg<-plyr::join(allGenes, keggPath, by='kegg_id', type='left', match='first')
+allKegg<-plyr::join(allGenes, keggPath, by='kegg_id', type='left', match='all')
 
 new_DF <- allKegg[rowSums(is.na(allKegg)) > 0,]
 
