@@ -15,7 +15,7 @@ log.info """
 
 
 process fastp {
-    cpus 8
+    cpus 4
 
     /* 
        fastp process to remove adapters and low quality sequences
@@ -33,7 +33,7 @@ process fastp {
     tuple val(sample_id), path("filtered_{1,2}.fastq"), emit: filtered
     path("merged_prep_temp.fastq"), emit: merged
     path("${sample_id}.fastp.json"), emit: json
-    path("virema1.fastq"), emit: virema1
+    tuple val(sample_id), path("virema1.fastq"), emit: virema1
 
  
     script:
@@ -53,7 +53,35 @@ process fastp {
     """  
 }  
 
+process virema {
+    cpus 8
+    
+    tag { sample_id }
+    
+    publishDir "$params.outdir/${sample_id}/virema_1/", 
+        mode: 'copy'
+    
+    input:
+    tuple val(sample_id), path(virema1) 
+    
+    
+    output:
+    tuple val(sample_id), path("${sample_id}_ViReMaR1-results.txt"), emit: viremaResult1 
+    tuple val(sample_id), path("${sample_id}_virema1.sam"), emit: viremaSam1
+
+    script:
+    """
+    python /home/ubuntu/extraVol/Copyback/nextflowTrial/bin/ViReMa.py \
+    /home/ubuntu/extraVol/Copyback/nextflowTrial/reference/GCA_009858895.3_ASM985889v3_genomic.200409.fna ${virema1} \
+    "${sample_id}_virema1.sam" \
+    --Output_Dir ./ --Seed 13 --ErrorDensity 2,20 \
+    --X 1 --MicroInDel_Length 2 --Chunk 10000000 --p ${task.cpus} -Overwrite >>"${sample_id}_ViReMaR1-results.txt"
+    
+    """
+}
+
 
 workflow {
     fastp( reads )
+    virema( fastp.out.virema1 )
 }
