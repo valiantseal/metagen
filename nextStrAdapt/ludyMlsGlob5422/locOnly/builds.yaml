@@ -1,0 +1,19 @@
+inputs:
+  - name: pen-only
+    metadata: data/MLS_all_metaForm.tsv
+    sequences: data/MLS_all_seqForm.fasta
+  - name: references
+    metadata: data/references_metadata.tsv
+    sequences: data/references_sequences.fasta 
+
+
+#Build.
+builds:
+   penCovMayOn:
+      region: North America
+      country: USA
+      division: Pennsylvania
+      
+      
+
+

@@ -1,0 +1,54 @@
+inputs:
+  - name: pen
+    metadata: data/MLS_all_metaForm.tsv
+    sequences: data/MLS_all_seqForm.fasta
+  - name: hcov-gl
+    metadata: data/hcov_global.tsv
+    sequences: data/hcov_global.fasta
+
+
+builds:
+  penCovMayGlobAdjLenD:
+    subsampling_scheme: custom-division
+    region: North America
+    country: USA
+    division: Pennsylvania
+
+subsampling:
+  custom-division:
+    division:
+      group_by: "division year month"
+      max_sequences: 1500
+      query: --query "(country == '{country}') & (division == '{division}')"
+    country:
+      group_by: "division year month"
+      max_sequences: 10
+      exclude: "--exclude-where 'region!={region}' 'country!={country}' 'division={division}'"
+      priorities:
+        type: "proximity"
+        focus: "division"
+    region:
+      group_by: "country year month"
+      max_sequences: 10
+      exclude: "--exclude-where 'region!={region}' 'country={country}'"
+      priorities:
+        type: "proximity"
+        focus: "division"
+    global:
+      group_by: "country year month"
+      max_sequences: 5
+      exclude: "--exclude-where 'region={region}'"
+      priorities:
+        type: "proximity"
+        focus: "division"
+    subglobal:
+      group_by: "division year month"
+      max_sequences: 80
+      exclude: "--exclude-where 'division={division}'"
+      min_date: "--min-date 2021-11-01"
+      max_date: "--max-date 2022-01-01"
+      priorities:
+        type: "proximity"
+        focus: "division"
+      
+

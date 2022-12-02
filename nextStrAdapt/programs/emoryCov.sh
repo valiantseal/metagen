@@ -1,0 +1,1 @@
+snakemake --profile my_profiles/emoryCov030722 -p

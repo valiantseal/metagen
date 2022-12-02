@@ -1,0 +1,47 @@
+inputs:
+  - name: mlsplayers
+    metadata: data/MLS_teammates_metaEdit.tsv
+    sequences: data/MLS_teammates_seq.fasta
+  - name: ay
+    metadata: data/AY4all_metaEdit.tsv
+    sequences: data/AY4all.sequences.fasta
+  - name: reference
+    metadata: data/references_metadata.tsv
+    sequences: data/references_sequences.fasta
+
+
+builds:
+  TeamAYpen:
+    subsampling_scheme: custom-location
+    location: MLS
+    division: Pennsylvania
+    country: USA
+    region: North America
+  
+subsampling:
+  custom-location:
+    location:
+      group_by: "location year month"
+      max_sequences: 9
+      query: --query "(country == '{country}') & (division == '{division}') & (location == '{location}')"
+    division:
+      group_by: "division year month"
+      max_sequences: 300
+      query: --query "(country == '{country}') & (division == '{division}') & (location != '{location}')"
+      priorities:
+        type: "proximity"
+        focus: "location"
+    country:
+      group_by: "country year month"
+      max_sequences: 200
+      query: --query "(region == '{region}') & (country == '{country}') & (division != '{division}')"
+      priorities: 
+        type: "proximity"
+        focus: "location"    
+    global:
+      group_by: "country year month"
+      exclude: "--exclude-where region='{region}'"
+      max_sequences: 100
+      priorities:
+        type: "proximity"
+        focus: "location"

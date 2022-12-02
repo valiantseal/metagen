@@ -1,0 +1,44 @@
+inputs:
+  - name: georgia
+    metadata: data/georgia_2021-03-01_2022-06-23.tsv
+    sequences: data/georgia_2021-03-01_2022-06-23.fasta
+  - name: referenceglob
+    metadata: data/hcov_global.tsv
+    sequences: data/hcov_global.fasta
+
+
+builds:
+  georgiaCovJuneGlob:
+    subsampling_scheme: custom-division
+    region: North America
+    country: USA
+    division: Georgia
+
+subsampling:
+  custom-division:
+    division:
+      group_by: "division year month"
+      max_sequences: 1500
+      query: --query "(country == '{country}') & (division == '{division}')"
+    country:
+      group_by: "division year month"
+      seq_per_group: 20
+      exclude: "--exclude-where 'region!={region}' 'country!={country}' 'division={division}'"
+      priorities:
+        type: "proximity"
+        focus: "division"
+    region:
+      group_by: "country year month"
+      seq_per_group: 10
+      exclude: "--exclude-where 'region!={region}' 'country={country}'"
+      priorities:
+        type: "proximity"
+        focus: "division"
+    global:
+      group_by: "country year month"
+      seq_per_group: 5
+      exclude: "--exclude-where 'region={region}'"
+      priorities:
+        type: "proximity"
+        focus: "division" 
+
