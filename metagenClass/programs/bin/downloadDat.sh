@@ -2,7 +2,8 @@ conda activate /home/ubuntu/anaconda3/envs/dnaNexus
 
 project="BWH_mNGS"
 
-dir="Batch_15-16_NextSeq"
+dir=$(basename "$PWD") 
+
 
 mkdir input
 mkdir process

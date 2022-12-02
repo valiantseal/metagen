@@ -1,4 +1,4 @@
-
+# looks like 96 cores can handle more than 60 processes
 for i in $(cat newdir.list);
 do
 cd process/"$i"/
@@ -10,7 +10,7 @@ mkdir -p virReadsFiltLen
 
 cd splitSeq10K
 
-time ls -d */ | parallel -j 30 'cd {} && sh ~/github/DailyWork/metagenClass/programs/development/getFiltLenReads.sh'
+time ls -d */ | parallel -j 60 'cd {} && sh ~/github/DailyWork/metagenClass/programs/development/getFiltLenReads.sh'
 
 cd ../
 
