@@ -10,13 +10,24 @@ mkdir -p virReadsFiltLen
 
 cd splitSeq10K
 
-time ls -d */ | parallel -j 60 'cd {} && sh ~/github/DailyWork/metagenClass/programs/development/getFiltLenReads.sh'
+ls -d */ | parallel -j 58 'cd {} && sh ~/github/DailyWork/metagenClass/programs/development/getFiltLenReads.sh'
 
 cd ../
 
 for j in $(cat ./lenFiltVir.reads)
 do
-cat ./splitSeq10K/*/virReadsFiltLen/"$j".par >> ./virReadsFiltLen/"$j".par
+
+cd splitSeq10K
+
+for direct in *.reads_dir
+do
+cd "$direct"
+cat virReadsFiltLen/"$j".par >> ../../virReadsFiltLen/"$j".par
+cd ../
+done
+
+cd ../
+
 done
 
 echo "$i" "done"

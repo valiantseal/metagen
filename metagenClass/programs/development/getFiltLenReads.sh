@@ -9,4 +9,4 @@ mkdir -p ./virReadsFiltLen
 
 #cat ../../lenFiltVir.reads | parallel -j "$parNumb" 'grep -F {} ./NtV4_blast.results >> ./virReadsFiltLen/{}.par'
 
-cat ../../lenFiltVir.reads | parallel -j 51 'grep -F {} ./NtV4_blast.results >> ./virReadsFiltLen/{}.par'
+cat ../../lenFiltVir.reads | parallel -j 1 'grep -F {} ./NtV4_blast.results >> ./virReadsFiltLen/{}.par'
