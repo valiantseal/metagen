@@ -1,5 +1,5 @@
 nextflow.enable.dsl = 2
-params.reads = './input/*_{1,2}.fastq.gz'
+params.reads = './input/*_R{1,2}.fastq.gz'
 params.outdir = "./output"
 
 reads = Channel.fromFilePairs(params.reads, checkIfExists: true)
@@ -15,7 +15,7 @@ log.info """
 
 
 process fastp {
-    cpus 4
+    cpus 8
 
     /* 
        fastp process to remove adapters and low quality sequences
@@ -45,8 +45,8 @@ process fastp {
       --adapter_fasta /home/ubuntu/trimmomatic/Trimmomatic-0.39/adapters/NexteraPE-PE.fa;
       
       
-    perl /home/ubuntu/extraVol/Copyback/nextflowTrial/bin/AddPairedEndSuffix.pl filtered_1.fastq filtered_1_fastp-tagged_temp.fastq 1
-    perl /home/ubuntu/extraVol/Copyback/nextflowTrial/bin/AddPairedEndSuffix.pl filtered_2.fastq filtered_2_fastp-tagged_temp.fastq 2
+    perl /home/ubuntu/extraVol/Copyback/nextflowTrial/bin/AddPairedEndSuffix.pl filtered_1.fastq filtered_1_fastp-tagged_temp.fastq 1 & perl /home/ubuntu/extraVol/Copyback/nextflowTrial/bin/AddPairedEndSuffix.pl filtered_2.fastq filtered_2_fastp-tagged_temp.fastq 2
+    
     sh /home/ubuntu/extraVol/Copyback/nextflowTrial/bin/editMerged.sh
     cat filtered_1_fastp-tagged_temp.fastq filtered_2_fastp-tagged_temp.fastq merged_prep_temp-tag.fastq >virema1.fastq
     

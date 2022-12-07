@@ -1,5 +1,5 @@
 nextflow.enable.dsl = 2
-params.reads = './input/*_{1,2}.fastq.gz'
+params.reads = './input/*_R{1,2}.fastq.gz'
 params.outdir = "./output"
 
 reads = Channel.fromFilePairs(params.reads, checkIfExists: true)
@@ -15,7 +15,7 @@ log.info """
 
 
 process fastp {
-    cpus 4
+    cpus 8
 
     /* 
        fastp process to remove adapters and low quality sequences
@@ -40,7 +40,7 @@ process fastp {
     """
     fastp -i ${reads[0]} -I ${reads[1]} \
       -o filtered_1.fastq -O filtered_2.fastq \
-      --detect_adapter_for_pe -w ${task.cpus} -j ${sample_id}.fastp.json \
+      --detect_adapter_for_pe -w 8 -j ${sample_id}.fastp.json \
       -m --merged_out merged_prep_temp.fastq -A -l 25 \
       --adapter_fasta /home/ubuntu/trimmomatic/Trimmomatic-0.39/adapters/NexteraPE-PE.fa;
       
@@ -53,35 +53,7 @@ process fastp {
     """  
 }  
 
-process virema {
-    cpus 8
-    
-    tag { sample_id }
-    
-    publishDir "$params.outdir/${sample_id}/virema_1/", 
-        mode: 'copy'
-    
-    input:
-    tuple val(sample_id), path(virema1) 
-    
-    
-    output:
-    tuple val(sample_id), path("${sample_id}_ViReMaR1-results.txt"), emit: viremaResult1 
-    tuple val(sample_id), path("${sample_id}_virema1.sam"), emit: viremaSam1
-
-    script:
-    """
-    python /home/ubuntu/extraVol/Copyback/nextflowTrial/bin/ViReMa.py \
-    /home/ubuntu/extraVol/Copyback/nextflowTrial/reference/GCA_009858895.3_ASM985889v3_genomic.200409.fna ${virema1} \
-    "${sample_id}_virema1.sam" \
-    --Output_Dir ./ --Seed 13 --ErrorDensity 2,20 \
-    --X 1 --MicroInDel_Length 2 --Chunk 10000000 --p ${task.cpus} -Overwrite >>"${sample_id}_ViReMaR1-results.txt"
-    
-    """
-}
-
-
 workflow {
     fastp( reads )
-    virema( fastp.out.virema1 )
+    
 }
