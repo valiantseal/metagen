@@ -1,5 +1,5 @@
 nextflow.enable.dsl = 2
-params.reads = './input/*_R{1,2}.fastq.gz'
+params.reads = './input/*_R{1,2}.fastq'
 params.outdir = "./output"
 
 reads = Channel.fromFilePairs(params.reads, checkIfExists: true)
@@ -33,7 +33,7 @@ process fastp {
     tuple val(sample_id), path("filtered_{1,2}.fastq"), emit: filtered
     path("merged_prep_temp.fastq"), emit: merged
     path("${sample_id}.fastp.json"), emit: json
-    tuple val(sample_id), path("virema1.fastq"), emit: virema1
+    
 
  
     script:
@@ -43,12 +43,7 @@ process fastp {
       --detect_adapter_for_pe -w 8 -j ${sample_id}.fastp.json \
       -m --merged_out merged_prep_temp.fastq -A -l 25 \
       --adapter_fasta /home/ubuntu/trimmomatic/Trimmomatic-0.39/adapters/NexteraPE-PE.fa;
-      
-      
-    perl /home/ubuntu/extraVol/Copyback/nextflowTrial/bin/AddPairedEndSuffix.pl filtered_1.fastq filtered_1_fastp-tagged_temp.fastq 1
-    perl /home/ubuntu/extraVol/Copyback/nextflowTrial/bin/AddPairedEndSuffix.pl filtered_2.fastq filtered_2_fastp-tagged_temp.fastq 2
-    sh /home/ubuntu/extraVol/Copyback/nextflowTrial/bin/editMerged.sh
-    cat filtered_1_fastp-tagged_temp.fastq filtered_2_fastp-tagged_temp.fastq merged_prep_temp-tag.fastq >virema1.fastq
+
     
     """  
 }  
