@@ -8,7 +8,7 @@ atacInt<-readRDS('atacIntegrated')
 
 DefaultAssay(atacInt)
 
-gene.activity<-GeneActivity(atacInt)
+#gene.activity<-GeneActivity(atacInt)
 
 
 atacCells<-rownames(atacInt@meta.data)
@@ -20,7 +20,7 @@ rnaCells<-rownames(RNA.combined.norm@meta.data)
 length(atacCells)
 length(rnaCells)
 
-length(atacCells[(atacCells%in%rnaCells),])
+length(atacCells[(atacCells%in%rnaCells)])
 
 # need to add peak_region_fragments column
 # differential expression

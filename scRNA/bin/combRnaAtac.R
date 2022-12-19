@@ -1,6 +1,7 @@
 library(Seurat)
 library(Signac)
 library(ggplot2)
+library(gridExtra)
 
 setwd("C:/Users/abomb/Projects/AU/wang/SingleCellStress/output")
 
@@ -8,6 +9,7 @@ atacInt<-readRDS('atacIntegrated')
 
 DefaultAssay(atacInt)
 
+curDate<-Sys.Date()
 #gene.activity<-GeneActivity(atacInt)
 
 
@@ -99,8 +101,11 @@ atacInt[['seurat_annotations']]<-rnaFilt@meta.data$Annotations
 
 atacInt$annotation_correct <- atacInt$predicted.id == atacInt$seurat_annotations
 p1 <- DimPlot(atacInt, group.by = "predicted.id", label = TRUE)  + ggtitle("Predicted annotation")
-p2 <- DimPlot(atacInt, group.by = "seurat_annotations", label = TRUE)  + ggtitle("RNA based aanotation")
-p1 | p2
+p2 <- DimPlot(atacInt, group.by = "seurat_annotations", label = TRUE)  + ggtitle("RNA based anotation")
+#p1 | p2
+
+p3<-gridExtra::grid.arrange(p1,p2, ncol=2, nrow=1)
+ggsave(paste0("atacCellAsignments_", curDate, ".jpeg"), plot=p3, height = 6, width = 14, units = 'in', dpi = 300)
 
 
 saveRDS(atacInt, file = 'atacInt')

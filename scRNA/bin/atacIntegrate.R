@@ -96,7 +96,7 @@ pbmc.combined <- merge(control, stress)
 pbmc.combined <- FindTopFeatures(pbmc.combined, min.cutoff = 10)
 pbmc.combined <- RunTFIDF(pbmc.combined)
 pbmc.combined <- RunSVD(pbmc.combined)
-pbmc.combined <- RunUMAP(pbmc.combined, reduction = "lsi", dims = 1:30)
+pbmc.combined <- RunUMAP(pbmc.combined, reduction = "lsi", dims = 2:30)
 p1 <- DimPlot(pbmc.combined, group.by = "dataset")
 p1
 
@@ -118,7 +118,7 @@ integrated <- IntegrateEmbeddings(
 )
 
 
-integrated <- RunUMAP(integrated, reduction = "integrated_lsi", dims = 1:30)
+integrated <- RunUMAP(integrated, reduction = "integrated_lsi", dims = 2:30)
 p2 <- DimPlot(integrated, group.by = "dataset")
 
 (p1 + ggtitle("Merged")) | (p2 + ggtitle("Integrated"))

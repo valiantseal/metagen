@@ -1,62 +1,26 @@
-library(AUCell)
-library(limma)
-library(Hmisc)
-library(plyr)
-library(ggplot2)
-library(viridis)
 
-setwd("C:/Users/abomb/Projects/AU/wang/SingleCellStress/output")
-
-
-source('../../programs/renameClusters.R')
+inDir<-'./Enrichment/AUcell/Kegg_ClustProfiler/pos_and_neg/'
 
 curDate<-Sys.Date()
 
-DefaultAssay(RNA.combined.norm)
-levels(RNA.combined.norm)
-
-# load enrichment results
-
-addEnrich<-function(x){
-  load(x)
-  AUCmat <- AUCell::getAUC(cells_AUC)
-  RNA.combined.norm[['AUC']] <- CreateAssayObject(data = AUCmat)
-  DefaultAssay(RNA.combined.norm) <- 'AUC'
-  RNA.combined.norm <- ScaleData(RNA.combined.norm, assay = 'AUC', features = rownames(AUCmat))
-  return(RNA.combined.norm)
-}
-
-# add AUcell data
-RNA.combined.norm<-addEnrich(x='./cellsAUC_keggClustProf.RData')
-
-DefaultAssay(RNA.combined.norm)
-
-targetDir<-'./Enrichment/AUcell/Kegg_ClustProfiler/pos_and_neg/'
+targetDir<-'./Enrichment/AUcell/Kegg_ClustProfiler/negative/'
 
 dir.create(targetDir, recursive = T)
 
-clusters<-c('SUB', 'CA1', 'CA2', 'CA3', 'DG', 'GABA', 'C-R', 'OPC', 'ODC', 'MG')
 
-# function to claculate differential gene expression
-findMarkersGr<-function(dat, clust, pos){
-  combMarkers<-data.frame(matrix(ncol=0, nrow=1))
-  for ( i in clust){
-    # subset cell type from all data
-    cellType<-subset(x = dat, subset = Annotations == i)
-    # change identity from cell type to group
-    Idents(cellType)<-cellType$group
-    # calculate gene expression
-    allMarkers <- FindMarkers(cellType , only.pos = pos, min.pct = 0.1, logfc.threshold = 0, test.use = "wilcox", ident.1 = "Stress", ident.2 = "Control")
-    allMarkers$Genes<-rownames(allMarkers)
-    write.csv(allMarkers, paste0(targetDir, i, '_StressVsContr_', curDate, '.csv'), row.names = F)
-    allMarkers<-tibble::add_column(allMarkers, Cell_Type=i, .before = 1)
-    combMarkers<-rbind(combMarkers, allMarkers)
-  }
-  return(combMarkers)
+
+files.list<-list.files(inDir, pattern = '.csv')
+
+for ( i in files.list){
+  targFile<-paste0(inDir, i)
+  df<-read.csv(targFile)
+  dfSel<-df[(df$avg_log2FC < 0),]
+  outPath<-paste0(targetDir, i)
+  write.csv(dfSel, outPath, row.names = F)
 }
 
-groupMarkers<-findMarkersGr(dat=RNA.combined.norm, clust=clusters, pos=F)
-write.csv(groupMarkers, paste0(targetDir, 'All_ContrVsStress_',curDate, '.csv'), row.names = F)
+groupMarkers<-read.csv("./Enrichment/AUcell/Kegg_ClustProfiler/negative/All_ContrVsStress_2022-11-28.csv")
+
 
 # make heatmaps
 
