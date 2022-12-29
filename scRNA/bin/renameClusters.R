@@ -3,7 +3,7 @@ library(ggplot2)
 library(stringr)
 
 
-setwd("C:/Users/abomb/Projects/AU/wang/SingleCellStress/output")
+setwd("/home/flyhunter/Wang/output")
 
 RNA.combined.norm<-readRDS('integRNADoublFilt')
 DefaultAssay(RNA.combined.norm) <- "RNA"

@@ -4,7 +4,7 @@ library(ggplot2)
 library(GenomicRanges)
 library(future)
 
-setwd("C:/Users/abomb/Projects/AU/wang/SingleCellStress/data")
+setwd("/home/flyhunter/Wang/data")
 
 stress <- readRDS('atacAllFiltMacs2_stress')
 control <- readRDS('atacAllFiltMacs2_control')
@@ -12,6 +12,7 @@ control <- readRDS('atacAllFiltMacs2_control')
 DefaultAssay(stress)<-'macs2'
 DefaultAssay(control)<-'macs2'
 
+# find common peaks
 stress_peak<-granges(stress)
 
 control_peak<-granges(control)
@@ -49,11 +50,89 @@ DefaultAssay(stress)<-'Combined_peaks'
 control$dataset <- "Control"
 stress$dataset <- "Stress"
 
+rm(list = ls()[!ls() %in% c("control", "stress")])
+
+gc()
+# start integrations
+
+control <- FindTopFeatures(control, min.cutoff = 10)
+control <- RunTFIDF(control)
+control <- RunSVD(control)
+
+stress <- FindTopFeatures(stress, min.cutoff = 10)
+stress <- RunTFIDF(stress)
+stress <- RunSVD(stress)
+
 saveRDS(stress, file = 'atacAllFiltMacs2_stress')
 
 saveRDS(control, file = 'atacAllFiltMacs2_control')
 
-rm(list = ls()[!ls() %in% c("control", "stress")])
+### stopped here  set null for all assays but Combined_peaks or takes too long
 
+stress<-readRDS('atacAllFiltMacs2_stress')
+
+control<-readRDS('atacAllFiltMacs2_control')
+
+DefaultAssay(stress)
+DefaultAssay(control)
+
+stress[['peaks']]<-NULL
+stress[['macs2']]<-NULL
+
+control[['peaks']]<-NULL
+control[['macs2']]<-NULL
+
+gc()
+# start combining
+pbmc.combined <- merge(control, stress)
+
+# process the combined dataset
+pbmc.combined <- FindTopFeatures(pbmc.combined, min.cutoff = 10)
+pbmc.combined <- RunTFIDF(pbmc.combined)
+pbmc.combined <- RunSVD(pbmc.combined)
+pbmc.combined <- RunUMAP(pbmc.combined, reduction = "lsi", dims = 2:30)
+p1 <- DimPlot(pbmc.combined, group.by = "dataset")
+p1
+
+##
+
+# rownames control and stress are identical
+
+# find integration anchors
+integration.anchors <- FindIntegrationAnchors(
+  object.list = list(control, stress),
+  anchor.features = rownames(control),
+  reduction = "rlsi",
+  dims = 2:30
+)
+
+
+# integrate LSI embeddings
+integrated <- IntegrateEmbeddings(
+  anchorset = integration.anchors,
+  reductions = pbmc.combined[["lsi"]],
+  new.reduction.name = "integrated_lsi",
+  dims.to.integrate = 1:30
+)
+
+##
+
+setwd('../output')
+
+integrated <- RunUMAP(integrated, reduction = "integrated_lsi", dims = 2:30)
+p2 <- DimPlot(integrated, group.by = "dataset")
+
+(p1 + ggtitle("Merged")) | (p2 + ggtitle("Integrated"))
+
+p3<-(p1 + ggtitle("Merged")) | (p2 + ggtitle("Integrated"))
+
+ggsave('atac_integrated_macs2.jpeg', plot = p3, height = 6, width = 10, units = 'in', dpi = 300)
+
+
+saveRDS(integrated, file = 'atacIntegrated_macs2')
+saveRDS(pbmc.combined, file = 'atacMerged_macs2')
+
+###
+rm(list = ls()[!ls() %in% c("integrated", "pbmc.combined")])
 gc()
 
