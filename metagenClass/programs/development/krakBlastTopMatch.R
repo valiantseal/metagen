@@ -18,7 +18,7 @@ selectTop<-function(x){
     files.list<-list.files(targPath, pattern = '.par')
     for (df in files.list){
       dfPath<-paste0(targPath, df)
-      blastRes<-read_delim(dfPath, delim = "\t", escape_double = FALSE, col_names = FALSE, comment = "#", trim_ws = TRUE)
+      blastRes<-read_delim(dfPath, delim = "\t", escape_double = FALSE, col_names = FALSE, comment = "#", trim_ws = TRUE, col_types = cols())
       if (nrow(blastRes) > 0) {
         blastTop<-head(blastRes, x)
         blastTop$Sample<-i
@@ -30,7 +30,7 @@ selectTop<-function(x){
   return(allRes)
 }
 
-topNumbers<-c(1, 10)
+topNumbers<-c(1)
 
 for (topResult in topNumbers){
   
@@ -87,7 +87,7 @@ for (topResult in topNumbers){
   write.csv(sumTabSel, sumPath, row.names = F)
   
   
-  s3Path<-paste0('s3://transfer-files-emory/metagenClass/', curDir, '/custom_output/topMatch/')
+  s3Path<-paste0('s3://transfer-files-emory/metagenClass/Dengue/', curDir, '/custom_output/topMatch/')
   
   s3CommandSum<-paste0('aws s3 cp ', sumPath, ' ', s3Path)
   
