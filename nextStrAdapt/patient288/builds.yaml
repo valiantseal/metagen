@@ -1,0 +1,50 @@
+inputs:
+  - name: patient
+    metadata: data/patient288/patient288_metadata_edit.tsv
+    sequences: data/patient288/patient288_edit.fasta
+  - name: ay
+    metadata: data/patient288/references/ay119_usa_metadata.tsv
+    sequences: data/patient288/references/ay119_usa.fasta
+  - name: reference
+    metadata: data/references_metadata.tsv
+    sequences: data/references_sequences.fasta
+  - name: georgia
+    metadata: data/patient288/references/georgia_2021-03-01_2022-06-23.tsv
+    sequences: data/patient288/references/georgia_2021-03-01_2022-06-23.fasta
+
+
+builds:
+  patient288:
+    subsampling_scheme: custom-location
+    location: patient288
+    division: Georgia
+    country: USA
+    region: North America
+  
+subsampling:
+  custom-location:
+    location:
+      group_by: "location"
+      max_sequences: 10
+      query: --query "(location == '{location}')"
+    division:
+      group_by: "division"
+      max_sequences: 80
+      query: --query "(country == '{country}') & (division == '{division}') & (location != '{location}')"
+      min_date: "--min-date 2021-10-09"
+      max_date: "--max-date 2021-11-01"
+      priorities:
+        type: "proximity"
+        focus: "location"
+    country:
+      group_by: "country"
+      max_sequences: 20
+      query: --query "(region == '{region}') & (country == '{country}') & (division != '{division}')"
+      min_date: "--min-date 2021-10-09"
+      max_date: "--max-date 2021-11-01"
+      priorities: 
+        type: "proximity"
+        focus: "location"
+        
+files:
+  colors: "my_profiles/patient288/colors.tsv"
