@@ -1,0 +1,9 @@
+-- v1.00 
+- first completed release, mai programs are in bin folder.
+- for blast sequences are grouped in files with 2K reads each.
+- in theory the number of used paralel blast searches can be increased to 33 assuming m5a.24xlarge (better try with 32 first)
+
+-- v1.01 
+- reorganized pipeline to blast only the sequences that are identified as tarket viruses with kraken
+- blast took 37 minuts at 96 cores vs 12-20 hours
+
