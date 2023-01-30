@@ -9,8 +9,12 @@ setwd("/home/flyhunter/Wang/data")
 stress <- readRDS('atacAllFiltMacs2_stress')
 control <- readRDS('atacAllFiltMacs2_control')
 
-DefaultAssay(stress)<-'macs2'
-DefaultAssay(control)<-'macs2'
+
+DefaultAssay(stress)<-'peaks'
+DefaultAssay(control)<-'peaks'
+
+stress[['macs2']]<-NULL
+control[['macs2']]<-NULL
 
 # find common peaks
 stress_peak<-granges(stress)
@@ -53,7 +57,8 @@ stress$dataset <- "Stress"
 rm(list = ls()[!ls() %in% c("control", "stress")])
 
 gc()
-# start integrations
+
+pbmc.combined <- merge(control, stress)
 
 control <- FindTopFeatures(control, min.cutoff = 10)
 control <- RunTFIDF(control)
@@ -63,28 +68,32 @@ stress <- FindTopFeatures(stress, min.cutoff = 10)
 stress <- RunTFIDF(stress)
 stress <- RunSVD(stress)
 
-saveRDS(stress, file = 'atacAllFiltMacs2_stress')
+#saveRDS(stress, file = 'atacAllFiltMacs2_stress')
 
-saveRDS(control, file = 'atacAllFiltMacs2_control')
+#saveRDS(control, file = 'atacAllFiltMacs2_control')
+
+# start integrations
+
+stress[['peaks']]<-NULL
+
+control[['peaks']]<-NULL
+
+
 
 ### stopped here  set null for all assays but Combined_peaks or takes too long
 
-stress<-readRDS('atacAllFiltMacs2_stress')
+#stress<-readRDS('atacAllFiltMacs2_stress')
 
-control<-readRDS('atacAllFiltMacs2_control')
+#control<-readRDS('atacAllFiltMacs2_control')
 
-DefaultAssay(stress)
-DefaultAssay(control)
+DefaultAssay(stress)<-'Combined_peaks'
+DefaultAssay(control)<-'Combined_peaks'
 
-stress[['peaks']]<-NULL
-stress[['macs2']]<-NULL
 
-control[['peaks']]<-NULL
-control[['macs2']]<-NULL
 
 gc()
 # start combining
-pbmc.combined <- merge(control, stress)
+
 
 # process the combined dataset
 pbmc.combined <- FindTopFeatures(pbmc.combined, min.cutoff = 10)
@@ -126,13 +135,10 @@ p2 <- DimPlot(integrated, group.by = "dataset")
 
 p3<-(p1 + ggtitle("Merged")) | (p2 + ggtitle("Integrated"))
 
-ggsave('atac_integrated_macs2.jpeg', plot = p3, height = 6, width = 10, units = 'in', dpi = 300)
+#ggsave('atac_integrated_macs2.jpeg', plot = p3, height = 6, width = 10, units = 'in', dpi = 300)
 
 
-saveRDS(integrated, file = 'atacIntegrated_macs2')
-saveRDS(pbmc.combined, file = 'atacMerged_macs2')
+saveRDS(integrated, file = 'atacIntegrated_origPeak')
+saveRDS(pbmc.combined, file = 'atacMerged_origPeak')
 
-###
-rm(list = ls()[!ls() %in% c("integrated", "pbmc.combined")])
-gc()
 

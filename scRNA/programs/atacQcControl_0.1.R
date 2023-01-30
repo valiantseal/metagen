@@ -1,12 +1,19 @@
+#BiocManager::install("EnsDb.Mmusculus.v79")
+#BiocManager::install("BSgenome.Mmusculus.UCSC.mm10")
+
+
 library(Seurat)
 library(Signac)
 #library(hdf5r)
 library(EnsDb.Mmusculus.v79)
 library(BSgenome.Mmusculus.UCSC.mm10)
 
-counts <- Read10X_h5("/home/flyhunter/Wang/data/stress/extracted/filtered_feature_bc_matrix.h5")
+
+setwd('/home/flyhunter/Wang/data')
+
+counts <- Read10X_h5("/home/flyhunter/Wang/data/control/outs/extracted/filtered_feature_bc_matrix.h5")
 metadata <- read.csv(
-  file = "/home/flyhunter/Wang/data/stress/per_barcode_metrics.csv",
+  file = "/home/flyhunter/Wang/data/control/outs/per_barcode_metrics.csv",
   header = TRUE,
   row.names = 1
 )
@@ -15,7 +22,7 @@ brain_assay <- CreateChromatinAssay(
   counts = counts$Peaks,
   sep = c(":", "-"),
   genome = "mm10",
-  fragments = '/home/flyhunter/Wang/data/stress/atac_fragments.tsv.gz',
+  fragments = '/home/flyhunter/Wang/data/control/atac_fragments.tsv.gz',
   min.cells = 1
 )
 
@@ -30,7 +37,6 @@ rm(brain_assay, counts, metadata, per_barcode_metrics)
 
 gc()
 
-
 # annotation
 annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Mmusculus.v79)
 
@@ -38,10 +44,12 @@ seqlevelsStyle(annotations) <- 'UCSC'
 
 Annotation(brain) <- annotations
 
+
 # quality control based on RNAseq
-controlCellNames<-read.table('/home/flyhunter/Wang/data/cellNames_doubletFinderFiltered_stress.txt', F)
+controlCellNames<-read.table('/home/flyhunter/Wang/data/cellNames_doubletFinderFiltered_control.txt', F)
 controlCells<-controlCellNames$V1
 brainFiltRna <- subset(brain, subset = gex_barcode %in% controlCells )
+
 
 # quality control with ATACseq
 brainFiltRna <- NucleosomeSignal(object = brainFiltRna)
@@ -73,15 +81,12 @@ low_atac<-quantile(brainFiltRna$nCount_peaks, probs = 0.02)
 
 low_tss<-quantile(brainFiltRna$TSS.enrichment, probs = 0.01)
 
-quantile(brainFiltRna$nCount_peaks, probs = 0.98)
-
-
 brainAllFilt <- subset(
   x = brainFiltRna,
-  subset = nCount_ATAC < 150000 &
-    nCount_ATAC > low_atac &
+  subset = nCount_peaks < 110000 &
+    nCount_peaks > low_atac &
     nucleosome_signal < 2 &
-    TSS.enrichment > 1 &
+    TSS.enrichment > 1 & 
     pct_reads_in_peaks > 5 &
     pct_reads_in_peaks < 52
 )
@@ -98,8 +103,6 @@ peaks <- CallPeaks(
 peaks1 <- subsetByOverlaps(x = peaks, ranges = blacklist_mm10, invert = TRUE)
 peaks1 <- keepStandardChromosomes(peaks1, pruning.mode = "coarse", species="Mus_musculus")
 
-saveRDS(peaks1, file = 'macs2_peaks_stress')
-
 # quantify counts in each peak
 macs2_counts <- FeatureMatrix(
   fragments = Fragments(brainAllFilt),
@@ -107,9 +110,7 @@ macs2_counts <- FeatureMatrix(
   cells = colnames(brainAllFilt)
 )
 
-saveRDS(macs2_counts, file = 'macs2_counts_stress')
-
-fragpath <- "/home/flyhunter/Wang/data/stress/atac_fragments.tsv.gz"
+fragpath <- "/home/flyhunter/Wang/data/control/atac_fragments.tsv.gz"
 
 brainAllFilt[["macs2"]] <- CreateChromatinAssay(
   counts = macs2_counts,
@@ -119,4 +120,4 @@ brainAllFilt[["macs2"]] <- CreateChromatinAssay(
 
 DefaultAssay(brainAllFilt)<-'macs2'
 
-saveRDS(brainAllFilt, file = 'atacAllFiltMacs2_stress')
+saveRDS(brainAllFilt, file = 'atacAllFiltMacs2_control')
