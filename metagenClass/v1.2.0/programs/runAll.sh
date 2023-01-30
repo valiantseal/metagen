@@ -17,7 +17,7 @@ cd process; time ls -d */ | parallel -j 4 'cd {} && Rscript --vanilla ../../prog
 
 ###
 
-time bash -i ./programs/bin/getSampKrakReads.sh #stopped here written but not tested
+time bash -i ./programs/bin/getSampKrakReads.sh 
 
 time bash -i ./programs/bin/splitReads.sh
 
@@ -29,11 +29,16 @@ mkdir testReads
 
 #time sh ./programs/bin/splitTargVirus.sh
 
-time sh ~/github/DailyWork/metagenClass/programs/development/runFilterBlat.sh; sudo shutdown -h +30
 
-#time Rscript --vanilla ~/github/DailyWork/metagenClass/programs/development/combFilBlast.R
+time sh ~/github/DailyWork/metagenClass/v1.2.0/programs/development/runFilterBlat.sh # 10.16
 
-time sh ~/github/DailyWork/metagenClass/programs/development/runCombFilBlastSamp.sh
+time sh ~/github/DailyWork/metagenClass/v1.2.0/programs/development/runCombFilBlastSamp.sh # 1.8
+
+
+# does the same as two functions above
+time Rscript --vanilla ~/extraVol/metagenClass/Dengue_virus/Batch_2/programs/bin/blastFiltCombSamp.R # 3.35
+#
+
 
 time Rscript --vanilla ~/github/DailyWork/metagenClass/programs/development/combFilBlastAllSamp.R
 
