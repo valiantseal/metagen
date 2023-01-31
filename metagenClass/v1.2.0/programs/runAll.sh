@@ -23,21 +23,14 @@ time bash -i ./programs/bin/splitReads.sh
 
 time sh ./programs/bin/runBlastNt.sh 
 
-mkdir testReads
+#time Rscript --vanilla ~/extraVol/metagenClass/Dengue_virus/Batch_2/programs/bin/blastFiltCombSamp.R # 3.35, not a nessesary step for now
 
-#time sh ./programs/bin/sumVirusBlastNt0.1.sh 
+time Rscript --vanilla ~/extraVol/metagenClass/Dengue_virus/Batch_2/programs/bin/blastFiltTopSamp.R # 4.28
 
-#time sh ./programs/bin/splitTargVirus.sh
-
-
-time sh ~/github/DailyWork/metagenClass/v1.2.0/programs/development/runFilterBlat.sh # 10.16
-
-time sh ~/github/DailyWork/metagenClass/v1.2.0/programs/development/runCombFilBlastSamp.sh # 1.8
-
-
-# does the same as two functions above
-time Rscript --vanilla ~/extraVol/metagenClass/Dengue_virus/Batch_2/programs/bin/blastFiltCombSamp.R # 3.35
 #
+
+
+
 
 
 time Rscript --vanilla ~/github/DailyWork/metagenClass/programs/development/combFilBlastAllSamp.R

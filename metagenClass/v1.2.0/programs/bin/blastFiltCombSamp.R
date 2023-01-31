@@ -17,10 +17,10 @@ blastNames<-c('qseqid', 'sseqid', 'stitle', 'pident', 'length', 'mismatch',
 filterReads<-function(df){
   x<-readr::read_delim(df, delim = "\t", escape_double = FALSE, col_names = FALSE, comment = "#", trim_ws = TRUE)
   combSamples<-data.frame(matrix(ncol = 0, nrow = 0))
-  if (nrow(x) > 0)
+  if (nrow(x) > 0) {
     colnames(x)<-blastNames
+  }
   x<-x[!is.na(x$bitscore),]
-  reads<-unique(x$qseqid)
   selVir<-as.data.frame(x[grep(paste(vir.list$V1,collapse="|"), x$stitle, ignore.case=T),])
   if (nrow(selVir) > 0) {
       blastResFilt<-selVir[(selVir$evalue<0.05),]
