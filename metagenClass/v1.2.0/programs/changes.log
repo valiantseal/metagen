@@ -7,3 +7,12 @@
 - reorganized pipeline to blast only the sequences that are identified as tarket viruses with kraken
 - blast took 37 minuts at 96 cores vs 12-20 hours
 
+-- v1.2.0
+- filtering by length occurs at the same time as merging (min len 100)
+- filtering of kraken and blast results is done with R (faster)
+- removed most of the intermidiate files and directories for filtering results
+- blast rrsults are filtered to include only top hits (currently 1)
+- if target virus is not in top blast match for a read then read is removed
+- number of programs to run a pipeline is reduced to 12
+- most of the programs run in parallel for each sample
+
