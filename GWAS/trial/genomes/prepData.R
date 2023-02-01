@@ -41,5 +41,6 @@ pheno$mice_killed<-as.numeric(as.character(pheno$mice_killed))
 
 unique(is.na(pheno$mice_killed))
 
-write.table(pheno, 'pheno.tsv', row.names = F, col.names = T, quote = F)
+
+write.table(pheno, './gwas_input/pheno.tsv', row.names = F, col.names = T, quote = F, sep = '\t')
 
