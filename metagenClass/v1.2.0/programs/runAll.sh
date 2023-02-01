@@ -24,5 +24,5 @@ time Rscript --vanilla ./programs/bin/blastFiltTopSamp.R # 4.28
 
 time Rscript --vanilla ./programs/bin/confKrakBlast.R # 0.14
 
-
+sh ./programs/bin/resultToS3.sh
 

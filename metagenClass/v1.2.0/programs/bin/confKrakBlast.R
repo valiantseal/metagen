@@ -1,3 +1,5 @@
+dir.create('./output/')
+
 samples<-read.table('newdir.list', F)
 samples<-samples$V1
 
@@ -30,6 +32,7 @@ runSummary<-data.frame(table(confirmedRes$Sample, confirmedRes$Virus))
 
 colnames(runSummary)[1:2]<-c('Sample', 'Virus')
 
-write.csv(confirmedRes, 'krakBlastConfReads.csv', row.names = F)
-write.csv(runSummary, 'krakBlastConfReads_summary.csv', row.names = F)
+write.csv(confirmedRes, './output/krakBlastConfReads.csv', row.names = F)
+write.csv(runSummary, './output/krakBlastConfReads_summary.csv', row.names = F)
+write.table(samples, './output/processed_samples.txt', row.names = F, col.names = F, quote = F)
 

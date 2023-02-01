@@ -13,6 +13,6 @@
 - removed most of the intermidiate files and directories for filtering results
 - blast rrsults are filtered to include only top hits (currently 1)
 - if target virus is not in top blast match for a read then read is removed
-- number of programs to run a pipeline is reduced to 12
+- number of programs to run a pipeline is reduced to 13
 - most of the programs run in parallel for each sample
 
