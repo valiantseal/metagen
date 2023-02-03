@@ -22,9 +22,9 @@ RNA.combined.norm<-selCells
 
 RNA.combined.norm <- RunPCA(RNA.combined.norm, verbose = FALSE)
 
-RNA.combined.norm <- JackStraw(RNA.combined.norm, num.replicate = 100, dims = 30)
-RNA.combined.norm <- ScoreJackStraw(RNA.combined.norm, dims = 1:30)
-JackStrawPlot(RNA.combined.norm, dims = 1:30)
+#RNA.combined.norm <- JackStraw(RNA.combined.norm, num.replicate = 100, dims = 30)
+#RNA.combined.norm <- ScoreJackStraw(RNA.combined.norm, dims = 1:30)
+#JackStrawPlot(RNA.combined.norm, dims = 1:30)
 
 RNA.combined.norm <- FindNeighbors(RNA.combined.norm, dims = 1:15)
 RNA.combined.norm <- RunUMAP(RNA.combined.norm, reduction = "pca", dims = 1:15)
@@ -38,7 +38,7 @@ p1 <- DimPlot(RNA.combined.norm, reduction = "umap", group.by = "group", label =
 p2 <- DimPlot(RNA.combined.norm, reduction = "umap", label = T, repel=T)+ggtitle(current_resol)
 p3<-grid.arrange(p1,p2, ncol=2, nrow=1)
 
-ggsave(paste0('OPC_ODC_umapClustering_OrigInt_',current_resol, "_", curDate, ".jpeg"), plot=p3, height = 6, width = 10, units = 'in', dpi = 300)
+#ggsave(paste0('OPC_ODC_umapClustering_OrigInt_',current_resol, "_", curDate, ".jpeg"), plot=p3, height = 6, width = 10, units = 'in', dpi = 300)
 
 
 DefaultAssay(RNA.combined.norm)<-'RNA'

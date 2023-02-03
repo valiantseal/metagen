@@ -9,7 +9,7 @@ library(ggplot2)
 
 setwd("/home/flyhunter/Wang/output")
 
-stressPeak <- readRDS('../data/atacAllFiltMacs2_control')
+stressPeak <- readRDS('../data/atacAllFiltMacs2_control_1.87gensize')
 
 atacInt<-readRDS('atacMerged_macs2')
 
@@ -41,20 +41,6 @@ seqlevelsStyle(annotations) <- 'UCSC'
 
 Annotation(stressSub) <- annotations
 
-
-stressMark<-read.csv('RNA_cluster_markers/allPosMarkers_CA1_Control.csv')
-stressOrd<-stressMark[order(stressMark$avg_log2FC, decreasing = T),]
-stressGenes<-head(stressOrd$Gene, 10)
-
-stressGenes
-
-CoveragePlot(
-  object = stressSub,
-  region = c("Galntl6"),
-  extend.upstream = 10000,
-  extend.downstream = 10000,
-  ncol = 1
-)
 
 #allMarkers <- FindMarkers(stressSub , only.pos = T, min.pct = 0.05, test.use = 'LR', 
 #                          latent.vars = 'atac_peak_region_fragments', 
@@ -116,7 +102,7 @@ stressSub <- LinkPeaks(
 
 clusters<-c('SUB', 'CA1', 'CA2', 'CA3', 'DG', 'GABA', 'C-R', 'OPC', 'ODC', 'MG')
 
-targetDir<-'Atac_Rna_coverPlots/Control_only/macs2/ext50kb/'
+targetDir<-'Atac_Rna_coverPlots/Control_only/macs2/gensize1.87/ext50kb/'
 
 dir.create(targetDir, recursive = T)
 
@@ -136,48 +122,6 @@ for ( i in presentGenes){
     extend.upstream = 50000,
     extend.downstream = 50000
   )
-  outFile<-paste0(targetDir, 'CovPlot_AtacRna_macs2_contrOnly_ext50k_', i, '_', curDate, '.jpeg')
-  ggsave(outFile, plot = p1, height = 12, width = 16, units = 'in', dpi = 300)
-}
-
-
-# try with original peaks
-DefaultAssay(stressSub)<-'peaks'
-stressSub<- FindTopFeatures(stressSub, min.cutoff = 10)
-stressSub<- RunTFIDF(stressSub)
-stressSub <- RunSVD(stressSub)
-stressSub <- RunUMAP(stressSub, reduction = "lsi", dims = 2:30)
-
-Annotation(stressSub) <- annotations
-
-stressSub <- RegionStats(stressSub, genome = BSgenome.Mmusculus.UCSC.mm10)
-
-stressSub <- LinkPeaks(
-  object = stressSub,
-  peak.assay = "peaks",
-  expression.assay = "RNA",
-  genes.use = newGenes
-)
-
-
-targetDir<-'Atac_Rna_coverPlots/Control_only/original_peaks/ext50kb/'
-
-dir.create(targetDir, recursive = T)
-
-annotGenes<-data.frame(Annotation(stressSub))
-
-presentGenes<-newGenes[(newGenes%in%annotGenes$gene_name)]
-
-for ( i in presentGenes){
-  p1<-CoveragePlot(
-    object = stressSub ,
-    region = i,
-    features = i,
-    expression.assay = "RNA",
-    idents = clusters,
-    extend.upstream = 50000,
-    extend.downstream = 50000
-  )
-  outFile<-paste0(targetDir, 'CovPlot_AtacRna_origPeak_contrOnly_ext50k_', i, '_', curDate, '.jpeg')
+  outFile<-paste0(targetDir, 'CovPlot_AtacRna_macs2_contrOnly_gensize1.87_ext50k_', i, '_', curDate, '.jpeg')
   ggsave(outFile, plot = p1, height = 12, width = 16, units = 'in', dpi = 300)
 }
