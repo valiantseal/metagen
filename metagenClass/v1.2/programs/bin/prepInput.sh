@@ -1,5 +1,3 @@
-mkdir kraqSummary
-mkdir testReads
 
 cp ./programs/virus.list ./
 

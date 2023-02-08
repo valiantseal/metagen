@@ -1,6 +1,9 @@
-# v1.2.0
+# v1.2.1
+# important fix added dependency program
 
-bash -i ./programs/bin/downloadDat.sh
+#bash -i ./programs/bin/downloadDat.sh
+
+bash -i ./programs/bin/downloadFromList.sh
 
 bash -i ./programs/bin/prepInput.sh
 
@@ -16,7 +19,7 @@ time bash -i ./programs/bin/getSampKrakReads.sh
 
 time bash -i ./programs/bin/splitReads.sh
 
-time sh ./programs/bin/runBlastNt.sh 
+time sh ./programs/bin/runBlastNt.sh # 26 min
 
 #time Rscript --vanilla ~/extraVol/metagenClass/Dengue_virus/Batch_2/programs/bin/blastFiltCombSamp.R # 3.35, not a nessesary step for now
 
