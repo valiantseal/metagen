@@ -1,8 +1,30 @@
+# check if the required packages can be found
+import sys
+import subprocess
+import pkg_resources
+
+required = {'pandas', 'argparse'}
+installed = {pkg.key for pkg in pkg_resources.working_set}
+missing = required - installed
+
+# install required packages
+if missing:
+    python = sys.executable
+    subprocess.check_call([python, '-m', 'pip', 'install', *missing], stdout=subprocess.DEVNULL)
+
 ### main program
 
 import pandas as pd
 import argparse
+import warnings
+from pandas.core.common import SettingWithCopyWarning
 
+"""
+a better way would be to create 2 lists with relative positions and add them as columns. 
+May be redo in the future to avoid warnings
+
+"""
+warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
 parser=argparse.ArgumentParser(description='format metadata for Nextrain')
 
 # add arguments
@@ -34,7 +56,7 @@ parser.add_argument(
 parser.add_argument(
   "-f",
   "--filter",
-  type=str,
+  type=float,
   nargs="?",
   default=None,
   help="filter resullts to include relative variant position higher or equal to INT"
