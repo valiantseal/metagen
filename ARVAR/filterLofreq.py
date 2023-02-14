@@ -1,8 +1,8 @@
 import pandas as pd
 
-refDf=pd.read_csv('GA-EHC-2884X_L1_bbmap-1_pos-filter (1).txt', sep = '\t')
+refDf=pd.read_table('GA-EHC-2884X_L1_bbmap-1_pos-filter (1).txt', sep = '\t')
 
-resDf=pd.read_csv('GA-EHC-2884X_L1_bbmap-1_lofreq-output.txt', sep = '\t')
+resDf=pd.read_table('GA-EHC-2884X_L1_bbmap-1_lofreq-output.txt', sep = '\t')
 
 resDf['Ref_Al_RelPos'] = 'NaN'
 resDf['Var_Al_Relpos'] = 'NaN'
