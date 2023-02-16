@@ -1,6 +1,6 @@
 ~/nextflow/nextflow run nf-core/viralrecon -r 2.5 \
-    --max_cpus 24 \
-    --max_memory '120.GB' \
+    --max_cpus 30 \
+    --max_memory '200.GB' \
     --input input.csv \
     --outdir main_output \
     --platform illumina \

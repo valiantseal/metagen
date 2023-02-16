@@ -17,7 +17,6 @@ rm(list=ls())
 
 # water input
 
-
 fastq_1<-list.files('./water_input', pattern = '_R1_')
 fastq_2<-list.files("./water_input", pattern= "_R2_")
 
