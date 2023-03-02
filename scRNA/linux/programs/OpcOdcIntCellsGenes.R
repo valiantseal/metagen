@@ -4,6 +4,8 @@ library(SeuratWrappers)
 library(ggplot2)
 library(dplyr)
 
+set.seed(13)
+
 curDate<-Sys.Date()
 
 setwd("/home/flyhunter/Wang/output")
@@ -121,7 +123,7 @@ rowData(cds)$gene_short_name<-rownames(cds)
 
 cds_subset <- cds[rowData(cds)$gene_short_name %in% genes,]
 
-plot_genes_violin(cds_subset, group_cells_by="Monoc_clusters", ncol=3, label_by_short_name = T) +
+plot_genes_violin(cds_subset, group_cells_by="Monoc_clusters", ncol=2, label_by_short_name = T) +
   theme(axis.text.x=element_text(angle=45, hjust=1))+
   theme(text = element_text(size = 20))
 
