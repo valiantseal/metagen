@@ -1,4 +1,8 @@
 import pandas as pd
+import warnings
+from pandas.core.common import SettingWithCopyWarning
+
+warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
 
 refDf=pd.read_table('GA-EHC-2884X_L1_bbmap-1_pos-filter (1).txt', sep = '\t')
 
@@ -55,5 +59,34 @@ for i in range(len(resDf.index)):
     resDf['Var_Al_Relpos'][i] = refSub.loc[0, refVarAl]
   
 # a better way would be to create 2 lists with relative positions and add them as columns. May be redo in the future to avoid warnings
+def isConsensus(df, freq):
+  consList = []
+  for i in range(len(df.index)):
+    if df.loc[i, 'ALLELE-FREQUENCY'] > freq:
+      consList.append('consensus')
+    else:
+      consList.append('minority')
+  df['Level'] = consList
+  return(df)
 
+resDf = isConsensus(df = resDf, freq = 0.5)
+
+def adjFreq(df, relPos):
+  newFreq = []
+  df['Ref_Al_RelPos'] = df['Ref_Al_RelPos'].astype(float)
+  df['Var_Al_Relpos'] = df['Var_Al_Relpos'].astype(float)
+  for i in range(len(df.index)):
+    if df.loc[i, 'Level'] == 'consensus' and df.loc[i, 'Ref_Al_RelPos'] > relPos:
+      freq = df.loc[i, 'ALLELE-FREQUENCY']
+    elif df.loc[i, 'Level'] == 'consensus' and df.loc[i, 'Ref_Al_RelPos'] < relPos:
+      freq = 1
+    elif df.loc[i, 'Level'] == 'minority' and df.loc[i, 'Var_Al_Relpos'] > relPos:
+      freq = df.loc[i, 'ALLELE-FREQUENCY']
+    elif df.loc[i, 'Level'] == 'minority' and df.loc[i, 'Var_Al_Relpos'] < relPos:
+      freq = 0
+    newFreq.append(freq)
+  df['Freq_adj'] = newFreq
+  return(df)
+
+resDf = adjFreq(df = resDf, relPos = 0.2)
 
