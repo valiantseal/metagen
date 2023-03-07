@@ -91,14 +91,18 @@ filt = args.filter
 cons = args.consensus
 rel = args.relative_pos
 
-# main function
+## main function
+
+# read data
 refDf=pd.read_table(ref, sep = '\t')
 
 resDf=pd.read_table(df, sep = '\t')
 
+# get relative allele positions
 resDf['Ref_Al_RelPos'] = 'NaN'
 resDf['Var_Al_Relpos'] = 'NaN'
 
+corPos =[]
 
 for i in range(len(resDf.index)):
   refAl = resDf['REF-NT'][i]
@@ -108,6 +112,7 @@ for i in range(len(resDf.index)):
     alPos = resDf['POSITION'][i] + 1
   else:
     alPos = resDf['POSITION'][i]
+  corPos.append(alPos)
   # select reference position
   refSub = refDf.loc[refDf['POS'] == alPos].reset_index()
   
@@ -147,6 +152,7 @@ for i in range(len(resDf.index)):
     resDf['Var_Al_Relpos'][i] = refSub.loc[0, refVarAl]
   
 # a better way would be to create 2 lists with relative positions and add them as columns. May be redo in the future to avoid warnings
+resDf['Position_corrected'] = corPos
 
 # find if the variant is a consensus level
 def isConsensus(df, freq):
@@ -164,22 +170,29 @@ resDf = isConsensus(df = resDf, freq = cons)
 # adjust variants frequency based on threshold
 def adjFreq(df, relPos):
   newFreq = []
+  allTests = []
   df['Ref_Al_RelPos'] = df['Ref_Al_RelPos'].astype(float)
   df['Var_Al_Relpos'] = df['Var_Al_Relpos'].astype(float)
   for i in range(len(df.index)):
     if df.loc[i, 'Level'] == 'consensus' and df.loc[i, 'Ref_Al_RelPos'] > relPos:
       freq = df.loc[i, 'ALLELE-FREQUENCY']
+      posTest = 'Pass'
     elif df.loc[i, 'Level'] == 'consensus' and df.loc[i, 'Ref_Al_RelPos'] < relPos:
       freq = 1
+      posTest = 'Fail'
     elif df.loc[i, 'Level'] == 'minority' and df.loc[i, 'Var_Al_Relpos'] > relPos:
       freq = df.loc[i, 'ALLELE-FREQUENCY']
+      posTest = 'Pass'
     elif df.loc[i, 'Level'] == 'minority' and df.loc[i, 'Var_Al_Relpos'] < relPos:
       freq = 0
+      posTest = 'Fail'
     newFreq.append(freq)
+    allTests.append(posTest)
+  df['Position_test'] = allTests
   df['Freq_adj'] = newFreq
   return(df)
 
-resDf = adjFreq(df = resDf, relPos = rel)
+resDf = adjFreq(df = resDf, relPos = 0.2)
 
 def typeAllele(df):
   newType = []
