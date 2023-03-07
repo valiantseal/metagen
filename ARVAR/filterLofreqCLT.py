@@ -25,7 +25,8 @@ May be redo in the future to avoid warnings
 
 """
 warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
-parser=argparse.ArgumentParser(description='format metadata for Nextrain')
+
+parser=argparse.ArgumentParser(description='format and filter Lofreq output')
 
 # add arguments
 
@@ -59,7 +60,25 @@ parser.add_argument(
   type=float,
   nargs="?",
   default=None,
-  help="filter resullts to include relative variant position higher or equal to INT"
+  help="filter resullts to include relative variant position higher or equal to Float"
+)
+
+parser.add_argument(
+  "-c",
+  "--consensus",
+  type=float,
+  nargs="?",
+  default=0.5,
+  help="variant frequencies higher than a value will be considered consensus variants, Float"
+)
+
+parser.add_argument(
+  "-a",
+  "--relative_pos",
+  type=float,
+  nargs="?",
+  default=0.2,
+  help="relative position threshold for adjusted frequency, Float"
 )
 
 # parse arguments
@@ -69,6 +88,8 @@ df = args.input_path
 ref = args.reference
 output = args.output_path
 filt = args.filter
+cons = args.consensus
+rel = args.relative_pos
 
 # main function
 refDf=pd.read_table(ref, sep = '\t')
@@ -126,6 +147,39 @@ for i in range(len(resDf.index)):
     resDf['Var_Al_Relpos'][i] = refSub.loc[0, refVarAl]
   
 # a better way would be to create 2 lists with relative positions and add them as columns. May be redo in the future to avoid warnings
+
+# find if the variant is a consensus level
+def isConsensus(df, freq):
+  consList = []
+  for i in range(len(df.index)):
+    if df.loc[i, 'ALLELE-FREQUENCY'] > freq:
+      consList.append('consensus')
+    else:
+      consList.append('minority')
+  df['Level'] = consList
+  return(df)
+
+resDf = isConsensus(df = resDf, freq = cons)
+
+# adjust variants frequency based on threshold
+def adjFreq(df, relPos):
+  newFreq = []
+  df['Ref_Al_RelPos'] = df['Ref_Al_RelPos'].astype(float)
+  df['Var_Al_Relpos'] = df['Var_Al_Relpos'].astype(float)
+  for i in range(len(df.index)):
+    if df.loc[i, 'Level'] == 'consensus' and df.loc[i, 'Ref_Al_RelPos'] > relPos:
+      freq = df.loc[i, 'ALLELE-FREQUENCY']
+    elif df.loc[i, 'Level'] == 'consensus' and df.loc[i, 'Ref_Al_RelPos'] < relPos:
+      freq = 1
+    elif df.loc[i, 'Level'] == 'minority' and df.loc[i, 'Var_Al_Relpos'] > relPos:
+      freq = df.loc[i, 'ALLELE-FREQUENCY']
+    elif df.loc[i, 'Level'] == 'minority' and df.loc[i, 'Var_Al_Relpos'] < relPos:
+      freq = 0
+    newFreq.append(freq)
+  df['Freq_adj'] = newFreq
+  return(df)
+
+resDf = adjFreq(df = resDf, relPos = rel)
 
 # filter and write
 if filt == None:
