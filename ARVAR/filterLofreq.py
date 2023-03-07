@@ -1,6 +1,9 @@
 import pandas as pd
 import warnings
 from pandas.core.common import SettingWithCopyWarning
+import os
+
+os.chdir('C:/Users/abomb/OneDrive - Emory University/Variant-calling-pipeline/Original_output_files_02032023')
 
 warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
 
@@ -90,3 +93,33 @@ def adjFreq(df, relPos):
 
 resDf = adjFreq(df = resDf, relPos = 0.2)
 
+def typeAllele(df):
+  newType = []
+  corRefAl = []
+  corVarAl = []
+  for i in range(len(df.index)):
+    refAl = df.loc[i, 'REF-NT']
+    varAl = df.loc[i, 'VAR-NT']
+    if len(refAl) > len(varAl):
+      typeAl = 'Deletion'
+      newRefAl = refAl[1] # confirm that reference is always a second character
+      newVarAl = '-' + refAl[1:]
+    elif len(refAl) < len(varAl):
+      typeAl = 'Insertion'
+      newRefAl = refAl 
+      newVarAl = '+' + varAl[1:]
+    elif len(refAl) == len(varAl):
+      typeAl = 'Substitution'
+      newRefAl = refAl 
+      newVarAl = varAl
+    newType.append(typeAl)
+    corRefAl.append(newRefAl)
+    corVarAl.append(newVarAl)
+  df['Type'] = newType
+  df['REF-allele_corrected'] = corRefAl
+  df['VAR-allele_corrected'] = corVarAl
+  return df
+
+resDf = typeAllele(df = resDf)
+  
+      

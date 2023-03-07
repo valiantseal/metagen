@@ -181,6 +181,35 @@ def adjFreq(df, relPos):
 
 resDf = adjFreq(df = resDf, relPos = rel)
 
+def typeAllele(df):
+  newType = []
+  corRefAl = []
+  corVarAl = []
+  for i in range(len(df.index)):
+    refAl = df.loc[i, 'REF-NT']
+    varAl = df.loc[i, 'VAR-NT']
+    if len(refAl) > len(varAl):
+      typeAl = 'Deletion'
+      newRefAl = refAl[1] # confirm that reference is always a second character
+      newVarAl = '-' + refAl[1:]
+    elif len(refAl) < len(varAl):
+      typeAl = 'Insertion'
+      newRefAl = refAl 
+      newVarAl = '+' + varAl[1:]
+    elif len(refAl) == len(varAl):
+      typeAl = 'Substitution'
+      newRefAl = refAl 
+      newVarAl = varAl
+    newType.append(typeAl)
+    corRefAl.append(newRefAl)
+    corVarAl.append(newVarAl)
+  df['Type'] = newType
+  df['REF-allele_corrected'] = corRefAl
+  df['VAR-allele_corrected'] = corVarAl
+  return df
+
+resDf = typeAllele(df = resDf)
+
 # filter and write
 if filt == None:
   finalDf = resDf
