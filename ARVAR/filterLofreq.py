@@ -111,6 +111,7 @@ def typeAllele(df):
   newType = []
   corRefAl = []
   corVarAl = []
+  allNuclCh =[]
   for i in range(len(df.index)):
     refAl = df.loc[i, 'REF-NT']
     varAl = df.loc[i, 'VAR-NT']
@@ -118,22 +119,111 @@ def typeAllele(df):
       typeAl = 'Deletion'
       newRefAl = refAl[1] # confirm that reference is always a second character
       newVarAl = '-' + refAl[1:]
+      nuclCh = str(df.loc[i, 'Position_corrected']) + newVarAl
     elif len(refAl) < len(varAl):
       typeAl = 'Insertion'
       newRefAl = refAl 
       newVarAl = '+' + varAl[1:]
+      nuclCh = str(df.loc[i, 'Position_corrected']) + newVarAl
     elif len(refAl) == len(varAl):
       typeAl = 'Substitution'
       newRefAl = refAl 
       newVarAl = varAl
+      nuclCh = refAl + str(df.loc[i, 'Position_corrected']) + varAl
     newType.append(typeAl)
     corRefAl.append(newRefAl)
     corVarAl.append(newVarAl)
+    allNuclCh.append(nuclCh)
   df['Type'] = newType
   df['REF-allele_corrected'] = corRefAl
   df['VAR-allele_corrected'] = corVarAl
+  df['Nucleotide_Change'] = allNuclCh
   return df
 
 resDf = typeAllele(df = resDf)
+
+# annotations 
+annot = pd.read_csv('annotations.csv')
+codons = pd.read_csv('codons_table.csv', names = ['full_name', 'aa', 'codon', 'aa2', 'full_name2'])
+
+# annotate substitutions
+def annotSubst(pos, codNumb, region, corVarAl):
+  # subset codon table
+  selAnot = annot.loc[(annot['Region/Gene'] == region) & (annot['Codon#'] == str(codNumb))].reset_index().drop(['index'], axis=1)
+  # find index of the nucleotide to change 
+  chInd = selAnot.index[selAnot['NT'] == pos].astype('int')
+  # change nucleotide
+  selAnot.loc[chInd, 'Ref'] = corVarAl
+  # write new codon
+  codList = selAnot['Ref'].tolist()
+  newCod = ''.join(codList)
+  newAA = codons.loc[codons['codon'] == newCod, 'aa'].iloc[0]
+  oldAA = selAnot.loc[chInd, 'Ref_AA'].iloc[0]
+  if newAA == oldAA:
+    mType = 'Synonimous'
+  else:
+    mType = 'Nonsynonimous'
+  aaChange = oldAA + codNumb + newAA
+  return [mType, aaChange]
+
+# annotate insertions
+def annotInsert(pos, codNumb, region, corVarAl):
+  nucleotides = corVarAl[1:]
+  # subset codon table
+  selAnot = annot.loc[(annot['Region/Gene'] == region) & (annot['Codon#'] == str(codNumb))].reset_index().drop(['index'], axis=1)
+  # find index of the nucleotide to change 
+  chInd = selAnot.index[selAnot['NT'] == pos].astype('int')
+  # get reference amino acid
+  oldAA = selAnot.loc[chInd, 'Ref_AA'].iloc[0]
+  # find new codon and aminoacid
+  if chInd == 2:
+    newAA = oldAA
+  elif chInd == 1:
+    codList = selAnot.loc[0:1, 'Ref'].tolist()
+    codList.append(nucleotides[0])
+    newCod = ''.join(codList)
+    newAA = codons.loc[codons['codon'] == newCod, 'aa'].iloc[0]
+  elif chInd == 0:
+    codList = list(selAnot.loc[0, 'Ref'])
+    codList.append(nucleotides[0:2])
+    newCod = ''.join(codList)
+    newAA = codons.loc[codons['codon'] == newCod, 'aa'].iloc[0]
+  if len(nucleotides) % 3 == 0:
+    mType = 'Inframe'
+    addNumb = '+' + str(int(len(nucleotides)/3)) + 'AA'
+  else:
+    mType = 'Frameshift'
+    addNumb = '+' + str(int(len(nucleotides))) + 'nt'
+  aaChange = ''.join([oldAA, codNumb, newAA, addNumb])
+  return [mType, aaChange]
+
+# annotate deletions
+def annotDel(pos, codNumb, region, corVarAl):
+  nucleotides = corVarAl[1:]
   
-      
+
+def annotate(df):
+  allRegions = []
+  allMutTypes = []
+  allAaCh = []
+  for i in range(len(df)):
+    pos = df.loc[i, 'Position_corrected']
+    region = annot.loc[annot['NT'] == pos, 'Region/Gene'].iloc[0]
+    codNumb = annot.loc[annot['NT'] == pos, 'Codon#'].iloc[0]
+    corVarAl = df.loc[i, 'VAR-allele_corrected']
+    if region == "5'UTR" or region == "3'UTR":
+      mutType = 'Synonymous'
+      aaCh = region
+    else:
+      # handle substitutions
+      if df.loc[i, 'Type'] == 'Substitution':
+        resList = annotSubst(pos=pos, codNumb=codNumb, region=region, corVarAl=corVarAl)
+      # handle insertions  
+      elif df.loc[ind, 'Type'] == 'Insertion':
+        resList = annotInsert(pos=pos, codNumb=codNumb, region=region, corVarAl=corVarAl)
+      elif df.loc[ind, 'Type'] == 'Deletion':
+        resList = annotDel(pos=pos, codNumb=codNumb, region=region, corVarAl=corVarAl)
+    
+  allRegions.append(region)
+  
+    
