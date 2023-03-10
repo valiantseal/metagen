@@ -2,6 +2,7 @@ import pandas as pd
 import warnings
 from pandas.core.common import SettingWithCopyWarning
 import os
+import math
 
 os.chdir('C:/Users/abomb/OneDrive - Emory University/Variant-calling-pipeline/Original_output_files_02032023')
 
@@ -261,4 +262,15 @@ def annotate(df):
 
 resDf = annotate(df=resDf)
   
-    
+def ShPi(df):
+  pi = []
+  for i in range(len(df)):
+    if df.loc[i, 'Freq_adj'] == 0:
+      newPi = 0
+    else:
+      newPi = df.loc[i, 'Freq_adj'] * math.log(df.loc[i, 'Freq_adj'])
+    pi.append(newPi)
+  df['Pi*Ln(Pi)'] = pi
+  return df
+
+resDf = ShPi(df = resDf)
