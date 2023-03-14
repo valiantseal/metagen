@@ -6,4 +6,4 @@ bash -i ./programs/mlst.sh
 
 Rscript --vanilla ./programs/sumMlst.R
 
-sh ./programs/results2S3.sh
+python programs/results2S3.py
