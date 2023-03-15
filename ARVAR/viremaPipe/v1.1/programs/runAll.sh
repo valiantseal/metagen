@@ -21,3 +21,4 @@ cd gnuPar; time ls -d */ | parallel -j "$par_samples" 'cd {} && sh ../../program
 
 time sh ./programs/bin/virema2Par.sh #75m36
 
+time python ./programs/bin/combViremResPar.py

@@ -1,6 +1,5 @@
 #!/usr/bin/env Rscript
 
-# this program needs to be edited to use exact names since different samples will run in different directories
 
 file1<-'samp_negative-mapped-reads_temp.txt'
 
