@@ -5,7 +5,7 @@ project="HRTV"
 
 dx select "$project"
 
-dir="2023-02-23"
+dir="2023-01-31"
 
 dx download "$dir"/1_raw_data/*.gz -o ./input/
 

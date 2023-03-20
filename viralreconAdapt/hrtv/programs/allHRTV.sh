@@ -1,11 +1,11 @@
 # kept de novo asssembly
 
-for i in $(cat hrtv.segments)
+for i in $(cat programs/hrtv.segments)
 do
 
 /home/ubuntu/nextflow/nextflow run nf-core/viralrecon -r 2.5 \
     --max_cpus 30 \
-    --max_memory '120.GB' \
+    --max_memory '60.GB' \
     --input input.csv \
     --outdir output_"$i" \
     --platform illumina \
@@ -26,12 +26,12 @@ do
 done
 
 # run water
-for i in $(cat hrtv.segments)
+for i in $(cat programs/hrtv.segments)
 do
 
 /home/ubuntu/nextflow/nextflow run nf-core/viralrecon -r 2.5 \
     --max_cpus 30 \
-    --max_memory '120.GB' \
+    --max_memory '60.GB' \
     --input inputWater.csv \
     --outdir water_output_"$i" \
     --platform illumina \
@@ -50,5 +50,3 @@ do
     -with-docker nfcore/virarecon
 
 done
-
-sudo shutdown -h +40
