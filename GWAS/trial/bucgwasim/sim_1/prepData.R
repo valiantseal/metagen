@@ -1,3 +1,5 @@
+dir.create('input_gwas')
+
 
 # rename alignment
 curNames<-0:1999
@@ -28,6 +30,8 @@ newTips<-paste0('sample_', curTips)
 
 tree$tip.label<-newTips
 
+tree$tip.label<-gsub('zero', '0', tree$tip.label)
+
 plot(tree)
 
 ape::write.tree(tree, 'tree_rename.nwk')
@@ -44,7 +48,7 @@ identical(pheno$samples[2:1999], renameDf$curNames[2:1999])
 
 pheno$samples<-renameDf$newNames
 
-write.table(pheno, 'phnotype_0.tsv', col.names = F, row.names = F, quote = F, sep = '\t')
+write.table(pheno, './input_gwas/phnotype_0.tsv', col.names = T, row.names = F, quote = F, sep = '\t')
 
 # split alignment in separate fasta for unitig caller
 
