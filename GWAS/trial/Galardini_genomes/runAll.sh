@@ -28,6 +28,8 @@ python ~/pyseer/scripts/phylogeny_distance.py --lmm ./iqtree/relab_core.contree 
 
 time bash -i ./programs/pyseerLmm.sh
 
+Rscript --vanilla ./programs/evalRes.R
+
 # get snps vcf file
 snp-sites -v -o ./gwas_input/core_aln_smps.vcf ./panOut/bactopia-tools/pangenome/pangenome/core-genome.aln.gz
 
