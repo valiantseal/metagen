@@ -69,7 +69,7 @@ def getReadCountRes():
 
 readCountRes = getReadCountRes()
 
-# parse results
+# get number of columns/indels
 def getColNumbers():
   colNumb =[]
   for i in readCountRes:
@@ -103,6 +103,8 @@ def parseReadCount():
   allGres = []
   allTres = []
   allIndel1 = []
+  allIndel2 = []
+  allIndel3 = []
   for i in range(len(readCountRes)):
     mainRes = readCountRes[i][0:4]
     aRes = parseNucleotide(i = i, col = 5)
@@ -110,6 +112,8 @@ def parseReadCount():
     gRes = parseNucleotide(i = i, col = 7)
     tRes = parseNucleotide(i = i, col = 8)
     indel1 = parseIndels(i = i , col = 10)
+    indel2 = parseIndels(i = i , col = 11)
+    indel3 = parseIndels(i = i , col = 13)
     #combine lists
     allMainRes.append(mainRes)
     allAres.append(aRes)
@@ -117,6 +121,8 @@ def parseReadCount():
     allGres.append(gRes)
     allTres.append(tRes)
     allIndel1.append(indel1)
+    allIndel2.append(indel2)
+    allIndel3.append(indel3)
     
   # make dataframes  
   mainData = pd.DataFrame(allMainRes, columns = ['chr',	'position',	'reference_base',	'depth'])
@@ -125,15 +131,17 @@ def parseReadCount():
   gDf = pd.DataFrame(allGres, columns = ['G_count', 'G_num_plus_strand', 'G_num_minus_strand', 'G_avg_pos_as_fraction', 'G_avg_num_mismatches_as_fraction'])
   tDf = pd.DataFrame(allTres, columns = ['T_count', 'T_num_plus_strand', 'T_num_minus_strand', 'T_avg_pos_as_fraction', 'T_avg_num_mismatches_as_fraction'])
   indel1Df = pd.DataFrame(allIndel1, columns = ['Indel1_base', 'Indel1_count', 'Indel1_num_plus_strand', 'Indel1_num_minus_strand', 'Indel1_avg_pos_as_fraction', 'Indel1_avg_num_mismatches_as_fraction'])
-  
+  indel2Df = pd.DataFrame(allIndel2, columns = ['Indel1_base', 'Indel1_count', 'Indel1_num_plus_strand', 'Indel1_num_minus_strand', 'Indel1_avg_pos_as_fraction', 'Indel1_avg_num_mismatches_as_fraction'])
+  indel3Df = pd.DataFrame(allIndel3, columns = ['Indel1_base', 'Indel1_count', 'Indel1_num_plus_strand', 'Indel1_num_minus_strand', 'Indel1_avg_pos_as_fraction', 'Indel1_avg_num_mismatches_as_fraction'])
   # combine tables  
-  combData = pd.concat([mainData, aDf, cDf, gDf, tDf, indel1Df], axis="columns")
+  combData = pd.concat([mainData, aDf, cDf, gDf, tDf, indel1Df, indel2Df, indel3Df], axis="columns")
   return combData
 
 mainData = parseReadCount()
 
 #subData = mainData[['A_count', 'T_count', 'A_avg_pos_as_fraction']]
+#subData = mainData.iloc[:, [0,3,4] ]
 #mainData.to_csv(path_or_buf = 'readcountFormat.csv', index = False)
     
-    
+selectData = mainData[]    
 
