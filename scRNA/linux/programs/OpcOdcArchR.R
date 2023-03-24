@@ -35,6 +35,8 @@ proj <- ArchRProject(
   copyArrows = TRUE #This is recommened so that you maintain an unaltered copy for later usage.
 )
 
+saveArchRProject(ArchRProj = proj, outputDirectory = "archContrStress")
+
 proj_filt <- filterDoublets(ArchRProj = proj) # doublets filter removes too many cells, over 200 for OPC
 
 ###
