@@ -3,12 +3,13 @@ import subprocess
 from itertools import islice
 import pandas as pd
 import numpy as np
-
+import glob
 
 threads = '8'
 mapqual = '20'
 basequal = '20'
 refFasta = './references/MN908947.3.fna'
+lofreq_filter = 0.02
 
 # get reference name and length from alignment file bowtie2 can print lines nicely       
 def readFileLines(f):
@@ -131,8 +132,8 @@ def parseReadCount():
   gDf = pd.DataFrame(allGres, columns = ['G_count', 'G_num_plus_strand', 'G_num_minus_strand', 'G_avg_pos_as_fraction', 'G_avg_num_mismatches_as_fraction'])
   tDf = pd.DataFrame(allTres, columns = ['T_count', 'T_num_plus_strand', 'T_num_minus_strand', 'T_avg_pos_as_fraction', 'T_avg_num_mismatches_as_fraction'])
   indel1Df = pd.DataFrame(allIndel1, columns = ['Indel1_base', 'Indel1_count', 'Indel1_num_plus_strand', 'Indel1_num_minus_strand', 'Indel1_avg_pos_as_fraction', 'Indel1_avg_num_mismatches_as_fraction'])
-  indel2Df = pd.DataFrame(allIndel2, columns = ['Indel1_base', 'Indel1_count', 'Indel1_num_plus_strand', 'Indel1_num_minus_strand', 'Indel1_avg_pos_as_fraction', 'Indel1_avg_num_mismatches_as_fraction'])
-  indel3Df = pd.DataFrame(allIndel3, columns = ['Indel1_base', 'Indel1_count', 'Indel1_num_plus_strand', 'Indel1_num_minus_strand', 'Indel1_avg_pos_as_fraction', 'Indel1_avg_num_mismatches_as_fraction'])
+  indel2Df = pd.DataFrame(allIndel2, columns = ['Indel2_base', 'Indel2_count', 'Indel2_num_plus_strand', 'Indel2_num_minus_strand', 'Indel2_avg_pos_as_fraction', 'Indel2_avg_num_mismatches_as_fraction'])
+  indel3Df = pd.DataFrame(allIndel3, columns = ['Indel3_base', 'Indel3_count', 'Indel3_num_plus_strand', 'Indel3_num_minus_strand', 'Indel3_avg_pos_as_fraction', 'Indel3_avg_num_mismatches_as_fraction'])
   # combine tables  
   combData = pd.concat([mainData, aDf, cDf, gDf, tDf, indel1Df, indel2Df, indel3Df], axis="columns")
   return combData
@@ -142,6 +143,87 @@ mainData = parseReadCount()
 #subData = mainData[['A_count', 'T_count', 'A_avg_pos_as_fraction']]
 #subData = mainData.iloc[:, [0,3,4] ]
 #mainData.to_csv(path_or_buf = 'readcountFormat.csv', index = False)
-    
-selectData = mainData[]    
 
+mainData.to_csv(path_or_buf = "readCountParsed.tsv", index = False, sep = "\t")
+
+roseColNames = ['POS', 'A-POS', 'T-POS', 'C-POS', 'G-POS', 'Indel1', 'Indel1-POS', 'Indel2', 'Indel2-POS', 'Indel3', 'Indel3-POS']
+curHeaders = ['position', 'A_avg_pos_as_fraction', 'T_avg_pos_as_fraction', 'C_avg_pos_as_fraction', 'G_avg_pos_as_fraction', \
+              'Indel1_base', 'Indel1_avg_pos_as_fraction', 'Indel2_base', 'Indel2_avg_pos_as_fraction', 'Indel3_base', 'Indel3_avg_pos_as_fraction']
+    
+selectData = mainData[curHeaders]
+selectData.columns = roseColNames
+
+selectData.to_csv(path_or_buf = 'sample_pos-filter.tsv', index = False, sep = "\t")
+
+# prep for lowfreq
+def indelqual(bam, ref_seq):
+  cmd_str = f"lofreq indelqual --dindel -f {ref_seq} -o sample_dindel.tmp.bam {bam}"
+  subprocess.run(cmd_str, shell = True)
+  sam_str = f"samtools index sample_dindel.tmp.bam"
+  subprocess.run(sam_str, shell = True)
+
+indelqual(bam = 'output.bam', ref_seq = refFasta)
+
+# call lowfreq
+def lofreq(bam, ref_seq, t):
+  cmd_str = f"lofreq call-parallel --pp-threads {t} -f {ref_seq} -o sample_lf.vcf {bam} 2>sample_lofreq-log.txt"
+  subprocess.run(cmd_str, shell = True)
+
+lofreq(bam = 'sample_dindel.tmp.bam', ref_seq = refFasta, t = threads)
+
+# read lowfreq results
+def getlowfreqRes():
+  with open("sample_lf.vcf", "r") as f:
+    lines=f.readlines()
+    result=[]
+    for i in range(len(lines)):
+      curLine = lines[i].replace("\n", "")
+      if curLine[0] != "#":
+        curLineList = re.split('\t|;|=|,', curLine)
+        result.append(curLineList)
+  return(result)
+
+lofreqRes = getlowfreqRes()
+
+# subset list by index
+def subsetList(indList, curList):
+  subList = []
+  for i in indList:
+    subList.append(curList[i])
+  return subList
+
+# parse lowfreq
+def parseLowfreq():
+  colNames = ['REF-GENOME','POSITION','REF-NT','VAR-NT','QUAL','FILTER','DEPTH','ALLELE-FREQUENCY','STRAND-BIAS','FWD-REF','REV-REF','FWD-VAR','REV-VAR']
+  indList = [0,1,3,4,5,6,8,10,12,14,15,16,17]
+  results = []
+  for i in range(len(lofreqRes)):
+    curLine = lofreqRes[i]
+    if curLine[6] == "PASS" and float(curLine[10]) >= lofreq_filter:
+      subsRes = subsetList(indList = indList, curList = curLine)
+      results.append(subsRes)
+  lofreqDf = pd.DataFrame(results, columns = colNames)
+  return lofreqDf
+
+lowfreqDf = parseLowfreq()
+
+def writeLowfreq():
+  if len(lowfreqDf.index) > 0:
+    lowfreqDf.to_csv(path_or_buf = "sample_lofreq-output.tsv", index = False, sep = "\t")
+
+writeLowfreq()
+      
+# clean directory
+def cleanDir():
+  os.makedirs("process_files/", exist_ok = True)
+  delList = glob.glob("*dindel*")
+  for i in delList:
+    os.remove(i)
+  mv_list = glob.glob("*bam*")
+  mv_list.extend(["readcount.tsv", "sample_lofreq-log.txt", "sample_lf.vcf", "readCountParsed.tsv"])
+  for i in range(len(mv_list)):
+    curFile = str(mv_list[i])
+    os.rename(curFile, "process_files/" + curFile)
+  
+cleanDir()
+  
