@@ -1,34 +1,96 @@
+import argparse
 import os
 import subprocess
 from itertools import islice
 import pandas as pd
 import numpy as np
-import re
 import glob
 from datetime import datetime
+import sys
+import re
+
+parser=argparse.ArgumentParser(description='get and parse bam-readcount and lofreq outputs')
+
+# add arguments
+parser.add_argument(
+  "-i", "--input_path",
+  type=str,
+  metavar='',
+  help="Path to the input file, required"
+)
+
+parser.add_argument(
+  "-r",
+  "--reference_path",
+  type=str,
+  help="Path to the reference file, required",
+  metavar=""
+)
+
+parser.add_argument(
+  "-p",
+  "--prefix",
+  type=str,
+  nargs="?",
+  default='sample',
+  help="Prefix for the output files, default sample"
+)
+
+parser.add_argument(
+  "-m",
+  "--mapqual",
+  type=str,
+  nargs="?",
+  default='20',
+  help="Mapping quality for lofreq, default 20"
+)
+
+parser.add_argument(
+  "-b",
+  "--basequal",
+  type=str,
+   nargs="?",
+   default='20',
+  help="Base quality for lofreq, default 20"
+)
+
+parser.add_argument(
+  "-a",
+  "--allele_frequency",
+  type=float,
+   nargs="?",
+   default=0.02,
+  help="Minimal allele frequency to keep the variant in the final output, default 0.02"
+)
+
+parser.add_argument(
+  "-t",
+  "--threads",
+  type=str,
+   nargs="?",
+   default='8',
+  help="Threads to use, default 8"
+)
+
+# parse arguments
+args = parser.parse_args()
+
+inFile = args.input_path
+refFasta = args.reference_path
+threads = args.threads
+mapqual = args.mapqual
+basequal = args.basequal
+lofreq_filter = args.allele_frequency
+prefix = args.prefix
 
 startTime = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
+roseColNames = ['POS', 'A-POS', 'T-POS', 'C-POS', 'G-POS', 'Indel1', 'Indel1-POS', 'Indel2', 'Indel2-POS', 'Indel3', 'Indel3-POS']
+curHeaders = ['position', 'A_avg_pos_as_fraction', 'T_avg_pos_as_fraction', 'C_avg_pos_as_fraction', 'G_avg_pos_as_fraction', \
+              'Indel1_base', 'Indel1_avg_pos_as_fraction', 'Indel2_base', 'Indel2_avg_pos_as_fraction', 'Indel3_base', 'Indel3_avg_pos_as_fraction']
+              
+# main funtions 
 
-threads = '8'
-mapqual = '20'
-basequal = '20'
-refFasta = './references/MN908947.3.fna'
-lofreq_filter = 0.02
-
-# get reference name and length from alignment file bowtie2 can print lines nicely       
-def readFileLines(f):
-  linesList =[]
-  N = 2 
-  with open(f, "r") as file:
-    for i in range(N):
-      line = next(file).replace('\t', ' ')
-      linesList.append(line)
-  targLineList = linesList[1].split(' ')
-  ref = targLineList[1].replace("SN:", "")
-  alLen = targLineList[2].replace("LN:", "").replace("\n", "")
-  return ref, alLen
-
-# easier to understand version 
+# get reference name and length from alignment file bowtie2
 def getRefLen(f):
   with open(f) as input_file:
     head = list(islice(input_file, 2))
@@ -37,31 +99,23 @@ def getRefLen(f):
   alLen = targLine[2].replace("LN:", "").replace("\n", "")
   return ref, alLen
 
-refName, refLen = getRefLen(f = "input/output.sam")
-
 #Convert the sam file into a bam file containing only mapped reads
-def sam2Bam(sam):
+def sam2Bam(sam, threads):
   cmd_str = 'samtools view -@ ' + threads + ' -bu -F 4 ' + sam + ' -o - | samtools sort -@ ' + threads + ' - -o output.bam'
   subprocess.run(["bash", "-c", cmd_str],
                           stdout=subprocess.PIPE,
                           stderr=subprocess.PIPE,
                           text=True)
                           
-sam2Bam(sam = "input/output.sam")
-
 # index bam file
-def indexBam(bam):
+def indexBam(bam, threads):
   cmd_str = 'samtools index -@ ' + threads + ' ' + bam
   subprocess.run(cmd_str, shell=True, stderr=subprocess.PIPE)
 
-indexBam(bam = 'output.bam')
-
 # bam readcount
-def bamReadCount(bam):
+def bamReadCount(mapqual, basequal, refFasta, bam, refName, refLen):
   cmd_str = 'bam-readcount/bam-readcount -w1 -q %s -b %s -f %s %s %s:1-%s > readcount.tsv' % (mapqual, basequal, refFasta, bam, refName, refLen)
   subprocess.run(cmd_str, shell=True)
-
-bamReadCount(bam = 'output.bam')
 
 # parse readcount file 
 def getReadCountRes():
@@ -72,26 +126,22 @@ def getReadCountRes():
       result.append(x.split('\t'))
   return(result)
 
-readCountRes = getReadCountRes()
-
 # get number of columns/indels
-def getColNumbers():
+def getColNumbers(readCountRes):
   colNumb =[]
   for i in readCountRes:
     colNumb.append(len(i))
   uniqNumb = list(np.unique(colNumb))
   return uniqNumb
 
-colNumbers = getColNumbers()
-
 # extract info for nucleotides
-def parseNucleotide(i, col):
+def parseNucleotide(i, col, readCountRes):
   nuclRes = readCountRes[i][col].split(':')
   selRes = list(nuclRes[1].split(' ')) + nuclRes[5:9]
   return selRes
 
 # extract infor for indels
-def parseIndels(i, col):
+def parseIndels(i, col, readCountRes):
   emptList = ["NaN"] * 6
   if len(readCountRes[i]) > col:
     nuclRes = readCountRes[i][col].split(':')
@@ -101,7 +151,7 @@ def parseIndels(i, col):
   return selRes
 
 # parse whole bam readcount
-def parseReadCount():
+def parseReadCount(readCountRes):
   allMainRes = []
   allAres = []
   allCres = []
@@ -112,13 +162,13 @@ def parseReadCount():
   allIndel3 = []
   for i in range(len(readCountRes)):
     mainRes = readCountRes[i][0:4]
-    aRes = parseNucleotide(i = i, col = 5)
-    cRes = parseNucleotide(i = i, col = 6)
-    gRes = parseNucleotide(i = i, col = 7)
-    tRes = parseNucleotide(i = i, col = 8)
-    indel1 = parseIndels(i = i , col = 10)
-    indel2 = parseIndels(i = i , col = 11)
-    indel3 = parseIndels(i = i , col = 13)
+    aRes = parseNucleotide(i = i, col = 5, readCountRes = readCountRes)
+    cRes = parseNucleotide(i = i, col = 6, readCountRes = readCountRes)
+    gRes = parseNucleotide(i = i, col = 7, readCountRes = readCountRes)
+    tRes = parseNucleotide(i = i, col = 8, readCountRes = readCountRes)
+    indel1 = parseIndels(i = i , col = 10, readCountRes = readCountRes)
+    indel2 = parseIndels(i = i , col = 11, readCountRes = readCountRes)
+    indel3 = parseIndels(i = i , col = 13, readCountRes = readCountRes)
     #combine lists
     allMainRes.append(mainRes)
     allAres.append(aRes)
@@ -142,38 +192,22 @@ def parseReadCount():
   combData = pd.concat([mainData, aDf, cDf, gDf, tDf, indel1Df, indel2Df, indel3Df], axis="columns")
   return combData
 
-mainData = parseReadCount()
-
-#subData = mainData[['A_count', 'T_count', 'A_avg_pos_as_fraction']]
-#subData = mainData.iloc[:, [0,3,4] ]
-#mainData.to_csv(path_or_buf = 'readcountFormat.csv', index = False)
-
-mainData.to_csv(path_or_buf = "readCountParsed.tsv", index = False, sep = "\t")
-
-roseColNames = ['POS', 'A-POS', 'T-POS', 'C-POS', 'G-POS', 'Indel1', 'Indel1-POS', 'Indel2', 'Indel2-POS', 'Indel3', 'Indel3-POS']
-curHeaders = ['position', 'A_avg_pos_as_fraction', 'T_avg_pos_as_fraction', 'C_avg_pos_as_fraction', 'G_avg_pos_as_fraction', \
-              'Indel1_base', 'Indel1_avg_pos_as_fraction', 'Indel2_base', 'Indel2_avg_pos_as_fraction', 'Indel3_base', 'Indel3_avg_pos_as_fraction']
-    
-selectData = mainData[curHeaders]
-selectData.columns = roseColNames
-
-selectData.to_csv(path_or_buf = 'sample_pos-filter.tsv', index = False, sep = "\t")
-
+# write tables
+def writeDf(df, outName):
+  if len(df.index) > 0:
+    df.to_csv(path_or_buf = outName, index = False, sep = "\t")
+  
 # prep for lowfreq
-def indelqual(bam, ref_seq):
-  cmd_str = f"lofreq indelqual --dindel -f {ref_seq} -o sample_dindel.tmp.bam {bam}"
+def indelqual(bam, refFasta):
+  cmd_str = f"lofreq indelqual --dindel -f {refFasta} -o sample_dindel.tmp.bam {bam}"
   subprocess.run(cmd_str, shell = True)
   sam_str = f"samtools index sample_dindel.tmp.bam"
   subprocess.run(sam_str, shell = True)
 
-indelqual(bam = 'output.bam', ref_seq = refFasta)
-
 # call lowfreq
-def lofreq(bam, ref_seq, t):
-  cmd_str = f"lofreq call-parallel --pp-threads {t} -f {ref_seq} -o sample_lf.vcf {bam} 2>sample_lofreq-log.txt"
+def lofreq(bam, refFasta, t):
+  cmd_str = f"lofreq call-parallel --pp-threads {t} -f {refFasta} -o sample_lf.vcf {bam} 2>sample_lofreq-log.txt"
   subprocess.run(cmd_str, shell = True)
-
-lofreq(bam = 'sample_dindel.tmp.bam', ref_seq = refFasta, t = threads)
 
 # read lowfreq results
 def getlowfreqRes():
@@ -187,8 +221,6 @@ def getlowfreqRes():
         result.append(curLineList)
   return(result)
 
-lofreqRes = getlowfreqRes()
-
 # subset list by index
 def subsetList(indList, curList):
   subList = []
@@ -197,7 +229,7 @@ def subsetList(indList, curList):
   return subList
 
 # parse lowfreq
-def parseLowfreq():
+def parseLowfreq(lofreqRes):
   colNames = ['REF-GENOME','POSITION','REF-NT','VAR-NT','QUAL','FILTER','DEPTH','ALLELE-FREQUENCY','STRAND-BIAS','FWD-REF','REV-REF','FWD-VAR','REV-VAR']
   indList = [0,1,3,4,5,6,8,10,12,14,15,16,17]
   results = []
@@ -209,14 +241,6 @@ def parseLowfreq():
   lofreqDf = pd.DataFrame(results, columns = colNames)
   return lofreqDf
 
-lowfreqDf = parseLowfreq()
-
-def writeLowfreq():
-  if len(lowfreqDf.index) > 0:
-    lowfreqDf.to_csv(path_or_buf = "sample_lofreq-output.tsv", index = False, sep = "\t")
-
-writeLowfreq()
-      
 # clean directory
 def cleanDir():
   os.makedirs("process_files/", exist_ok = True)
@@ -230,19 +254,105 @@ def cleanDir():
     if os.path.isfile(curFile):
       os.rename(curFile, "process_files/" + curFile)
   
-cleanDir()
-
-def writeSummary():
+def writeSummary(startTime, mapqual):
   curDate = datetime.today().strftime('%Y-%m-%d')
   endTime = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
   with open("runSummary.txt", "a") as text_file:
     text_file.write(f"Start Date {startTime}" + "\n")
     text_file.write(f"End Date {endTime}" + "\n")
     text_file.write(f"Mapping quality {mapqual}" + "\n")
-      
-writeSummary()
 
 # if file exists delete it
-delFile(fPath):
+def delFile(fPath):
   if os.path.isfile(fPath):
-    os.remove(i)
+    os.remove(fPath)
+
+# run the pipeline  
+def runAll():
+  #
+  try:
+    refName, refLen = getRefLen(f = inFile)
+  except Exception as e:
+    print(e)
+    sys.exit(1)
+  #
+  try:
+    sam2Bam(sam = inFile, threads = threads)
+  except Exception as e:
+    print(e)
+    sys.exit(1)
+  #
+  try:
+    indexBam(bam = 'output.bam', threads = threads)
+  except Exception as e:
+    print(e)
+    sys.exit(1)
+  #
+  try:
+    bamReadCount(mapqual = mapqual, basequal = basequal, refFasta = refFasta, bam = 'output.bam', refName = refName, refLen = refLen)
+  except Exception as e:
+    print(e)
+    sys.exit(1)
+  #
+  try:
+    readCountRes = getReadCountRes()
+  except Exception as e:
+    print(e)
+    sys.exit(1)
+  #
+  try:
+    mainData = parseReadCount(readCountRes = readCountRes)
+  except Exception as e:
+    print(e)
+    sys.exit(1)
+  #
+  try:
+    writeDf(df = mainData, outName = "readCountParsed.tsv")
+  except Exception as e:
+    print(e)
+    sys.exit(1)
+  #
+  try:
+    selectData = mainData[curHeaders]
+    selectData.columns = roseColNames
+    writeDf(df = selectData, outName = prefix + "_pos-filter.tsv")
+  except Exception as e:
+    print(e)
+    sys.exit(1)
+  #
+  delFile(fPath = "sample_dindel.tmp.bam")
+  delFile(fPath = "sample_dindel.tmp.bam.bai")
+  #
+  try:
+    indelqual(bam = 'output.bam', refFasta = refFasta)
+  except Exception as e:
+    print(e)
+    sys.exit(1)
+  #
+  try:
+    lofreq(bam = 'sample_dindel.tmp.bam', refFasta = refFasta, t = threads)
+  except Exception as e:
+    print(e)
+    sys.exit(1)
+  #
+  try:
+    lofreqRes = getlowfreqRes()
+  except Exception as e:
+    print(e)
+    sys.exit(1)
+  #
+  try:
+    lowfreqDf = parseLowfreq(lofreqRes = lofreqRes)
+    writeDf(df = lowfreqDf, outName = prefix + "_lofreq-output.tsv")
+  except Exception as e:
+    print(e)
+    sys.exit(1)
+  # wrap up
+  cleanDir()
+  writeSummary(startTime = startTime, mapqual = mapqual)
+  print("DONE!")
+
+# run tool
+if __name__ == "__main__":
+  runAll()
+    

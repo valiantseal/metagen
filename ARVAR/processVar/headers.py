@@ -16,7 +16,6 @@ def subsetList(indList):
     subList.append(headList[i])
   return subList
 
-subList = subsetList(indList = indList)
 
 roseColms = '$2,$17,$18,$19,$20,$25,$29,$31,$35,$37,$41'.replace("$", "")
 roseColmInd = roseColms.split(",")
