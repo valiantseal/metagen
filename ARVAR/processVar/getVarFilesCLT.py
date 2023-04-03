@@ -1,3 +1,4 @@
+#lofreq 2.1.5
 import argparse
 import os
 import subprocess
@@ -8,6 +9,7 @@ import glob
 from datetime import datetime
 import sys
 import re
+import shutil
 
 parser=argparse.ArgumentParser(description='get and parse bam-readcount and lofreq outputs')
 
@@ -98,6 +100,22 @@ def getRefLen(f):
   ref = targLine[1].replace("SN:", "")
   alLen = targLine[2].replace("LN:", "").replace("\n", "")
   return ref, alLen
+
+
+# replcase N with D in cigar string
+def editSam(inFile):
+  with open(inFile) as file, open('editFile.sam','w') as secondfile:
+      for line in file:
+          curLine = line.split('\t')
+          if curLine[0][0] == "@":
+            newline = "\t".join(curLine)
+          elif len(curLine) < 5:
+            newline = "\t".join(curLine)
+          elif len(curLine) > 5:
+            curLine[5] = curLine[5].replace("N", "D")
+            newline = "\t".join(curLine)
+          secondfile.write(newline)
+
 
 #Convert the sam file into a bam file containing only mapped reads
 def sam2Bam(sam, threads):
@@ -206,7 +224,7 @@ def indelqual(bam, refFasta):
 
 # call lowfreq
 def lofreq(bam, refFasta, t):
-  cmd_str = f"lofreq call-parallel --pp-threads {t} -f {refFasta} -o sample_lf.vcf {bam} 2>sample_lofreq-log.txt"
+  cmd_str = f"lofreq call --call-indels -f {refFasta} -o sample_lf.vcf {bam} 2>sample_lofreq-log.txt"
   subprocess.run(cmd_str, shell = True)
 
 # read lowfreq results
@@ -262,6 +280,9 @@ def writeSummary(startTime, mapqual):
     text_file.write(f"End Date {endTime}" + "\n")
     text_file.write(f"Mapping quality {mapqual}" + "\n")
 
+def copyFile(fname):
+  shutil.copyfile(fname, 'output.bam')
+
 # if file exists delete it
 def delFile(fPath):
   if os.path.isfile(fPath):
@@ -277,7 +298,13 @@ def runAll():
     sys.exit(1)
   #
   try:
-    sam2Bam(sam = inFile, threads = threads)
+    editSam(inFile = inFile)
+  except Exception as e:
+    print(e)
+    sys.exit(1)
+    
+  try:
+    sam2Bam(sam = 'editFile.sam', threads = threads)
   except Exception as e:
     print(e)
     sys.exit(1)
