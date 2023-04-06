@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import numpy as np
 
 os.chdir('C:/Users/abomb/OneDrive - Emory University/Variant-calling-pipeline/Original_output_files_02032023')
 
@@ -68,6 +69,8 @@ def extractInfo(parsedList):
         curProduct = eval(elem.replace("product=", ""))
       elif "protein_id=" in elem:
         curProtId = eval(elem.replace("protein_id=", ""))
+      elif "note=" in elem:
+        curNote = eval(elem.replace("note=", ""))
       # deal with missing data  
       if 'curGene' not in locals():
         curGene = "NaN"
@@ -75,20 +78,46 @@ def extractInfo(parsedList):
         curProduct = "NaN"
       if 'curProtId' not in locals():
         curProtId = "NaN"
+      if "curNote" not in locals():
+        curNote = "NaN"
     
-    resList.extend([curGene, curProduct, curProtId])
-    del(curGene, curProduct, curProtId)
+    resList.extend([curGene, curProduct, curProtId, curNote])
+    del(curGene, curProduct, curProtId, curNote)
     allResults.append(resList)
-    resultDf = pd.DataFrame( allResults, columns = [""])
-  return allResults
+    resultDf = pd.DataFrame( allResults, columns = ["Title", "Start_pos", "End_pos", "Gene", "Product", "Protein_id", "Note"])
+  return resultDf
 
 parsedResult = extractInfo(parsedList = parsedFile)
 
+#parsedResDed= parsedResult.drop_duplicates()
 
-      
-      
+parsedResult["Range"] = parsedResult["Start_pos"] + "-" + parsedResult["End_pos"]
+parsedResult[["Start_pos", "End_pos"]] = parsedResult[["Start_pos", "End_pos"]].apply(pd.to_numeric)  
+parsedResult["Length"] = parsedResult["End_pos"] - parsedResult["Start_pos"] +1
     
-      
+###
+
+df = pd.DataFrame(index = list(np.arange(10,20)))
+df = pd.DataFrame(index=pd.Series(range(10,20)))
+df["Gene"] = "Gene"
+df["Position"] = df.index
+
+df1 =  pd.DataFrame(index=pd.Series(range(15,25)))
+df1["Gene"] = "Prot"
+df1["Position"] = df1.index
+
+df3 = pd.merge(df, df1, how = "outer", on = "Position")
 
 
+###
+max(266,806) < min(21555,2719)
+
+# solution for each row i and j check if ranges overlap, if yes, and one range is higher it will be grand titel if not paste together, also start and end should not be identical
+
+# make main table with all cds positions, make 3 tables cds, genes, other, if position in other and fetures not NA fill if NA fill with next one
+# to avoid duplicates make column with rangees, subset by unique range if fetures do not match paste them.
+
+smallSegments = parsedResult[(parsedResult['Title'] != 'CDS') & (parsedResult['Title'] != 'gene')]
+
+rangesList = list(np.unique(smallSegments["Range"]))
 
