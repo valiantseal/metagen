@@ -8,5 +8,5 @@ bactopia --samples fastqs.txt \
 	--coverage 150 \
 	--genome_size median \
 	--outdir ./bactopia_output \
-	--max_cpus 4 \
+	--max_cpus 8 
 
