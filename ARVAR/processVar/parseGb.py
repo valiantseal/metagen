@@ -95,28 +95,9 @@ parsedResult["Range"] = parsedResult["Start_pos"] + "-" + parsedResult["End_pos"
 parsedResult[["Start_pos", "End_pos"]] = parsedResult[["Start_pos", "End_pos"]].apply(pd.to_numeric)  
 parsedResult["Length"] = parsedResult["End_pos"] - parsedResult["Start_pos"] +1
     
-###
-
-df = pd.DataFrame(index = list(np.arange(10,20)))
-df = pd.DataFrame(index=pd.Series(range(10,20)))
-df["Gene"] = "Gene"
-df["Position"] = df.index
-
-df1 =  pd.DataFrame(index=pd.Series(range(15,25)))
-df1["Gene"] = "Prot"
-df1["Position"] = df1.index
-
-df3 = pd.merge(df, df1, how = "outer", on = "Position")
-
 
 ###
 #max(266,806) < min(21555,2719)
-
-# solution for each row i and j check if ranges overlap, if yes, and one range is higher it will be grand titel if not paste together, also start and end should not be identical
-
-# make main table with all cds positions, make 3 tables cds, genes, other, if position in other and fetures not NA fill if NA fill with next one
-# to avoid duplicates make column with rangees, subset by unique range if fetures do not match paste them.
-
 
 def findSeq(genFile):
   for i in range(len(genFile)):
@@ -153,15 +134,125 @@ def splitFeatures(parsedResult):
     newDf["Gene"] = parsedResult.loc[i, "Gene"]
     newDf["Product"] = parsedResult.loc[i, "Product"]
     newDf["Protein_id"] = parsedResult.loc[i, "Protein_id"]
+    newDf["Length"] = parsedResult.loc[i, "Length"]
     combDf = pd.concat([combDf, newDf], ignore_index=True)
   sortDf = combDf.sort_values(by=['NT']).reset_index().drop(['index'], axis = 1)
   return(sortDf)
 
 refDf = splitFeatures(parsedResult)
 
+def filterNA(x):
+  newList = []
+  for i in x:
+    if i != 'NaN':
+      newList.append(i)
+  return newList
+
+def getMinVar(positionList, header, nuclRef):
+  for position in positionList:
+      minRef = nuclRef[nuclRef["Length"] == position]
+      combVar = np.unique(minRef[header])
+      filtVar = filterNA(combVar)
+      if filtVar != "NaN":
+        combStr = ",".join(filtVar)
+        break
+  if combStr == '':
+    combStr = "NaN"
+  return combStr
+
+def annotateNucl(refDf, i):
+  nuclRef = refDf[refDf["NT"] == i]
+  if len(nuclRef.index) > 0:
+    nuclRef = nuclRef.sort_values(by = ["Length"])
+    minRef = nuclRef[nuclRef["Length"] == min(nuclRef['Length'])] 
+    headList = ["Title", "Gene", "Product", "Protein_id"]
+    positionList = list(np.unique(nuclRef["Length"]))
+    refList = []
+    minList = []
+    for header in headList:
+      combVar = np.unique(nuclRef[header])
+      combStr = ",".join(filterNA(combVar))
+      if combStr == '':
+        combStr = "NaN"
+      refList.append(combStr)
+    for header in headList:
+      minVar = getMinVar(positionList, header, nuclRef)
+      minList.append(minVar)
+  else:
+    refList = ["NCR"] *4
+    minList = ["NCR"] *4
+  return refList, minList
+
+def annotFastaDf(refDf, fastaDf):
+  nuclPositions = fastaDf["NT"].to_list()
+  allFullRef = []
+  allMinRef = []
+  for i in nuclPositions:
+    fullRef, minRef = annotateNucl(refDf, i)
+    allFullRef.append(fullRef)
+    allMinRef.append(minRef)
+  
+  fullRefDf = pd.DataFrame(allFullRef, columns = ["All_Titles", "All_Genes", "All_Products", "All_Protein_IDs"])
+  minRefDf = pd.DataFrame(allMinRef, columns = ["Min_Titles", "Min_Genes", "Min_Products", "Min_Protein_IDs"])
+  
+  annotDf = pd.concat([fastaDf, minRefDf, fullRefDf], axis = "columns")
+  return(annotDf)
+
+annotDf = annotFastaDf(refDf, fastaDf)
+
+def prevElem(my_list, i, n):
+  for elem in range(i-1, -1, -1):
+    prevElem = my_list[elem]
+    if prevElem != n:
+      newElem = prevElem
+      break
+  return newElem
+
+def nextElem(my_list, i, n):
+  for elem in range(i, len(my_list)):
+    nextElem = my_list[elem]
+    if nextElem != n:
+      newElem = nextElem
+      break
+  return newElem
+
+def reformPrevNext(my_list, n):
+  resList = []
+  for i in range(len(my_list)):
+    curVal = my_list[i]
+    if curVal == n:
+      prevVal = prevElem(my_list, i, n)
+      nextVal = nextElem(my_list, i, n)
+      newVal = "_".join([str(prevVal), str(curVal), str(nextVal)])
+    else:
+      newVal = str(curVal)
+    resList.append(newVal)
+  return resList
+
+annotDf["All_Products_Edit"] = reformPrevNext(my_list = annotDf["All_Products"].to_list(), n = "NCR")
+
+q1 = annotDf[annotDf["All_Products"] == "NCR"]
 
     
+#(annotDf.index.to_series().diff().fillna(1) == 1).all()
   
+def findStartCod(annotDf):
+  for i in range(len(annotDf.index)):
+    if annotDf.loc[i, "Min_Titles"] != "5'UTR":
+      targNuc = annotDf.loc[i, "NT"]
+      break
+  return targNuc
+
+def findEndCod(annotDf):
+  for i in range(len(annotDf.index)):
+    if annotDf.loc[i, "Min_Titles"] == "3'UTR":
+      targNuc = annotDf.loc[i-1, "NT"]
+      break
+  return targNuc
+
+startCod = findStartCod(annotDf)
+    
+endCod = findEndCod(annotDf)
 
     
     
