@@ -13,7 +13,7 @@ def getReadCountRes(filePath):
 
 genFile = getReadCountRes(filePath = "sequence.gb")
 
-def findUtrInd():
+def findUtrInd(genFile):
   for i in range(len(genFile)):
     if "5'UTR" in genFile[i]:
       seqStart = i
@@ -21,10 +21,10 @@ def findUtrInd():
       seqEnd = i +1
   return seqStart, seqEnd
 
-seqStart, seqEnd = findUtrInd()
+seqStart, seqEnd = findUtrInd(genFile)
 
 
-def ParseFile():
+def ParseFile(seqStart, seqEnd):
   results = []
   for i in range(seqStart, seqEnd):
     newLine = genFile[i].split(" ")
@@ -42,7 +42,7 @@ def ParseFile():
   editList.pop(0)
   return(editList)
 
-parsedFile = ParseFile()
+parsedFile = ParseFile(seqStart, seqEnd)
 
 def getHeader(curList):
     headerList = curList[0].split(" ")
@@ -110,14 +110,59 @@ df3 = pd.merge(df, df1, how = "outer", on = "Position")
 
 
 ###
-max(266,806) < min(21555,2719)
+#max(266,806) < min(21555,2719)
 
 # solution for each row i and j check if ranges overlap, if yes, and one range is higher it will be grand titel if not paste together, also start and end should not be identical
 
 # make main table with all cds positions, make 3 tables cds, genes, other, if position in other and fetures not NA fill if NA fill with next one
 # to avoid duplicates make column with rangees, subset by unique range if fetures do not match paste them.
 
-smallSegments = parsedResult[(parsedResult['Title'] != 'CDS') & (parsedResult['Title'] != 'gene')]
 
-rangesList = list(np.unique(smallSegments["Range"]))
+def findSeq(genFile):
+  for i in range(len(genFile)):
+    if "ORIGIN" in genFile[i]:
+      seqStart = i + 1
+    if "//" in genFile[i]:
+      seqEnd = i
+  return seqStart, seqEnd
 
+fastStart, fastEnd = findSeq(genFile)
+
+def getFasta(fastStart, fastEnd):
+  results = ""
+  for i in range(fastStart, fastEnd):
+    newLine = genFile[i].rstrip()
+    editLine = ' '.join( newLine.split()).upper()
+    lineList =  editLine.split(" ")
+    filtLine = ''.join(lineList[1:])
+    results = results + filtLine
+    
+  return results
+
+fastaSeq = getFasta(fastStart, fastEnd)
+
+fastaDf = pd.DataFrame(list(fastaSeq), columns =['Ref'])
+fastaDf.insert(loc = 0, column = "NT", value = fastaDf.index +1)
+
+def splitFeatures(parsedResult):
+  combDf = pd.DataFrame()
+  for i in range(len(parsedResult.index)):
+    newDf = pd.DataFrame(index=pd.Series(range(parsedResult.loc[i, "Start_pos"],parsedResult.loc[i, "End_pos"] +1), dtype = 'float64'))
+    newDf["NT"] = newDf.index
+    newDf["Title"] = parsedResult.loc[i, "Title"]
+    newDf["Gene"] = parsedResult.loc[i, "Gene"]
+    newDf["Product"] = parsedResult.loc[i, "Product"]
+    newDf["Protein_id"] = parsedResult.loc[i, "Protein_id"]
+    combDf = pd.concat([combDf, newDf], ignore_index=True)
+  sortDf = combDf.sort_values(by=['NT']).reset_index().drop(['index'], axis = 1)
+  return(sortDf)
+
+refDf = splitFeatures(parsedResult)
+
+
+    
+  
+
+    
+    
+    
