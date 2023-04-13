@@ -237,14 +237,14 @@ annotDf["All_Products_Edit"] = reformPrevNext(my_list = annotDf["All_Products"].
   
 def findStartCod(annotDf):
   for i in range(len(annotDf.index)):
-    if annotDf.loc[i, "Min_Titles"] != "5'UTR":
+    if "5'UTR" not in annotDf.loc[i, "All_Titles"]:
       targNuc = annotDf.loc[i, "NT"]
       break
   return targNuc
 
 def findEndCod(annotDf):
   for i in range(len(annotDf.index)):
-    if annotDf.loc[i, "Min_Titles"] == "3'UTR":
+    if "3'UTR" in annotDf.loc[i, "All_Titles"]:
       targNuc = annotDf.loc[i-1, "NT"]
       break
   return targNuc
@@ -276,15 +276,16 @@ def addCodons(fastaSeq, startCod, endCod, annotDf ):
 
 annotDf = addCodons(fastaSeq, startCod, endCod, annotDf)
 
+#annotDf['Region/Gene'] = annotDf['Min_Genes'] + '_' + annotDf['Min_Products']
 
 # does not work and logic is unclear without clear product definition/manual revisioning 
 def addCodonNumb(annotDf):
   editDf = pd.DataFrame()
-  productsList = list(pd.unique(annotDf["Min_Titles"]))
+  productsList = list(pd.unique(annotDf["Region/Gene"]))
   for i in productsList:
     print(i)
     print((annotDf.index.to_series().diff().fillna(1) == 1).all())
-    curProd = annotDf[annotDf['Min_Titles'] == i].reset_index().drop(['index'], axis =1)
+    curProd = annotDf[annotDf['Region/Gene'] == i].reset_index().drop(['index'], axis =1)
     prodUn = list(pd.unique(curProd["All_Products"]))
     if (prodUn[0] == "NaN") or (prodUn[0] == "NCR"):
       codList = ["NCR"] * len(curProd)
@@ -300,6 +301,22 @@ def addCodonNumb(annotDf):
   sortDf = combDf.sort_values(by=['NT']).reset_index().drop(['index'], axis = 1)
   return(sortDf)
 
+# another approach to try is subset datatable for not NCR or NaN in All_products, count codons, join and reorder
 
+def transLateCod(annotDf):
+  aaList = []
+  codons = pd.read_csv('codons_table.csv', names = ['full_name', 'aa', 'codon', 'aa2', 'full_name2'])
+  for i in range(len(annotDf.index)):
+    codon = annotDf.loc[i, "Ref_Codon"]
+    if codon == "NCR" or codon == "NaN":
+      newAA = "NCR"
+    else:
+      newAA = codons.loc[codons['codon'] == codon, 'aa'].iloc[0]
+    aaList.append(newAA)
+  annotDf["Ref_AA"] = aaList
+  return(annotDf)
 
+annotDf = transLateCod(annotDf)
+
+annotDf.to_csv(path_or_buf = "py_annotations.csv", index = False)
     
