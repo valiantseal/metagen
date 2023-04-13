@@ -231,7 +231,7 @@ def reformPrevNext(my_list, n):
 
 annotDf["All_Products_Edit"] = reformPrevNext(my_list = annotDf["All_Products"].to_list(), n = "NCR")
 
-q1 = annotDf[annotDf["All_Products"] == "NCR"]
+#q1 = annotDf[annotDf["All_Products"] == "NCR"]
 
     
 #(annotDf.index.to_series().diff().fillna(1) == 1).all()
@@ -254,6 +254,31 @@ startCod = findStartCod(annotDf)
     
 endCod = findEndCod(annotDf)
 
-    
-    
+def addCodons(fastaSeq, startCod, endCod, annotDf ):
+  utr5Seq = ["NCR"] * (startCod-1)
+  utr3Seq = (len(fastaSeq) - endCod) * ["NCR"]
+  subStr = fastaSeq[(startCod -1):endCod]
+  # split string in a list of 3 elements
+  substrList = [subStr[i:i+3] for i in range(0, len(subStr), 3)]
+  cdsList = []
+  for item in substrList:
+    cdsList.extend([item]*3)
+  seqList = utr5Seq + cdsList + utr3Seq
+  len(seqList) == len(fastaSeq)
+  annotDf["Ref_Codon"] = seqList
+  return(annotDf)
+
+annotDf = addCodons(fastaSeq, startCod, endCod, annotDf)
+
+def addCodonNumb(annotDf):
+  editDf = pd.Data
+  productsList = list(pd.unique(annotDf["All_Products_Edit"]))
+  for i in productsList:
+    curProd = annotDf[annotDf['All_Products_Edit'] == i].reset_index().drop(['index'], axis =1)
+    prodUn = list(pd.unique(curProd["All_Products"]))
+    if (prodUn[0] == "NaN") or (prodUn[0] == "NCR"):
+      codList = ["NCR"] * len(curProd)
+    else:
+        
+    curProd["Codon#"] = codList
     
