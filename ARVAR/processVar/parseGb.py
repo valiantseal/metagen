@@ -151,12 +151,11 @@ def filterNA(x):
 def getMinVar(positionList, header, nuclRef):
   for position in positionList:
       minRef = nuclRef[nuclRef["Length"] == position]
-      combVar = np.unique(minRef[header])
-      filtVar = filterNA(combVar)
-      if filtVar != "NaN":
-        combStr = ",".join(filtVar)
+      combVar = list(np.unique(minRef[header]))
+      if combVar[0] != "NaN":
+        combStr = ",".join(combVar)
         break
-  if combStr == '':
+  if 'combStr' not in locals():
     combStr = "NaN"
   return combStr
 
@@ -164,7 +163,7 @@ def annotateNucl(refDf, i):
   nuclRef = refDf[refDf["NT"] == i]
   if len(nuclRef.index) > 0:
     nuclRef = nuclRef.sort_values(by = ["Length"])
-    minRef = nuclRef[nuclRef["Length"] == min(nuclRef['Length'])] 
+    #minRef = nuclRef[nuclRef["Length"] == min(nuclRef['Length'])] 
     headList = ["Title", "Gene", "Product", "Protein_id"]
     positionList = list(np.unique(nuclRef["Length"]))
     refList = []
@@ -231,7 +230,7 @@ def reformPrevNext(my_list, n):
 
 annotDf["All_Products_Edit"] = reformPrevNext(my_list = annotDf["All_Products"].to_list(), n = "NCR")
 
-#q1 = annotDf[annotDf["All_Products"] == "NCR"]
+#q1 = annotDf[annotDf["Min_Products"] == "RNA-dependent RNA polymerase"]
 
     
 #(annotDf.index.to_series().diff().fillna(1) == 1).all()
@@ -266,19 +265,41 @@ def addCodons(fastaSeq, startCod, endCod, annotDf ):
   seqList = utr5Seq + cdsList + utr3Seq
   len(seqList) == len(fastaSeq)
   annotDf["Ref_Codon"] = seqList
+  # codons for coding sequence
+  posList = list(range(1, 1 + int((len(subStr)/3))))
+  allPos = []
+  for item in posList:
+    allPos.extend([item]*3)
+  codNumb = utr5Seq + allPos + utr3Seq
+  annotDf["Codon#"] = codNumb
   return(annotDf)
 
 annotDf = addCodons(fastaSeq, startCod, endCod, annotDf)
 
+
+# does not work and logic is unclear without clear product definition/manual revisioning 
 def addCodonNumb(annotDf):
-  editDf = pd.Data
-  productsList = list(pd.unique(annotDf["All_Products_Edit"]))
+  editDf = pd.DataFrame()
+  productsList = list(pd.unique(annotDf["Min_Titles"]))
   for i in productsList:
-    curProd = annotDf[annotDf['All_Products_Edit'] == i].reset_index().drop(['index'], axis =1)
+    print(i)
+    print((annotDf.index.to_series().diff().fillna(1) == 1).all())
+    curProd = annotDf[annotDf['Min_Titles'] == i].reset_index().drop(['index'], axis =1)
     prodUn = list(pd.unique(curProd["All_Products"]))
     if (prodUn[0] == "NaN") or (prodUn[0] == "NCR"):
       codList = ["NCR"] * len(curProd)
     else:
+      posList = list(range(1, 1 + int((len(curProd.index)/3))))
+      codList = []
+      for item in posList:
+        codList.extend([item]*3)
         
     curProd["Codon#"] = codList
+    editDf = pd.concat([editDf, curProd], ignore_index = True)
+    
+  sortDf = combDf.sort_values(by=['NT']).reset_index().drop(['index'], axis = 1)
+  return(sortDf)
+
+
+
     
