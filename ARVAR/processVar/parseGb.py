@@ -1,3 +1,6 @@
+import time
+start_time = time.time()
+
 import os
 import pandas as pd
 import numpy as np
@@ -231,9 +234,6 @@ def reformPrevNext(my_list, n):
 annotDf["All_Products_Edit"] = reformPrevNext(my_list = annotDf["All_Products"].to_list(), n = "NCR")
 
 #q1 = annotDf[annotDf["Min_Products"] == "RNA-dependent RNA polymerase"]
-
-    
-#(annotDf.index.to_series().diff().fillna(1) == 1).all()
   
 def findStartCod(annotDf):
   for i in range(len(annotDf.index)):
@@ -278,31 +278,6 @@ annotDf = addCodons(fastaSeq, startCod, endCod, annotDf)
 
 #annotDf['Region/Gene'] = annotDf['Min_Genes'] + '_' + annotDf['Min_Products']
 
-# does not work and logic is unclear without clear product definition/manual revisioning 
-def addCodonNumb(annotDf):
-  editDf = pd.DataFrame()
-  productsList = list(pd.unique(annotDf["Region/Gene"]))
-  for i in productsList:
-    print(i)
-    print((annotDf.index.to_series().diff().fillna(1) == 1).all())
-    curProd = annotDf[annotDf['Region/Gene'] == i].reset_index().drop(['index'], axis =1)
-    prodUn = list(pd.unique(curProd["All_Products"]))
-    if (prodUn[0] == "NaN") or (prodUn[0] == "NCR"):
-      codList = ["NCR"] * len(curProd)
-    else:
-      posList = list(range(1, 1 + int((len(curProd.index)/3))))
-      codList = []
-      for item in posList:
-        codList.extend([item]*3)
-        
-    curProd["Codon#"] = codList
-    editDf = pd.concat([editDf, curProd], ignore_index = True)
-    
-  sortDf = combDf.sort_values(by=['NT']).reset_index().drop(['index'], axis = 1)
-  return(sortDf)
-
-# another approach to try is subset datatable for not NCR or NaN in All_products, count codons, join and reorder
-
 def transLateCod(annotDf):
   aaList = []
   codons = pd.read_csv('codons_table.csv', names = ['full_name', 'aa', 'codon', 'aa2', 'full_name2'])
@@ -320,3 +295,4 @@ annotDf = transLateCod(annotDf)
 
 annotDf.to_csv(path_or_buf = "py_annotations.csv", index = False)
     
+print("--- %s minutes ---" % ((time.time() - start_time) /60) )
