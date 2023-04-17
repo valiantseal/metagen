@@ -186,7 +186,7 @@ def parseReadCount(readCountRes):
     tRes = parseNucleotide(i = i, col = 8, readCountRes = readCountRes)
     indel1 = parseIndels(i = i , col = 10, readCountRes = readCountRes)
     indel2 = parseIndels(i = i , col = 11, readCountRes = readCountRes)
-    indel3 = parseIndels(i = i , col = 13, readCountRes = readCountRes)
+    indel3 = parseIndels(i = i , col = 12, readCountRes = readCountRes)
     #combine lists
     allMainRes.append(mainRes)
     allAres.append(aRes)

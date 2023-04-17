@@ -11,13 +11,25 @@ def test_ReadCount(df1, df2):
   shReadC = pd.read_table(df2, sep = "\t")
   pyReadSort = pyReadC.sort_values(by = ['POS'])
   shReadSort = shReadC.sort_values(by = ['POS'])
+  pyReadSort = pyReadSort.astype(str)
+  shReadSort= shReadSort.astype(str)
   #assert pyReadSort.equals(shReadSort)
   if pyReadSort.equals(shReadSort):
     print("bam-readcount pass")
   else:
     print("bam-readcount FAIL")
+    for i in range(len(shReadSort.index)):
+      #print(i)
+      pyList = pyReadSort.loc[i, :].values.flatten().tolist()
+      shList = shReadSort.loc[i, :].values.flatten().tolist()
+      if pyList != shList:
+        #print(pyList)
+        #print(shList)
+        print(i)
+        print('____________')
+    
 
-test_ReadCount(df1 = "sample_pos-filter.tsv" , df2 = "test_rose/position-filters/GA-EHC-2884X_L1_pos-filter.txt")
+test_ReadCount(df1 = "sample_pos-filter.tsv" , df2 = "varcalltest_cvd_04122023-1_varcall/position-filters/EHC-C19-1193Y_pos-filter.txt")
 
 ###
 def test_lofreqFinal(df1, df2):
