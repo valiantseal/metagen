@@ -20,8 +20,9 @@ def test_ReadCount(df1, df2):
     print("bam-readcount FAIL")
     for i in range(len(shReadSort.index)):
       #print(i)
-      pyList = pyReadSort.loc[i, :].values.flatten().tolist()
-      shList = shReadSort.loc[i, :].values.flatten().tolist()
+      position = pyReadSort.loc[i, "POS"]
+      pyList = pyReadFilt[pyReadFilt["POS"] == position].values.flatten().tolist()
+      shList = shReadSort[shReadSort["POS"] == position].values.flatten().tolist()
       if pyList != shList:
         #print(pyList)
         #print(shList)
@@ -46,12 +47,13 @@ def test_lofreqFinal(df1, df2):
   else:
     print("Initial lowfreq final table test FAIL")
     for i in range(len(pyReadFilt.index)):
-      print(i)
-      pyList = pyReadFilt.loc[i, :].values.flatten().tolist()
-      shList = shReadSort.loc[i, :].values.flatten().tolist()
+      position = pyReadFilt.loc[i, "POSITION"]
+      pyList = pyReadFilt[pyReadFilt["POSITION"] == position].values.flatten().tolist()
+      shList = shReadSort[shReadSort["POSITION"] == position].values.flatten().tolist()
       if pyList != shList:
+        print(i)
         print(pyList)
         print(shList)
         print('____________')
     
-test_lofreqFinal(df1 = "sample_lofreq-output.tsv", df2 = "test_rose/final-calls/GA-EHC-2884X_L1_lofreq-output.txt")
+test_lofreqFinal(df1 = "sample_lofreq-output.tsv", df2 = "varcalltest_cvd_04122023-1_varcall/final-calls/EHC-C19-1193Y_lofreq-output.txt")
