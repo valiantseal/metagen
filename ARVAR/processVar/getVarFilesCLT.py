@@ -255,6 +255,8 @@ def filterRefNumb(lofreqDf, sumReads):
 
 # parse lowfreq
 def parseLowfreq(lofreqRes):
+  if len(lofreqRes) == 0:
+    print("No Variants Were identified")
   colNames = ['REF-GENOME','POSITION','REF-NT','VAR-NT','QUAL','FILTER','DEPTH','ALLELE-FREQUENCY','STRAND-BIAS','FWD-REF','REV-REF','FWD-VAR','REV-VAR']
   indList = [0,1,3,4,5,6,8,10,12,14,15,16,17]
   results = []
@@ -362,18 +364,21 @@ def runAll():
     indelqual(bam = 'output.bam', refFasta = refFasta)
   except Exception as e:
     print(e)
+    print("Lofreq indels quality annotations failed")
     sys.exit(1)
   #
   try:
     lofreq(bam = 'sample_dindel.tmp.bam', refFasta = refFasta, t = threads)
   except Exception as e:
     print(e)
+    print("Lofreq run failed")
     sys.exit(1)
   #
   try:
     lofreqRes = getlowfreqRes()
   except Exception as e:
     print(e)
+    print("Lofreq file parsing failed")
     sys.exit(1)
   #
   try:
@@ -381,6 +386,7 @@ def runAll():
     writeDf(df = lowfreqDf, outName = prefix + "_lofreq-output.tsv")
   except Exception as e:
     print(e)
+    print("Lofreq file annotation failed")
     sys.exit(1)
   # wrap up
   cleanDir()

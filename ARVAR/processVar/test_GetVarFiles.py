@@ -21,7 +21,7 @@ def test_ReadCount(df1, df2):
     for i in range(len(shReadSort.index)):
       #print(i)
       position = pyReadSort.loc[i, "POS"]
-      pyList = pyReadFilt[pyReadFilt["POS"] == position].values.flatten().tolist()
+      pyList = pyReadSort[pyReadSort["POS"] == position].values.flatten().tolist()
       shList = shReadSort[shReadSort["POS"] == position].values.flatten().tolist()
       if pyList != shList:
         #print(pyList)
@@ -30,7 +30,7 @@ def test_ReadCount(df1, df2):
         print('____________')
     
 
-test_ReadCount(df1 = "sample_pos-filter.tsv" , df2 = "varcalltest_cvd_04122023-1_varcall/position-filters/EHC-C19-1193Y_pos-filter.txt")
+test_ReadCount(df1 = "sample_pos-filter.tsv" , df2 = "varcalltest_denv_04122023-1_varcall/position-filters/PG-DENV-056D_pos-filter.txt")
 
 ###
 def test_lofreqFinal(df1, df2):
@@ -56,4 +56,4 @@ def test_lofreqFinal(df1, df2):
         print(shList)
         print('____________')
     
-test_lofreqFinal(df1 = "sample_lofreq-output.tsv", df2 = "varcalltest_cvd_04122023-1_varcall/final-calls/EHC-C19-1193Y_lofreq-output.txt")
+test_lofreqFinal(df1 = "sample_lofreq-output.tsv", df2 = "varcalltest_denv_04122023-1_varcall/final-calls/PG-DENV-056D_lofreq-output.txt")
