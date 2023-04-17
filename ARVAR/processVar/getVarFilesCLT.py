@@ -246,6 +246,13 @@ def subsetList(indList, curList):
     subList.append(curList[i])
   return subList
 
+# filter by the number of reference reads
+def filterRefNumb(lofreqDf, sumReads):
+  lofreqDf["FWD-REF"] = lofreqDf["FWD-REF"].astype(int)
+  lofreqDf["REV-REF"] = lofreqDf["REV-REF"].astype(int)
+  dfFilter = lofreqDf.loc[(lofreqDf["FWD-REF"] + lofreqDf["REV-REF"]) >= sumReads]
+  return(dfFilter)
+
 # parse lowfreq
 def parseLowfreq(lofreqRes):
   colNames = ['REF-GENOME','POSITION','REF-NT','VAR-NT','QUAL','FILTER','DEPTH','ALLELE-FREQUENCY','STRAND-BIAS','FWD-REF','REV-REF','FWD-VAR','REV-VAR']
@@ -257,6 +264,7 @@ def parseLowfreq(lofreqRes):
       subsRes = subsetList(indList = indList, curList = curLine)
       results.append(subsRes)
   lofreqDf = pd.DataFrame(results, columns = colNames)
+  lofreqDf = filterRefNumb(lofreqDf, 2)
   return lofreqDf
 
 # clean directory
