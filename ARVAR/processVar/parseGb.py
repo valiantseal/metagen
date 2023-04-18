@@ -155,7 +155,8 @@ def getMinVar(positionList, header, nuclRef):
   for position in positionList:
       minRef = nuclRef[nuclRef["Length"] == position]
       combVar = list(np.unique(minRef[header]))
-      if combVar[0] != "NaN":
+      if any(val != "NaN" for val in combVar):
+        combVar = filterNA(combVar)
         combStr = ",".join(combVar)
         break
   if 'combStr' not in locals():
@@ -315,6 +316,7 @@ def transLateCod(annotDf):
 
 annotDf = transLateCod(annotDf)
 
+annotDf = annotDf.rename(columns = {'Min_Products' : 'Region/Gene'})
 annotDf.to_csv(path_or_buf = "py_annotations.csv", index = False)
     
 print("--- %s minutes ---" % ((time.time() - start_time) /60) )
