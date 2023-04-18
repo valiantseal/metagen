@@ -266,17 +266,39 @@ def addCodons(fastaSeq, startCod, endCod, annotDf ):
   len(seqList) == len(fastaSeq)
   annotDf["Ref_Codon"] = seqList
   # codons for coding sequence
-  posList = list(range(1, 1 + int((len(subStr)/3))))
-  allPos = []
-  for item in posList:
-    allPos.extend([item]*3)
-  codNumb = utr5Seq + allPos + utr3Seq
-  annotDf["Codon#"] = codNumb
+  #posList = list(range(1, 1 + int((len(subStr)/3))))
+  #allPos = []
+  #for item in posList:
+    #allPos.extend([item]*3)
+  #codNumb = utr5Seq + allPos + utr3Seq
+  #annotDf["Codon#"] = codNumb
   return(annotDf)
 
 annotDf = addCodons(fastaSeq, startCod, endCod, annotDf)
 
 #annotDf['Region/Gene'] = annotDf['Min_Genes'] + '_' + annotDf['Min_Products']
+
+def addCodNumbPerBase(annotDf):
+  editDf = pd.DataFrame()
+  productsList = list(pd.unique(annotDf["All_Products_Edit"]))
+  for i in productsList:
+    curProd = annotDf[annotDf['All_Products'] == i].reset_index().drop(['index'], axis =1)
+    curProd["Codon#"] = "NaN"
+    for j in range(len(curProd.index)):
+      if (curProd.loc[j, "All_Products"] == "NaN") or (curProd.loc[j, "All_Products"] == "NCR"):
+        curProd.loc[j, "Codon#"] = "NCR"
+      else:
+        if j < 3:
+          curProd.loc[j, "Codon#"] = 1
+        else:
+          newCod = curProd.loc[j-3, "Codon#"] + 1
+          curProd.loc[j, "Codon#"] = newCod
+        
+    editDf = pd.concat([editDf, curProd])
+  editDf = editDf.sort_values(by = ["NT"]).reset_index().drop(["index"], axis =1)
+  return(editDf)
+
+annotDf = addCodNumbPerBase(annotDf)
 
 def transLateCod(annotDf):
   aaList = []
