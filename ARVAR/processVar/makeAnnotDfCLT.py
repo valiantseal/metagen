@@ -317,7 +317,7 @@ def saveAnnot(annotDf, outFile):
 # combine all functions to make annotation table
 def runAll(inFile):
   try:
-    genFile = getReadCountRes(filePath = inFile)
+    genFile = getReadCountRes(inFile)
     seqStart, seqEnd = findUtrInd(genFile)
     parsedFile = ParseFile(seqStart, seqEnd, genFile)
   except:
