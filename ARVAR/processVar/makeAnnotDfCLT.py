@@ -50,7 +50,7 @@ def findUtrInd(genFile):
   return seqStart, seqEnd
 
 # parse gb file into lists
-def ParseFile(seqStart, seqEnd):
+def ParseFile(seqStart, seqEnd, genFile):
   results = []
   for i in range(seqStart, seqEnd):
     newLine = genFile[i].split(" ")
@@ -125,17 +125,15 @@ def findSeq(genFile):
   return seqStart, seqEnd
 
 # get fasta sequence
-def getFasta(fastStart, fastEnd):
+def getFasta(fastStart, fastEnd, genFile):
   results = ""
-  for i in range(fastStart, fastEnd):
+  for i in range(fastStart, fastEnd, ):
     newLine = genFile[i].rstrip()
     editLine = ' '.join( newLine.split()).upper()
     lineList =  editLine.split(" ")
     filtLine = ''.join(lineList[1:])
     results = results + filtLine
-    fastaDf = pd.DataFrame(list(results), columns =['Ref'])
-    fastaDf.insert(loc = 0, column = "NT", value = fastaDf.index +1)
-  return fastaDf
+  return results
 
 # split features table ranges to cover all nucleotides individually
 def splitFeatures(parsedResult):
@@ -208,8 +206,8 @@ def annotFastaDf(refDf, fastaDf):
   
   fullRefDf = pd.DataFrame(allFullRef, columns = ["All_Titles", "All_Genes", "All_Products", "All_Protein_IDs"])
   minRefDf = pd.DataFrame(allMinRef, columns = ["Min_Titles", "Min_Genes", "Min_Products", "Min_Protein_IDs"])
-  
   annotDf = pd.concat([fastaDf, minRefDf, fullRefDf], axis = "columns")
+  annotDf["All_Products_Edit"] = reformPrevNext(my_list = annotDf["All_Products"].to_list(), n = "NCR")
   return(annotDf)
 
 # find previous element after n in the list that is not n
@@ -311,21 +309,65 @@ def transLateCod(annotDf):
   return(annotDf)
 
 # save annotation file
-def saveAnnot(annotDf):
+def saveAnnot(annotDf, outFile):
   if len(annotDf.index) > 0:
     annotDf = annotDf.rename(columns = {'Min_Products' : 'Region/Gene'})
     annotDf.to_csv(path_or_buf = outFile, index = False)
 
 # combine all functions to make annotation table
-def runAll(inFile, outFile):
+def runAll(inFile):
   try:
     genFile = getReadCountRes(filePath = inFile)
     seqStart, seqEnd = findUtrInd(genFile)
-    parsedFile = ParseFile(seqStart, seqEnd)
+    parsedFile = ParseFile(seqStart, seqEnd, genFile)
   except:
     print("Failed to read file")
     sys.exit(1)
-  
-  
+  try:
+    parsedResult = extractInfo(parsedList = parsedFile)
+  except:
+    print("Parsing file failed")
+    sys.exit(1)
+  try:
+    fastStart, fastEnd = findSeq(genFile)
+    fastaSeq = getFasta(fastStart, fastEnd, genFile)
+    fastaDf = pd.DataFrame(list(fastaSeq), columns =['Ref'])
+    fastaDf.insert(loc = 0, column = "NT", value = fastaDf.index +1)
+  except:
+    print("Extraction of the fasta sequence failed")
+    sys.exit(1)
+  try:
+    refDf = splitFeatures(parsedResult)
+  except:
+    print("Features failed to be recorded as data frame")
+    sys.exit(1)
+  try:
+    annotDf = annotFastaDf(refDf, fastaDf)
+  except:
+    print("Annotations per nucleotide failed")
+    sys.exit(1)
+  try:
+    startCod = findStartCod(annotDf)
+    endCod = findEndCod(annotDf)
+    annotDf = addCodons(fastaSeq, startCod, endCod, annotDf)
+  except:
+    print("Failed adding codons for each nucleotide")
+    sys.exit(1)
+  try:
+    annotDf = addCodNumbPerBase(annotDf)
+  except:
+    print("Failed to add codon numbers")
+    sys.exit(1)
+  try:
+    annotDf = transLateCod(annotDf)
+  except:
+    print("Failed to translate codons")
+    sys.exit(1)
+  return(annotDf)
+
+# run the tool
+if __name__ == "__main__":
+  annotDf = runAll(inFile)
+  saveAnnot(annotDf = annotDf , outFile = outFile)
 
 print("--- %s minutes ---" % ((time.time() - start_time) /60) )
