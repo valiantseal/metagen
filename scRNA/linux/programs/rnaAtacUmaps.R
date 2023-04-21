@@ -60,7 +60,7 @@ p3<-grid.arrange(plot1,plot2, ncol=2, nrow=1)
 
 ggsave(plot = p3, file = paste0(targDir, 'AtacUmapTileMat_allClusers_', curDate, '.png'), width = 22, height = 12, dpi = 300, units = 'in')
 
-# make plots with ATAC genetic expression
+# make plots with ATAC peaks expression
 
 archUmap <- getEmbedding(ArchRProj = projFilt, embedding = "UMAP_macs2", returnDF = TRUE)
 archUmap$Cell_id = rownames(archUmap)
@@ -73,7 +73,7 @@ levels(x = archUmap) <- c('SUB', 'CA1', 'CA2', 'CA3', 'DG', 'GABA', 'C-R', 'OPC'
 archUmap$Annotations <- factor(archUmap$Annotations, levels=c('SUB', 'CA1', 'CA2', 'CA3', 'DG', 'GABA', 'C-R', 'OPC', 'ODC', 'MG'))
 # plots
 plot1 = ggplot(aes(x = UMAP_1, y = UMAP_2, color = Annotations), data = archUmap )+
-  geom_point(size = 1) +
+  geom_point(size = 0.04) +
   theme_classic() +
   theme(text = element_text(size = 16)) +
   guides(color = guide_legend(override.aes = list(size = 6))) +
@@ -83,7 +83,7 @@ plot1 = ggplot(aes(x = UMAP_1, y = UMAP_2, color = Annotations), data = archUmap
 plot1
 
 plot2 = ggplot(aes(x = UMAP_1, y = UMAP_2, color = Group), data = archUmap )+
-  geom_point(size = 1) +
+  geom_point(size = 0.04) +
   theme_classic() +
   theme(text = element_text(size = 16)) +
   guides(color = guide_legend(override.aes = list(size = 6))) +
@@ -100,7 +100,7 @@ ggsave(plot = p3, file = paste0(targDir, 'AtacUmapMacs2_allClusers_', curDate, '
 df$Annotations <- factor(df$Annotations, levels=c('SUB', 'CA1', 'CA2', 'CA3', 'DG', 'GABA', 'C-R', 'OPC', 'ODC', 'MG'))
 
 plot1 = ggplot(aes(x = UMAP_1, y = UMAP_2, color = Annotations), data = df) +
-  geom_point() +
+  geom_point(size = 0.000) +
   theme_classic() +
   theme(text = element_text(size = 16)) +
   guides(color = guide_legend(override.aes = list(size = 6))) +
@@ -110,7 +110,7 @@ plot1 = ggplot(aes(x = UMAP_1, y = UMAP_2, color = Annotations), data = df) +
 plot1
 
 plot2 = ggplot(aes(x = UMAP_1, y = UMAP_2, color = Group), data = df) +
-  geom_point() +
+  geom_point(size = 0.001) +
   theme_classic() +
   theme(text = element_text(size = 16)) +
   guides(color = guide_legend(override.aes = list(size = 6))) +
