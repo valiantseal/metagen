@@ -278,7 +278,7 @@ def addCodNumbPerBase(annotDf):
   editDf = pd.DataFrame()
   productsList = list(pd.unique(annotDf["All_Products_Edit"]))
   for i in productsList:
-    curProd = annotDf[annotDf['All_Products'] == i].reset_index().drop(['index'], axis =1)
+    curProd = annotDf[annotDf['All_Products_Edit'] == i].reset_index().drop(['index'], axis =1)
     curProd["Codon#"] = "NaN"
     for j in range(len(curProd.index)):
       if (curProd.loc[j, "All_Products"] == "NaN") or (curProd.loc[j, "All_Products"] == "NCR"):
@@ -289,15 +289,14 @@ def addCodNumbPerBase(annotDf):
         else:
           newCod = curProd.loc[j-3, "Codon#"] + 1
           curProd.loc[j, "Codon#"] = newCod
-        
     editDf = pd.concat([editDf, curProd])
-  editDf = editDf.sort_values(by = ["NT"]).reset_index().drop(["index"], axis =1)
-  return(editDf)
+  editDfSort = editDf.sort_values(by = ["NT"]).reset_index().drop(["index"], axis =1)
+  return(editDfSort)
 
 # translate codons to amino acids
 def transLateCod(annotDf):
   aaList = []
-  codons = pd.read_csv('data/codons_table.csv', names = ['full_name', 'aa', 'codon', 'aa2', 'full_name2'])
+  codons = pd.read_csv('programs/data/codons_table.csv', names = ['full_name', 'aa', 'codon', 'aa2', 'full_name2'])
   for i in range(len(annotDf.index)):
     codon = annotDf.loc[i, "Ref_Codon"]
     if codon == "NCR" or codon == "NaN":

@@ -286,11 +286,11 @@ def cleanDir():
   for i in delList:
     os.remove(i)
   mv_list = glob.glob("*bam*")
-  mv_list.extend(["readcount.tsv", "sample_lofreq-log.txt", "sample_lf.vcf", "readCountParsed.tsv, sample_lofreq-output.tsv"])
+  mv_list.extend(["readcount.tsv", "sample_lofreq-log.txt", "sample_lf.vcf", "readCountParsed.tsv", "editFile.sam"])
   for i in range(len(mv_list)):
     curFile = str(mv_list[i])
     if os.path.isfile(curFile):
-      os.rename(curFile, "process_files/" + curFile)
+      shutil.move(curFile, "process_files/")
   
 def writeSummary(startTime, mapqual):
   curDate = datetime.today().strftime('%Y-%m-%d')

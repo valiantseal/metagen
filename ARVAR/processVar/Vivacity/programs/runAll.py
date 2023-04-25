@@ -7,6 +7,14 @@ import time
 
 t = 2
 
+# make reference annotation file
+
+def runMakeAnnotDf():
+  cmd_str = "python programs/src/makeAnnotDfCLT.py -i ./programs/data/sequence.gb"
+  subprocess.run(cmd_str, shell = True)
+
+runMakeAnnotDf()
+
 ## get iSNV files
 filesList = glob.glob("input/*.sam")
 
@@ -39,6 +47,15 @@ with Pool(t) as pool:
   pool.map(runGetVarFiles, samplesList)
 
 print("getVarFiles completed in --- %s minutes ---" % ((time.time() - start_time) /60) )
+
+# filter and annotate lofreq results
+
+def runFilterLofreq(sampleName):
+  targDir = "process/" + sampleName + "/"
+  os.chdir(targDir)
+  cmd_str = "python ../../programs/src/filterLofreqCLT.py -i sample_lofreq-output.tsv \
+  -r sample_pos-filter.tsv -a ../../"
+  subprocess.run(cmd_str, shell = True)
 
 
 

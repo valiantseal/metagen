@@ -16,7 +16,6 @@ if missing:
 import pandas as pd
 import argparse
 import warnings
-from pandas.core.common import SettingWithCopyWarning
 import math
 
 """
@@ -24,7 +23,6 @@ a better way would be to create 2 lists with relative positions and add them as 
 May be redo in the future to avoid warnings
 
 """
-warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
 
 parser=argparse.ArgumentParser(description='format and filter Lofreq output')
 
@@ -54,11 +52,11 @@ parser.add_argument(
 
 parser.add_argument(
   "-f",
-  "--filter",
+  "--filter_res",
   type=float,
   nargs="?",
   default=None,
-  help="filter resullts to include relative variant position higher or equal to Float"
+  help="filter resullts to include only relative variant position higher or equal to Float"
 )
 
 parser.add_argument(
@@ -71,7 +69,7 @@ parser.add_argument(
 )
 
 parser.add_argument(
-  "-a",
+  "-p",
   "--relative_pos",
   type=float,
   nargs="?",
@@ -88,17 +86,26 @@ parser.add_argument(
   help="write variants that failed the position test separately, string T or F"
 )
 
+parser.add_argument(
+  "-a",
+  "--annot_dir",
+  type=str,
+  nargs="?",
+  default='.',
+  help="path to the directory with annotation files, default '.' "
+)
+
 # parse arguments
 args = parser.parse_args()
 
 df = args.input_path
 ref = args.reference
 output = args.output_path
-filt = args.filter
+filt = args.filter_res
 cons = args.consensus
 rel = args.relative_pos
 splitVar = args.split
-
+annot_dir = args.annot_dir
 ## main function
 
 # read data
@@ -130,27 +137,27 @@ for i in range(len(resDf.index)):
   if len(refAl) > len(varAl):
     refRefAl = refAl[1] + '-POS' 
     resDf['Ref_Al_RelPos'][i] = refSub.loc[0, refRefAl]
-    # find which indel column has deletion amd record relative position
+    # find which Indel column has deletion amd record relative position
     refVarAl = '-'  + refAl[1:]
-    if refSub.loc[0, 'INDEL1'] == refVarAl:
-      resDf['Var_Al_Relpos'][i] = refSub.loc[0, 'INDEL1-POS']
-    elif refSub.loc[0, 'INDEL2'] == refVarAl:
-       resDf['Var_Al_Relpos'][i] = refSub.loc[0, 'INDEL2-POS']
-    elif refSub.loc[0, 'INDEL3'] == refVarAl:
-      resDf['Var_Al_Relpos'][i] = refSub.loc[0, 'INDEL3-POS']
+    if refSub.loc[0, 'Indel1'] == refVarAl:
+      resDf['Var_Al_Relpos'][i] = refSub.loc[0, 'Indel1-POS']
+    elif refSub.loc[0, 'Indel2'] == refVarAl:
+       resDf['Var_Al_Relpos'][i] = refSub.loc[0, 'Indel2-POS']
+    elif refSub.loc[0, 'Indel3'] == refVarAl:
+      resDf['Var_Al_Relpos'][i] = refSub.loc[0, 'Indel3-POS']
     
   # process insertions
   elif len(refAl) < len(varAl):
     refRefAl = refAl + '-POS' 
     resDf['Ref_Al_RelPos'][i] = refSub.loc[0, refRefAl]
-    # find which indel column has deletion amd record relative position
+    # find which Indel column has deletion amd record relative position
     refVarAl = '+'  + varAl[1:]
-    if refSub.loc[0, 'INDEL1'] == refVarAl:
-      resDf['Var_Al_Relpos'][i] = refSub.loc[0, 'INDEL1-POS']
-    elif refSub.loc[0, 'INDEL2'] == refVarAl:
-      resDf['Var_Al_Relpos'][i] = refSub.loc[0, 'INDEL2-POS']
-    elif refSub.loc[0, 'INDEL3'] == refVarAl:
-      resDf['Var_Al_Relpos'][i] = refSub.loc[0, 'INDEL3-POS']
+    if refSub.loc[0, 'Indel1'] == refVarAl:
+      resDf['Var_Al_Relpos'][i] = refSub.loc[0, 'Indel1-POS']
+    elif refSub.loc[0, 'Indel2'] == refVarAl:
+      resDf['Var_Al_Relpos'][i] = refSub.loc[0, 'Indel2-POS']
+    elif refSub.loc[0, 'Indel3'] == refVarAl:
+      resDf['Var_Al_Relpos'][i] = refSub.loc[0, 'Indel3-POS']
       
   # process substitution
   elif len(refAl) == len(varAl):
@@ -240,8 +247,8 @@ resDf = typeAllele(df = resDf)
 
 ## annotations 
 # do we need these files as user input options?
-annot = pd.read_csv('annotations.csv')
-codons = pd.read_csv('codons_table.csv', names = ['full_name', 'aa', 'codon', 'aa2', 'full_name2'])
+annot = pd.read_csv(f'{annot_dir}/py_annotations.csv')
+codons = pd.read_csv(f'{annot_dir}/programs/data/codons_table.csv', names = ['full_name', 'aa', 'codon', 'aa2', 'full_name2'])
 
 # annotate substitutions
 def annotSubst(pos, codNumb, region, corVarAl):
@@ -327,11 +334,12 @@ def annotate(df):
   allMutTypes = []
   allAaCh = []
   for i in range(len(df)):
+    print(i)
     pos = df.loc[i, 'Position_corrected']
     region = annot.loc[annot['NT'] == pos, 'Region/Gene'].iloc[0]
     codNumb = annot.loc[annot['NT'] == pos, 'Codon#'].iloc[0]
     corVarAl = df.loc[i, 'VAR-allele_corrected']
-    if region == "5'UTR" or region == "3'UTR" or region == 'E/NCR':
+    if region == "5'UTR" or region == "3'UTR" or region == 'E/NCR' or region == 'NaN' or pd.isna(region) or region == 'NCR':
       mutType = 'Synonymous'
       aaCh = region
     else:
