@@ -338,9 +338,12 @@ def annotate(df):
     region = annot.loc[annot['NT'] == pos, 'Region/Gene'].iloc[0]
     codNumb = annot.loc[annot['NT'] == pos, 'Codon#'].iloc[0]
     corVarAl = df.loc[i, 'VAR-allele_corrected']
+    newRegion = annot.loc[annot['NT'] == pos, 'All_Products_Edit'].iloc[0]
     if region == "5'UTR" or region == "3'UTR" or region == 'E/NCR' or region == 'NaN' or pd.isna(region) or region == 'NCR':
       mutType = 'Synonymous'
-      aaCh = region
+      aaCh = "NCR"
+      if newRegion == "NaN" or pd.isna(newRegion):
+        newRegion = "NCR"
     else:
       # handle substitutions
       if df.loc[i, 'Type'] == 'Substitution':
@@ -354,7 +357,7 @@ def annotate(df):
       mutType = resList[0]
       aaCh = resList[1]
     # combine lists
-    allRegions.append(region)
+    allRegions.append(newRegion)
     allMutTypes.append(mutType)
     allAaCh.append(aaCh)
     # make new columns
