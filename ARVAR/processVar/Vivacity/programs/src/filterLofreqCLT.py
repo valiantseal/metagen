@@ -334,7 +334,6 @@ def annotate(df):
   allMutTypes = []
   allAaCh = []
   for i in range(len(df)):
-    print(i)
     pos = df.loc[i, 'Position_corrected']
     region = annot.loc[annot['NT'] == pos, 'Region/Gene'].iloc[0]
     codNumb = annot.loc[annot['NT'] == pos, 'Codon#'].iloc[0]

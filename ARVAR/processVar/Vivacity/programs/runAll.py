@@ -57,6 +57,10 @@ def runFilterLofreq(sampleName):
   -r sample_pos-filter.tsv -a ../../"
   subprocess.run(cmd_str, shell = True)
 
+with Pool(t) as pool:
+  pool.map(runFilterLofreq, samplesList)
+
+
 
 
 
