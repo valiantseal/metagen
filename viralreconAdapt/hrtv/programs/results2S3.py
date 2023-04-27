@@ -15,6 +15,9 @@ def toS3():
   for i in outputFiles:
     curDir = i + "/"
     cmd_str = "aws s3 cp --recursive " + curDir + " s3://transfer-files-emory/Viralrecon/" + proj_name + run_name + curDir
-    subprocess.run(cmd_str, shell=True)
+    try:
+      subprocess.run(cmd_str, shell=True)
+    except:
+      pass
 
 toS3()
