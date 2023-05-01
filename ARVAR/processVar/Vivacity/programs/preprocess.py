@@ -62,12 +62,18 @@ def runHisat2(sampleName):
   os.chdir(targDir)
   cmd_str = f"hisat2 -p 8 -x ../../references/SARSCov2_Ref -1 filtered_1.fastq -2 filtered_2.fastq -S {sampleName}.sam"
   subprocess.run(cmd_str, shell = True)
-  shutil.copy(f'{sampleName}.sam', "../../input/")
   os.chdir("../../")
 
 with Pool(t) as pool:
   pool.map(runHisat2, samplesNames)
   
 
+def copyFiles(sampleName):
+  targDir = "preprocess/" + sampleName + "/"
+  os.chdir(targDir)
+  shutil.copy(f'{sampleName}.sam', "../../input/")
+  os.chdir("../../")
 
+with Pool(t) as pool:
+  pool.map(copyFiles, samplesNames)
 

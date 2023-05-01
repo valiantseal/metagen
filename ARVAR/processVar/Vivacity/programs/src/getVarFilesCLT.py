@@ -239,7 +239,7 @@ def lofreq(bam, refFasta, t, bin_path):
 
 # read lowfreq results
 def getlowfreqRes():
-  with open("sample_lf.vcf", "r") as f:
+  with open("sample_lf.vcf", "r", errors='ignore') as f:
     lines=f.readlines()
     result=[]
     for i in range(len(lines)):

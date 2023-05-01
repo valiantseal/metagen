@@ -5,7 +5,7 @@ import shutil
 from multiprocessing import Pool
 import time
 
-t = 2
+t = 6
 
 make_annotation_file = "no"
 
@@ -34,7 +34,6 @@ def prepFiles():
 
 samplesList = prepFiles()
 
-
 def runGetVarFiles(sampleName):
   targDir = "process/" + sampleName + "/"
   os.chdir(targDir)
@@ -59,6 +58,7 @@ def runFilterLofreq(sampleName):
   cmd_str = "python ../../programs/src/filterLofreqCLT.py -i sample_lofreq-output.tsv \
   -r sample_pos-filter.tsv -a ../../"
   subprocess.run(cmd_str, shell = True)
+  os.chdir("../../")
 
 with Pool(t) as pool:
   pool.map(runFilterLofreq, samplesList)
