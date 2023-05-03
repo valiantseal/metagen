@@ -7,6 +7,8 @@ from functools import partial
 
 t = 2
 
+index_ref = "no"
+
 
 os.makedirs("preprocess", exist_ok = True)
 os.makedirs("input", exist_ok = True)
@@ -18,7 +20,10 @@ def indRef():
   subprocess.run(cmd_str, shell = True)
   os.chdir("../")
 
-indRef()
+if index_ref == "yes":
+  indRef()
+  
+
 
 # 
 def getSamplesName(suffix):
