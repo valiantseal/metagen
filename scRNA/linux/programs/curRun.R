@@ -41,6 +41,7 @@ gc()
 
 getPeakRna = function(dat, test, targetDir) {
   dir.create(targetDir, recursive = T)
+  cluster = "All"
   try({
     peakRna = LinkPeaks(
       object = dat,
@@ -51,8 +52,8 @@ getPeakRna = function(dat, test, targetDir) {
       method = test,
       distance = 5e+05,
       min.cells = 10,
-      pvalue_cutoff = 1,
-      score_cutoff = 0,
+      pvalue_cutoff = 0.05,
+      score_cutoff = 0.05,
       verbose = TRUE)
     p2g = data.frame(Links(peakRna))
     p2g$Cluster = cluster
