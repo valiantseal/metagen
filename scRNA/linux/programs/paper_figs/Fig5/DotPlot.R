@@ -91,9 +91,6 @@ groupMarkers = read.csv("OPC_ODC/StressVsContr/AUC_keggClustProf_DE/DiffExprMono
 
 topMark = getTopMarkers(df = groupMarkers, topNumb = 5)
 
-
-groupMarkers = read.csv("OPC_ODC/StressVsContr/RNA_DE/DiffExprMonoc3Clust_AllClust_ContrVsStress_2023-04-10.csv")
-
 RNA.combined.norm$newMonocClust = RNA.combined.norm$MonocClust
 RNA.combined.norm$newMonocClust[RNA.combined.norm$newMonocClust == 4] = 3
 RNA.combined.norm$newMonocClust[RNA.combined.norm$newMonocClust == 1] = "ODC"

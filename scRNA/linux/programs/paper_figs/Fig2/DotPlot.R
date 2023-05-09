@@ -1,0 +1,150 @@
+source('../programs/renameClusters.R')
+
+library(ggplot2)
+library(viridis)
+library(Hmisc)
+library(plyr)
+
+targDir = './Paper_figs/Fig2/'
+dir.create(targDir, recursive = T, showWarnings = F)
+
+clusters<-c('SUB', 'CA1', 'CA2', 'CA3', 'DG', 'GABA', 'C-R', 'OPC', 'ODC', 'MG')
+
+curDate<-Sys.Date()
+
+levels(RNA.combined.norm)
+
+DefaultAssay(RNA.combined.norm)
+
+groupMarkers = read.csv("allDiffExprLogfc0.25_ContrVsStress_2022-10-25.csv")
+
+# find top genes
+getTopMarkers = function(df, topNumb) {
+  clusters = unique(df$Cell_Type)
+  markers = character()
+  dfPct = df[(df$pct.1 >0.25) | (df$pct.2 >0.25), ]
+  for (cluster in clusters) {
+    dfSub =  dfPct[(dfPct[['Cell_Type']] == cluster),]
+    dfSub$AbsLog = abs(dfSub$avg_log2FC)
+    dfOrd = dfSub[order(dfSub$AbsLog, decreasing = T),]
+    topMark = head(dfOrd$Genes, topNumb)
+    markers = c(markers, topMark)
+  }
+  unMark = unique(markers)
+  return(unMark)
+}
+
+topMark = getTopMarkers(df = groupMarkers, topNumb = 3)
+
+RNA.combined.norm$Cluster_Group = paste(RNA.combined.norm$Annotations, RNA.combined.norm$group, sep = "_")
+
+Group = unique(RNA.combined.norm$group)
+
+Cluster_Group <- lapply(clusters, function(x) {
+  lapply(Group, function(y) {
+    paste(x, y, sep = "_")
+  })
+})
+
+Cluster_Group = unlist(Cluster_Group)
+
+RNA.combined.norm$Cluster_Group <- factor(RNA.combined.norm$Cluster_Group , levels = Cluster_Group)
+
+dotPlot<-DotPlot(object = RNA.combined.norm, features = topMark , scale.max = 100, dot.scale = 14, group.by = 'Cluster_Group')+
+  scale_colour_gradient2(low = "blue", mid = "grey", high = "red")+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+  theme(text = element_text(size = 24))+ # all text elements size
+  theme(axis.text = element_text(size = 24))  # axes text size
+
+dotPlot
+
+png(paste0(targDir,'DotPlot_Top3Genes_ClusterGroup_', curDate, '.png'), height = 12, width = 24, units = 'in', res = 300)
+print(dotPlot)
+dev.off()
+
+# kegg 
+
+groupMarkers = read.csv("AllClust_ClustProF_KEGG_2023-05-04.csv")
+nrow(groupMarkers)
+groupMarkers = groupMarkers[!(groupMarkers$Cluster == "AllClust_ClustProF_KEGG_2023-05-04.csv"),]
+nrow(groupMarkers)
+
+getTopPath = function(groupMarkers, topNumb) {
+  combDf = data.frame(matrix(nrow = 0, ncol = 0))
+  for (curCluster in clusters) {
+    curDf = groupMarkers[(groupMarkers$Cluster == curCluster),]
+    curDfOrd = curDf[order(curDf$p.adjust, decreasing = F),]
+    dfTop = head(curDfOrd, topNumb)
+    combDf = rbind(combDf, dfTop)
+    topMark = unique(combDf$Description)
+  }
+  return(topMark)
+}
+
+topMark = getTopPath(groupMarkers = groupMarkers, topNumb = 15)
+
+topMarkDf = groupMarkers[(groupMarkers$Description%in%topMark),]
+
+findMissing<-function(dataTab, clusters){
+  keggList<-unique(dataTab$Description)
+  allDesc<-character()
+  allClust<-character()
+  allP<-numeric()
+  allCount<-numeric()
+  allGeneRatio <- character()
+  allPAdj = numeric()
+  for (cluster in clusters) {
+    dfSel<-dataTab[(dataTab$Cluster==cluster),]
+    for (i in keggList){
+      if (i %nin% dfSel$Description){
+        curDesc<-i
+        curClust<-cluster
+        curP<-1
+        curCount<-0
+        curGeneRatio = "0/0"
+        curPAdj = 1
+        allDesc<-c(allDesc, curDesc)
+        allClust<-c(allClust, curClust)
+        allP<-c(allP, curP)
+        allCount<-c(allCount, curCount)
+        allGeneRatio = c(allGeneRatio, curGeneRatio)
+        allPAdj = c(allPAdj, curPAdj)
+        # combine all vectors and make a dataframe from them
+      }
+    }
+  }
+  finalTable<-data.frame(Description=allDesc, pvalue=allP, Count=allCount, Cluster=allClust )
+  return(finalTable)
+}
+
+missDat<-findMissing(dataTab = topMarkDf, clusters = clusters)
+
+keggComplete<-rbind.fill(topMarkDf, missDat)
+
+addPCat<-function(dataTab){
+  dataTab$P.value<-NA
+  for (i in 1:nrow(dataTab)){
+    if (dataTab$pvalue[i] > 0.05){
+      dataTab$P.value[i]<- " > 0.05"
+    } else if (dataTab$pvalue[i] < 0.05 & dataTab$pvalue[i] >= 0.01  ) {
+      dataTab$P.value[i]<- " < 0.05"
+    } else if (dataTab$pvalue[i] < 0.01 & dataTab$pvalue[i] >= 0.001) {
+      dataTab$P.value[i]<- " < 0.01"
+    } else if (dataTab$pvalue[i] < 0.001) {
+      dataTab$P.value[i]<- " < 0.001"
+    }
+  }
+  return(dataTab)
+}
+
+keggComplete<-addPCat(keggComplete)
+
+# plot
+ggplot(keggComplete, aes(x = Description, y = Cluster, size = Count, color = P.value)) +
+  geom_point()+
+  scale_size_continuous(range = c(1, 8))+ 
+  scale_color_viridis(discrete=T ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  scale_x_discrete(limits=rev)
+
+
