@@ -69,6 +69,12 @@ summary(multivarModel)
 multivarModel = glm(ConsTest ~ ALLELE.FREQUENCY  + STRAND.BIAS + DEPTH + QUAL + Position_test, data = metaResDf, family = binomial)
 summary(multivarModel)
 
+multivarRes = data.frame(summary(multivarModel)$coefficients)
+colnames(multivarRes)[4] = "Pval"
+multivarRes$Variable = rownames(multivarRes)
+
+
+
 # run all univar models
 vars = c('ALLELE.FREQUENCY', 'STRAND.BIAS',  'DEPTH', 'Ref_Al_RelPos', "QUAL", 'Var_Al_Relpos', "Position_test", "Freq_adj", "Type", "Pi.Ln.Pi.")
 
@@ -92,6 +98,7 @@ colnames(univarRes)[4] = "Pval"
 
 #write.csv(univarRes, file = "test_consensus/vivacity_ivar_metaConsCheck_univarRes.csv", row.names = F)
 
-
 mean(metaResDf$STRAND.BIAS[metaResDf$ConsTest == 1])
 median(metaResDf$STRAND.BIAS[metaResDf$ConsTest == 1])
+
+write.csv(multivarRes, file = "test_consensus/vivacity_IvarSet_multivar.csv", row.names = F)

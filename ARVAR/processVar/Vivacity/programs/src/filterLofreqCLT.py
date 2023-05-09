@@ -207,7 +207,7 @@ def adjFreq(df, relPos):
   df['Freq_adj'] = newFreq
   return(df)
 
-resDf = adjFreq(df = resDf, relPos = 0.2)
+resDf = adjFreq(df = resDf, relPos = rel)
 
 # correct reference and variant alleles, add nucleotide change
 def typeAllele(df):
