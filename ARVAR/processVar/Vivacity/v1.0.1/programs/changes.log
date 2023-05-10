@@ -1,0 +1,7 @@
+v1.0.1
+-made copying files parallel
+-fastp for preprocessing is used as a binary and added deduplication option
+-relaxed mapping quality and basequality for bamreadcount
+-for filtering lofreq output removed PASS lofreq filter and put minimum number of forward and reverse reference reads to 0
+-do not execute clean directory function
+-removed summing models for ampseq pipeline and manual only check file 
