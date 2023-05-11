@@ -40,7 +40,7 @@ train_idx <- createDataPartition(metaResDf$ConsTest, p = 0.7, list = FALSE)
 train_data <- metaResDf[train_idx, ]
 test_data <- metaResDf[-train_idx, ]
 
-multivarModel = glm(ConsTest ~ ALLELE.FREQUENCY  + STRAND.BIAS + DEPTH + QUAL + Ref_Al_RelPos + Var_Al_Relpos, data = train_data, family = binomial)
+multivarModel = glm(ConsTest ~ RawVarFreq + STRAND.BIAS + DEPTH + QUAL + Var_Al_RelPos, data = train_data, family = binomial)
 summary(multivarModel)
 
 probs <- predict(multivarModel, newdata = test_data, type = "response")
