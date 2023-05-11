@@ -5,7 +5,7 @@ import shutil
 from multiprocessing import Pool
 import time
 
-t = 2
+t = 6
 tSMall = 6
 
 make_annotation_file = "no"
@@ -59,7 +59,7 @@ def runGetVarFiles(sampleName):
   targDir = "process/" + sampleName + "/"
   os.chdir(targDir)
   sample = sampleName + ".sam"
-  cmd_str = f'python ../../programs/src/getVarFilesCLT.py -i {sample} --mapqual 5 --basequal 5 \
+  cmd_str = f'python ../../programs/src/getVarFilesCLT.py -i {sample} --mapqual 5 --basequal 5 --allele_frequency 0 \
 -r ../../programs/data/SARSCov2_Ref.fasta -b ../../programs/bin -t 4'
   subprocess.run(cmd_str, shell = True)
   os.chdir("../../")

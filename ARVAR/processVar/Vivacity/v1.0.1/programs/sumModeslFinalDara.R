@@ -1,3 +1,5 @@
+samplesList = c("2884X", "2885Y", "2886Z")
+
 refDf = read.csv("test_consensus/iSNVs_final_Dara.csv")
 
 df = refDf
@@ -22,7 +24,33 @@ allConsSnv = unique(c(x,y,z))
 length(allConsSnv)
 
 # get vivacity data
-metaResDf = read.csv("test_consensus/vivacity_metaConsCheck.csv")
+getResBind = function(path, pat) {
+  combTab = data.frame(matrix(nrow = 0 , ncol = 0))
+  filesList = list.files(path, pattern = pat)
+  for ( i in filesList) {
+    inFile = paste0(path, i, "/filtered.csv")
+    df = read.csv(inFile)
+    df$RawVarFreq = (df$FWD.VAR + df$REV.VAR) / (df$FWD.VAR + df$REV.VAR + df$FWD.REF + df$REV.REF)
+    dfFilt = df[(df$RawVarFreq >= 0.02) & (df$RawVarFreq <= 0.98),]
+    dfFilt = df
+    dfFilt$Sample = pat
+    dfFilt$Samp_Pos_Ref_Alt = paste(dfFilt$Sample, dfFilt$POSITION, dfFilt$REF.NT, dfFilt$VAR.NT, sep = "__")
+    
+    combTab = rbind(combTab, dfFilt)
+  }
+  return(combTab)
+}
+
+getAllResBind = function(samplesList, path) {
+  allSnv = data.frame(matrix(nrow = 0 , ncol = 0))
+  for (sample in samplesList) {
+    dfList = getResBind(path = path, pat = sample)
+    allSnv = rbind(allSnv, dfList)
+  }
+  return(allSnv)
+}
+
+metaResDf = getAllResBind(samplesList = samplesList, path = "process/")
 
 metaResDf$ConsTest = NA
 metaResDf$ConsTest[!(metaResDf$Samp_Pos_Ref_Alt %in% allConsSnv)] = 0
