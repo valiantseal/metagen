@@ -8,16 +8,25 @@ import time
 t = 6
 tSMall = 6
 
-make_annotation_file = "no"
+make_annotation_file = False
+
+run_preprocess = True
 
 # make reference annotation file
+def runMakeAnnotDf(make_annotation_file):
+  if make_annotation_file == True:
+    cmd_str = "python programs/src/makeAnnotDfCLT.py -i ./programs/data/sequence.gb"
+    subprocess.run(cmd_str, shell = True)
 
-def runMakeAnnotDf():
-  cmd_str = "python programs/src/makeAnnotDfCLT.py -i ./programs/data/sequence.gb"
-  subprocess.run(cmd_str, shell = True)
+runMakeAnnotDf(make_annotation_file = make_annotation_file)
 
-if make_annotation_file == "yes":
-  runMakeAnnotDf()
+# run preprocess   
+def runPreprocess(run_preprocess):
+  if run_preprocess == True:
+    cmd_str = "python programs/src/preprocess.py"
+    subprocess.run(cmd_str, shell = True)
+
+runPreprocess(run_preprocess = run_preprocess)
 
 ## get iSNV files
 filesList = glob.glob("input/*.sam")

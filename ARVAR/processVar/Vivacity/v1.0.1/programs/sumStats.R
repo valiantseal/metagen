@@ -40,6 +40,7 @@ getResBind = function(path, pat, freqCol, minFreq, maxFreq) {
   return(combTab)
 }
 
+# get vivacity results for all samples
 getAllResBind = function(samplesList, path, freqCol, minFreq, maxFreq) {
   allSnv = data.frame(matrix(nrow = 0 , ncol = 0))
   for (sample in samplesList) {
@@ -49,7 +50,14 @@ getAllResBind = function(samplesList, path, freqCol, minFreq, maxFreq) {
   return(allSnv)
 }
 
+# calculate strand bias ratio for variant 
+addVarSB = function(metaResDf) {
+  metaResDf$Var_SB = metaResDf$FWD.VAR / metaResDf$REV.VAR
+  return(metaResDf)
+}
+
 metaResDf = getAllResBind(samplesList = samplesList, path = "process/", freqCol = 'RawVarFreq', minFreq = 0, maxFreq = 1)
+metaResDf = addVarSB(metaResDf)
 
 metaResDf$ConsTest = NA
 metaResDf$ConsTest[!(metaResDf$Samp_Pos_Ref_Alt %in% allConsSnv)] = 0

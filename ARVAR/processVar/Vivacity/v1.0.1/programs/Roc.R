@@ -46,3 +46,11 @@ summary(multivarModel)
 probs <- predict(multivarModel, newdata = test_data, type = "response")
 
 roc_obj <- roc(test_data$ConsTest ~ probs, plot = TRUE, print.auc = TRUE)
+
+# test
+multivarModel = glm(ConsTest ~ RawVarFreq + Var_SB + DEPTH + QUAL + Var_Al_RelPos, data = train_data, family = binomial)
+summary(multivarModel)
+
+probs <- predict(multivarModel, newdata = test_data, type = "response")
+
+roc_obj <- roc(test_data$ConsTest ~ probs, plot = TRUE, print.auc = TRUE)
