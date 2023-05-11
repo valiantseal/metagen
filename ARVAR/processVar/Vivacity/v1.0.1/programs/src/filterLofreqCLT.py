@@ -108,66 +108,113 @@ splitVar = args.split
 annot_dir = args.annot_dir
 ## main function
 
-# read data
-refDf=pd.read_table(ref, sep = '\t')
-
-resDf=pd.read_table(df, sep = '\t')
-
-# get relative allele positions
-resDf['Ref_Al_RelPos'] = 'NaN'
-resDf['Var_Al_Relpos'] = 'NaN'
-
-corPos =[]
-
-for i in range(len(resDf.index)):
-  refAl = resDf['REF-NT'][i]
-  varAl = resDf['VAR-NT'][i]
-  # find real position of a variant nucleotide
+def getCorPos(resDf, i, refAl, varAl):
   if len(refAl) > len(varAl):
-    alPos = resDf['POSITION'][i] + 1
+    alPos = resDf.loc[i, 'POSITION'] + 1
   else:
-    alPos = resDf['POSITION'][i]
-  corPos.append(alPos)
-  # select reference position
-  refSub = refDf.loc[refDf['POS'] == alPos].reset_index()
-  
-  # find target relative position
+    alPos = resDf.loc[i, 'POSITION']
+  return alPos
 
-  # handle deletion
-  if len(refAl) > len(varAl):
-    refRefAl = refAl[1] + '-POS' 
-    resDf['Ref_Al_RelPos'][i] = refSub.loc[0, refRefAl]
-    # find which Indel column has deletion amd record relative position
-    refVarAl = '-'  + refAl[1:]
-    if refSub.loc[0, 'Indel1'] == refVarAl:
-      resDf['Var_Al_Relpos'][i] = refSub.loc[0, 'Indel1-POS']
-    elif refSub.loc[0, 'Indel2'] == refVarAl:
-       resDf['Var_Al_Relpos'][i] = refSub.loc[0, 'Indel2-POS']
-    elif refSub.loc[0, 'Indel3'] == refVarAl:
-      resDf['Var_Al_Relpos'][i] = refSub.loc[0, 'Indel3-POS']
-    
-  # process insertions
-  elif len(refAl) < len(varAl):
-    refRefAl = refAl + '-POS' 
-    resDf['Ref_Al_RelPos'][i] = refSub.loc[0, refRefAl]
-    # find which Indel column has deletion amd record relative position
-    refVarAl = '+'  + varAl[1:]
-    if refSub.loc[0, 'Indel1'] == refVarAl:
-      resDf['Var_Al_Relpos'][i] = refSub.loc[0, 'Indel1-POS']
-    elif refSub.loc[0, 'Indel2'] == refVarAl:
-      resDf['Var_Al_Relpos'][i] = refSub.loc[0, 'Indel2-POS']
-    elif refSub.loc[0, 'Indel3'] == refVarAl:
-      resDf['Var_Al_Relpos'][i] = refSub.loc[0, 'Indel3-POS']
-      
-  # process substitution
-  elif len(refAl) == len(varAl):
-    refRefAl = refAl + '-POS'
-    resDf['Ref_Al_RelPos'][i] = refSub.loc[0, refRefAl]
-    refVarAl = varAl + '-POS'
-    resDf['Var_Al_Relpos'][i] = refSub.loc[0, refVarAl]
-  
-# a better way would be to create 2 lists with relative positions and add them as columns. May be redo in the future to avoid warnings
-resDf['Position_corrected'] = corPos
+# handle deletion
+def getRelPosDel(refAl, varAl, i, refSub):
+  refRefAl = refAl[1] + '-POS'
+  Ref_Al_RelPos = refSub.loc[0, refRefAl]
+  # find which Indel column has deletion amd record relative position
+  refVarAl = '-'  + refAl[1:]
+  if refSub.loc[0, 'Indel1'] == refVarAl:
+    Var_Al_Relpos = refSub.loc[0, 'Indel1-POS']
+  elif refSub.loc[0, 'Indel2'] == refVarAl:
+    Var_Al_Relpos = refSub.loc[0, 'Indel2-POS']
+  elif refSub.loc[0, 'Indel3'] == refVarAl:
+    Var_Al_Relpos = refSub.loc[0, 'Indel3-POS']
+  else:
+    Var_Al_Relpos = 'NaN'
+  return Ref_Al_RelPos, Var_Al_Relpos
+
+# process insertions
+def getRelPosIns(refAl, varAl, i, refSub):
+  refRefAl = refAl + '-POS' 
+  Ref_Al_RelPos = refSub.loc[0, refRefAl]
+  # find which Indel column has insertion and record relative position
+  refVarAl = '+'  + varAl[1:]
+  if refSub.loc[0, 'Indel1'] == refVarAl:
+    Var_Al_Relpos = refSub.loc[0, 'Indel1-POS']
+  elif refSub.loc[0, 'Indel2'] == refVarAl:
+    Var_Al_Relpos = refSub.loc[0, 'Indel2-POS']
+  elif refSub.loc[0, 'Indel3'] == refVarAl:
+    Var_Al_Relpos = refSub.loc[0, 'Indel3-POS']
+  else:
+    Var_Al_Relpos = 'NaN'
+  return Ref_Al_RelPos, Var_Al_Relpos
+
+# process substitutions
+def getRelPosSub(refAl, varAl, i, refSub):
+  refRefAl = refAl + '-POS'
+  Ref_Al_RelPos = refSub.loc[0, refRefAl]
+  refVarAl = varAl + '-POS'
+  Var_Al_Relpos = refSub.loc[0, refVarAl]
+  return Ref_Al_RelPos, Var_Al_Relpos
+
+# get corrected and relative positions for all SNVs
+def getCorAndRelPos(refDf, resDf):
+  corPos = []
+  Ref_Al_RelPos = []
+  Var_Al_RelPos = []
+  for i in range(len(resDf.index)):
+    refAl = resDf.loc[i, 'REF-NT']
+    varAl = resDf.loc[i, 'VAR-NT']
+    curCorPos = getCorPos(resDf = resDf, i = i, refAl = refAl, varAl = varAl)
+    refSub = refDf.loc[refDf['POS'] == curCorPos].reset_index()
+    if len(refAl) > len(varAl):
+      try:
+        curRefPos, curVarPos = getRelPosDel(refAl = refAl, varAl= varAl, i = i, refSub = refSub)
+      except:
+        print(f'{i} result table index deletion failed')
+        sys.exit(1)
+    elif len(refAl) < len(varAl):
+      try:
+        curRefPos, curVarPos = getRelPosIns(refAl = refAl, varAl= varAl, i = i, refSub = refSub)
+      except:
+        print(f'{i} result table index insertion failed')
+        sys.exit(1)
+    elif len(refAl) == len(varAl):
+      try:
+        curRefPos, curVarPos = getRelPosSub(refAl = refAl, varAl= varAl, i = i, refSub = refSub)
+      except:
+        print(f'{i} result table index substitution failed')
+        sys.exit(1)
+    corPos.append(curCorPos)
+    Ref_Al_RelPos.append(curRefPos)
+    Var_Al_RelPos.append(curVarPos)
+  resDf['Position_corrected'] = corPos
+  resDf['Ref_Al_RelPos'] = Ref_Al_RelPos
+  resDf['Var_Al_RelPos'] = Var_Al_RelPos
+  return resDf
+
+# adjust variants frequency based on threshold
+def adjFreq(df, relPos):
+  newFreq = []
+  allTests = []
+  df['Ref_Al_RelPos'] = df['Ref_Al_RelPos'].astype(float)
+  df['Var_Al_RelPos'] = df['Var_Al_RelPos'].astype(float)
+  for i in range(len(df.index)):
+    if df.loc[i, 'Level'] == 'consensus' and df.loc[i, 'Ref_Al_RelPos'] > relPos:
+      freq = df.loc[i, 'ALLELE-FREQUENCY']
+      posTest = 'Pass'
+    elif df.loc[i, 'Level'] == 'consensus' and df.loc[i, 'Ref_Al_RelPos'] < relPos:
+      freq = 1
+      posTest = 'Fail'
+    elif df.loc[i, 'Level'] == 'minority' and df.loc[i, 'Var_Al_RelPos'] > relPos:
+      freq = df.loc[i, 'ALLELE-FREQUENCY']
+      posTest = 'Pass'
+    elif df.loc[i, 'Level'] == 'minority' and df.loc[i, 'Var_Al_RelPos'] < relPos:
+      freq = 0
+      posTest = 'Fail'
+    newFreq.append(freq)
+    allTests.append(posTest)
+  df['Position_test'] = allTests
+  df['Freq_adj'] = newFreq
+  return(df)
 
 # find if the variant is a consensus level
 def isConsensus(df, freq):
@@ -180,36 +227,7 @@ def isConsensus(df, freq):
   df['Level'] = consList
   return(df)
 
-resDf = isConsensus(df = resDf, freq = cons)
-
-# adjust variants frequency based on threshold
-def adjFreq(df, relPos):
-  newFreq = []
-  allTests = []
-  df['Ref_Al_RelPos'] = df['Ref_Al_RelPos'].astype(float)
-  df['Var_Al_Relpos'] = df['Var_Al_Relpos'].astype(float)
-  for i in range(len(df.index)):
-    if df.loc[i, 'Level'] == 'consensus' and df.loc[i, 'Ref_Al_RelPos'] > relPos:
-      freq = df.loc[i, 'ALLELE-FREQUENCY']
-      posTest = 'Pass'
-    elif df.loc[i, 'Level'] == 'consensus' and df.loc[i, 'Ref_Al_RelPos'] < relPos:
-      freq = 1
-      posTest = 'Fail'
-    elif df.loc[i, 'Level'] == 'minority' and df.loc[i, 'Var_Al_Relpos'] > relPos:
-      freq = df.loc[i, 'ALLELE-FREQUENCY']
-      posTest = 'Pass'
-    elif df.loc[i, 'Level'] == 'minority' and df.loc[i, 'Var_Al_Relpos'] < relPos:
-      freq = 0
-      posTest = 'Fail'
-    newFreq.append(freq)
-    allTests.append(posTest)
-  df['Position_test'] = allTests
-  df['Freq_adj'] = newFreq
-  return(df)
-
-resDf = adjFreq(df = resDf, relPos = rel)
-
-# correct reference and variant alleles, add nucleotide change
+# correct reference and variant alleles, and add nucleotide change
 def typeAllele(df):
   newType = []
   corRefAl = []
@@ -243,15 +261,8 @@ def typeAllele(df):
   df['Nucleotide_Change'] = allNuclCh
   return df
 
-resDf = typeAllele(df = resDf)
-
-## annotations 
-# do we need these files as user input options?
-annot = pd.read_csv(f'{annot_dir}/py_annotations.csv')
-codons = pd.read_csv(f'{annot_dir}/programs/data/codons_table.csv', names = ['full_name', 'aa', 'codon', 'aa2', 'full_name2'])
-
 # annotate substitutions
-def annotSubst(pos, codNumb, region, corVarAl):
+def annotSubst(pos, codNumb, region, corVarAl, annot, codons):
   # subset codon table
   selAnot = annot.loc[(annot['Region/Gene'] == region) & (annot['Codon#'] == str(codNumb))].reset_index().drop(['index'], axis=1)
   # find index of the nucleotide to change 
@@ -271,7 +282,7 @@ def annotSubst(pos, codNumb, region, corVarAl):
   return [mType, aaChange]
 
 # annotate insertions
-def annotInsert(pos, codNumb, region, corVarAl):
+def annotInsert(pos, codNumb, region, corVarAl, annot, codons):
   nucleotides = corVarAl[1:]
   # subset codon table
   selAnot = annot.loc[(annot['Region/Gene'] == region) & (annot['Codon#'] == str(codNumb))].reset_index().drop(['index'], axis=1)
@@ -308,9 +319,8 @@ def annotInsert(pos, codNumb, region, corVarAl):
     aaChange = ''.join([oldAA, codNumb, newAA, addNumb])
   return [mType, aaChange]
 
-
 # annotate deletions
-def annotDel(pos, codNumb, region, corVarAl):
+def annotDel(pos, codNumb, region, corVarAl, annot):
   nucleotides = corVarAl[1:]
   # subset codon table
   selAnot = annot.loc[(annot['Region/Gene'] == region) & (annot['Codon#'] == str(codNumb))].reset_index().drop(['index'], axis=1)
@@ -329,7 +339,7 @@ def annotDel(pos, codNumb, region, corVarAl):
   return [mType, aaChange]
 
 # use functions to annotate the table
-def annotate(df):
+def annotate(df, annot, codons):
   allRegions = []
   allMutTypes = []
   allAaCh = []
@@ -347,13 +357,13 @@ def annotate(df):
     else:
       # handle substitutions
       if df.loc[i, 'Type'] == 'Substitution':
-        resList = annotSubst(pos=pos, codNumb=codNumb, region=region, corVarAl=corVarAl)
+        resList = annotSubst(pos=pos, codNumb=codNumb, region=region, corVarAl=corVarAl, annot = annot, codons = codons)
       # handle insertions  
       elif df.loc[i, 'Type'] == 'Insertion':
-        resList = annotInsert(pos=pos, codNumb=codNumb, region=region, corVarAl=corVarAl)
+        resList = annotInsert(pos=pos, codNumb=codNumb, region=region, corVarAl=corVarAl, annot = annot, codons = codons)
       # handle deletions
       elif df.loc[i, 'Type'] == 'Deletion':
-        resList = annotDel(pos=pos, codNumb=codNumb, region=region, corVarAl=corVarAl)
+        resList = annotDel(pos=pos, codNumb=codNumb, region=region, corVarAl=corVarAl, annot = annot)
       mutType = resList[0]
       aaCh = resList[1]
     # combine lists
@@ -365,8 +375,6 @@ def annotate(df):
   df['Mutation_type'] = allMutTypes
   df['AA_change'] = allAaCh
   return df
-
-resDf = annotate(df=resDf)
 
 # add  Pi*Ln(Pi) for shannon index 
 def ShPi(df):
@@ -380,21 +388,85 @@ def ShPi(df):
   df['Pi*Ln(Pi)'] = pi
   return df
 
-resDf = ShPi(df = resDf)
+# filter results based on relative position
+def filterResRelPos(resDf, filt):
+  if filt == None:
+    finalDf = resDf
+  else:
+    filtNa = resDf.loc[resDf['Var_Al_Relpos'] != 'NaN']
+    filtNa['Var_Al_RelPos'] = filtNa['Var_Al_RelPos'].astype(float)
+    finalDf = filtNa.loc[filtNa['Var_Al_RelPos'] >= filt]
+  return(finalDf)
+ 
+# write results
+def writeResults(resDf, splitVar, output):
+  if splitVar == 'T':
+    posRes = finalDf.loc[finalDf['Position_test'] == 'Pass']
+    negRes = finalDf.loc[finalDf['Position_test'] == 'Fail' ]
+    negRes.to_csv(path_or_buf= 'failed_position_test.csv', index=False)
+    posRes.to_csv(path_or_buf= output, index=False)
+  else:
+    resDf.to_csv(path_or_buf= output, index=False)
 
-## filter and write
-if filt == None:
-  finalDf = resDf
-else:
-  filtNa = resDf.loc[resDf['Var_Al_Relpos'] != 'NaN']
-  filtNa['Var_Al_Relpos'] = filtNa['Var_Al_Relpos'].astype(float)
-  finalDf = filtNa.loc[filtNa['Var_Al_Relpos'] >= filt]
+# runn all functions
+def runAll():
+  try:
+    refDf=pd.read_table(ref, sep = '\t')
+    resDf=pd.read_table(df, sep = '\t')
+  except:
+    print("Failed to read files")
+    sys.exit(1)
+  try:
+    resDf = getCorAndRelPos(refDf = refDf, resDf = resDf)
+  except:
+    print("Failed to find corrected and relative positions")
+    sys.exit(1)
+  try:
+    resDf = isConsensus(df = resDf, freq = cons)
+  except:
+    print("Failed to find if variant is consensus")
+    sys.exit(1)
+  try:
+    resDf = adjFreq(df = resDf, relPos = rel)
+  except:
+    print("Failed to adjust frequencies")
+    sys.exit(1)
+  try:
+    resDf = typeAllele(df = resDf)
+  except:
+    print("Failed to make corrected alleles and nucleotide change")
+    sys.exit(1)
+  ## annotations 
+  # do we need these files as user input options?
+  try:
+    annot = pd.read_csv(f'{annot_dir}/py_annotations.csv')
+    codons = pd.read_csv(f'{annot_dir}/programs/data/codons_table.csv', names = ['full_name', 'aa', 'codon', 'aa2', 'full_name2'])
+  except:
+    print("Failed to read annotation and/or codon tables")
+    sys.exit(1)
+  try:
+    resDf = annotate(df=resDf, annot = annot, codons = codons)
+  except:
+    print("Failed annotating and translating mutations")
+    sys.exit(1)
+  try:
+    resDf = ShPi(df = resDf)
+  except:
+    print("Failed to add Pi*Ln(Pi) for shannon index")
+    sys.exit(1)
+    
+  resDf = filterResRelPos(resDf = resDf, filt = filt)
+  return resDf
 
+# execute runAll function
+if __name__ == "__main__":
+  resDf = runAll()
+  writeResults(resDf = resDf, splitVar = splitVar, output = output)
+
+
+    
+    
   
-if splitVar == 'T':
-  posRes = finalDf.loc[finalDf['Position_test'] == 'Pass']
-  negRes = finalDf.loc[finalDf['Position_test'] == 'Fail' ]
-  negRes.to_csv(path_or_buf= 'failed_position_test.csv', index=False)
-  posRes.to_csv(path_or_buf= output, index=False)
-else:
-  finalDf.to_csv(path_or_buf= output, index=False)
+        
+    
+  

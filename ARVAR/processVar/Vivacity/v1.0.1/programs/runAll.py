@@ -8,7 +8,7 @@ import time
 t = 2
 tSMall = 6
 
-make_annotation_file = "yes"
+make_annotation_file = "no"
 
 # make reference annotation file
 
@@ -81,8 +81,12 @@ def runFilterLofreq(sampleName):
   subprocess.run(cmd_str, shell = True)
   os.chdir("../../")
 
-with Pool(t) as pool:
+with Pool(tSMall) as pool:
   pool.map(runFilterLofreq, samplesList)
+  
+for i in samplesList:
+  print(i)
+  runFilterLofreq(sampleName = i)
 
 
 
