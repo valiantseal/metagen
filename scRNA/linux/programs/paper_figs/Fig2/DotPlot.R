@@ -5,7 +5,7 @@ library(viridis)
 library(Hmisc)
 library(plyr)
 
-targDir = './Paper_figs/Fig2/'
+targDir = './Paper_figs/Fig2/DotPlot/'
 dir.create(targDir, recursive = T, showWarnings = F)
 
 clusters<-c('SUB', 'CA1', 'CA2', 'CA3', 'DG', 'GABA', 'C-R', 'OPC', 'ODC', 'MG')
@@ -60,6 +60,68 @@ dotPlot
 
 png(paste0(targDir,'DotPlot_Top3Genes_ClusterGroup_', curDate, '.png'), height = 12, width = 24, units = 'in', res = 300)
 print(dotPlot)
+dev.off()
+
+# custom dot plot
+# find missing
+findMissing<-function(dataTab, clusters){
+  keggList<-unique(dataTab$Description)
+  allDesc<-character()
+  allClust<-character()
+  allP<-numeric()
+  allCount<-numeric()
+  for (cluster in clusters) {
+    dfSel<-dataTab[(dataTab$Cell_Type==cluster),]
+    for (i in keggList){
+      if (i %nin% dfSel$Description){
+        curDesc<-i
+        curClust<-cluster
+        curP<-1
+        curCount<-0
+        allDesc<-c(allDesc, curDesc)
+        allClust<-c(allClust, curClust)
+        allP<-c(allP, curP)
+        allCount<-c(allCount, curCount)
+        # combine all vectors and make a dataframe from them
+      }
+    }
+  }
+  finalTable<-data.frame(Description=allDesc, pvalue=allP, Count=allCount, Cluster=allClust )
+  colnames(finalTable) = c("Description", "p_val", "avg_log2FC", "Cell_Type")
+  return(finalTable)
+}
+
+groupMarkers = read.csv("allDiffExprLogfc0.25_ContrVsStress_2022-10-25.csv")
+topMark = getTopMarkers(df = groupMarkers, topNumb = 8)
+
+colnames(groupMarkers)[7] = "Description"
+topMarkDf = groupMarkers[(groupMarkers$Description%in%topMark),]
+clusters = unique(topMarkDf$Cell_Type)
+missDat<-findMissing(dataTab =  topMarkDf, clusters = clusters)
+keggComplete<-rbind.fill(topMarkDf, missDat)
+keggComplete$p_val_adj[is.na(keggComplete$p_val_adj)] = 1
+
+keggComplete$PvalMod = keggComplete$p_val
+keggComplete$PvalMod[keggComplete$PvalMod == 0] <-  1e-300
+keggComplete$`-Log10Pval` = log10(keggComplete$PvalMod) * -1
+keggComplete$Cell_Type = factor(keggComplete$Cell_Type, levels =  c('SUB', 'CA1', 'CA2', 'CA3', 'DG', 'GABA', 'C-R', 'OPC', 'ODC', 'MG'))
+
+# plot
+custDotPlot = ggplot(keggComplete, aes(x = Description, y = Cell_Type, size = `-Log10Pval`, color = avg_log2FC)) +
+  geom_point()+
+  theme_minimal() + 
+  scale_size_continuous(range = c(1, 14))+ 
+  scale_colour_gradient2(low = "blue", mid = "grey", high = "red") +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))+
+  scale_x_discrete(limits=rev) +
+  theme(text = element_text(size = 20, color = "black")) +
+  theme(axis.text.x = element_text(size =16, color = "black")) +
+  theme(axis.text.y = element_text(size =18, color = "black"))
+
+custDotPlot
+
+png(paste0(targDir,'Custom_DotPlot_Top8Genes_RNA_', curDate, '.png'), height = 16, width = 26, units = 'in', res = 300)
+print(custDotPlot)
 dev.off()
 
 # kegg 

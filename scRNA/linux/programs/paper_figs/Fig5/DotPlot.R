@@ -2,12 +2,14 @@ library(Seurat)
 library(SeuratWrappers)
 library(ggplot2)
 library(MAST)
+library(Hmisc)
+library(plyr)
 
 curDate<-Sys.Date()
 
 setwd("/home/flyhunter/Wang/output")
 
-targDir = './Paper_figs/Fig3/'
+targDir = './Paper_figs/Fig5/DotPlot/'
 
 dir.create(targDir, recursive = T, showWarnings = F)
 
@@ -67,6 +69,75 @@ png(paste0(targDir,'DotPlot_Top5Genes_GroupCluster_', curDate, '.png'), height =
 dotPlot
 dev.off()
 
+# custom dot plot
+groupMarkers = read.csv("OPC_ODC/StressVsContr/RNA_DE/DiffExprMonoc3Clust_AllClust_ContrVsStress_2023-04-10.csv")
+topMark = getTopMarkers(df = groupMarkers, topNumb = 10)
+groupMarkers$Cell_Type = as.character(groupMarkers$Cell_Type)
+groupMarkers$Cell_Type[groupMarkers$Cell_Type == '1'] = "ODC"
+groupMarkers$Cell_Type[groupMarkers$Cell_Type == '2'] = "OPC"
+groupMarkers$Cell_Type[groupMarkers$Cell_Type == '3'] = "Intermideate"
+
+
+colnames(groupMarkers)[7] = "Description"
+topMarkDf = groupMarkers[(groupMarkers$Description%in%topMark),]
+
+clusters = unique(topMarkDf$Cell_Type)
+
+findMissing<-function(dataTab, clusters){
+  keggList<-unique(dataTab$Description)
+  allDesc<-character()
+  allClust<-character()
+  allP<-numeric()
+  allCount<-numeric()
+  for (cluster in clusters) {
+    dfSel<-dataTab[(dataTab$Cell_Type==cluster),]
+    for (i in keggList){
+      if (i %nin% dfSel$Description){
+        curDesc<-i
+        curClust<-cluster
+        curP<-1
+        curCount<-0
+        allDesc<-c(allDesc, curDesc)
+        allClust<-c(allClust, curClust)
+        allP<-c(allP, curP)
+        allCount<-c(allCount, curCount)
+        # combine all vectors and make a dataframe from them
+      }
+    }
+  }
+  finalTable<-data.frame(Description=allDesc, pvalue=allP, Count=allCount, Cluster=allClust )
+  colnames(finalTable) = c("Description", "p_val", "avg_log2FC", "Cell_Type")
+  return(finalTable)
+}
+
+missDat<-findMissing(dataTab =  topMarkDf, clusters = clusters)
+keggComplete<-rbind.fill(topMarkDf, missDat)
+keggComplete$p_val_adj[is.na(keggComplete$p_val_adj)] = 1
+
+keggComplete$PvalMod = keggComplete$p_val
+keggComplete$PvalMod[keggComplete$PvalMod == 0] <-  1e-300
+keggComplete$`-Log10Pval` = log10(keggComplete$PvalMod) * -1
+keggComplete$Cell_Type = factor(keggComplete$Cell_Type, levels =   c('OPC', 'Intermideate', 'ODC'))
+
+# plot
+custDotPlot = ggplot(keggComplete, aes(x = Description, y = Cell_Type, size = `-Log10Pval`, color = avg_log2FC)) +
+  geom_point()+
+  theme_minimal() + 
+  scale_size_continuous(range = c(1, 16))+ 
+  scale_colour_gradient2(low = "blue", mid = "grey", high = "red") +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))+
+  scale_x_discrete(limits=rev) +
+  theme(text = element_text(size = 16, color = "black")) +
+  theme(axis.text.x = element_text(size =16, color = "black")) +
+  theme(axis.text.y = element_text(size =14, color = "black"))
+
+custDotPlot
+
+png(paste0(targDir,'Custom_DotPlot_Top10Genes_RNA_', curDate, '.png'), height = 12, width = 18, units = 'in', res = 300)
+print(custDotPlot)
+dev.off()
+
+
 # AU cell
 
 # load enrichment results
@@ -114,5 +185,44 @@ dotPlot
 
 png(paste0(targDir,'DotPlot_Top5Genes_AuCell_KeggClustProf_GroupCluster', curDate, '.png'), height = 12, width = 24, units = 'in', res = 300)
 dotPlot
+dev.off()
+
+# custom dot Plot
+
+groupMarkers = read.csv("OPC_ODC/StressVsContr/AUC_keggClustProf_DE/DiffExprMonoc3Clust_AllClust_ContrVsStress_2023-04-10.csv")
+topMark = getTopMarkers(df = groupMarkers, topNumb = 10)
+groupMarkers$Cell_Type = as.character(groupMarkers$Cell_Type)
+groupMarkers$Cell_Type[groupMarkers$Cell_Type == '1'] = "ODC"
+groupMarkers$Cell_Type[groupMarkers$Cell_Type == '2'] = "OPC"
+groupMarkers$Cell_Type[groupMarkers$Cell_Type == '3'] = "Intermideate"
+colnames(groupMarkers)[7] = "Description"
+
+topMarkDf = groupMarkers[(groupMarkers$Description%in%topMark),]
+clusters = unique(topMarkDf$Cell_Type)
+missDat<-findMissing(dataTab =  topMarkDf, clusters = clusters)
+keggComplete<-rbind.fill(topMarkDf, missDat)
+keggComplete$p_val_adj[is.na(keggComplete$p_val_adj)] = 1
+
+keggComplete$PvalMod = keggComplete$p_val
+keggComplete$PvalMod[keggComplete$PvalMod == 0] <-  1e-300
+keggComplete$`-Log10Pval` = log10(keggComplete$PvalMod) * -1
+keggComplete$Cell_Type = factor(keggComplete$Cell_Type, levels =   c('OPC', 'Intermideate', 'ODC'))
+
+# plot
+custDotPlot = ggplot(keggComplete, aes(x = Description, y = Cell_Type, size = `-Log10Pval`, color = avg_log2FC)) +
+  geom_point()+
+  theme_minimal() + 
+  scale_size_continuous(range = c(1, 16))+ 
+  scale_colour_gradient2(low = "blue", mid = "grey", high = "red") +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))+
+  scale_x_discrete(limits=rev) +
+  theme(text = element_text(size = 20, color = "black")) +
+  theme(axis.text.x = element_text(size =16, color = "black")) +
+  theme(axis.text.y = element_text(size =18, color = "black"))
+
+custDotPlot
+
+png(paste0(targDir,'Custom_DotPlot_Top10Genes_AuCell_KeggClustProf_', curDate, '.png'), height = 16, width = 18, units = 'in', res = 300)
+print(custDotPlot)
 dev.off()
 
