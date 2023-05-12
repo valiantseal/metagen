@@ -5,7 +5,8 @@ import shutil
 from multiprocessing import Pool
 from functools import partial
 
-t = 2
+t = 6
+tSMall = 6
 
 # currently use 4 cores for multiprocessor parallel tasks
 
@@ -37,16 +38,6 @@ def getSamplesName(suffix):
 
 samplesNames = getSamplesName(suffix = '_001')
 
-def splitFiles(samplesNames):
-  for i in samplesNames:
-    targDir = f'preprocess/{i}/'
-    os.makedirs(targDir, exist_ok = True)
-    curSamples = glob.glob(f"fastqs/{i}*")
-    for curSample in curSamples:
-      shutil.copy(curSample, targDir)
-
-splitFiles(samplesNames)
-
 def splitFiles(sampleName):
   targDir = f'preprocess/{sampleName}/'
   os.makedirs(targDir, exist_ok = True)
@@ -54,7 +45,7 @@ def splitFiles(sampleName):
   for curSample in curSamples:
       shutil.copy(curSample, targDir)
 
-with Pool(t) as pool:
+with Pool(tSmall) as pool:
   pool.map(splitFiles, samplesNames)
 
 
@@ -67,7 +58,6 @@ def runFastp(suffix, sampleName):
   subprocess.run(cmd_str, shell = True)
   os.chdir("../../")
 
-# deduplication option does not work in python and/or regular bash
 with Pool(t) as pool:
   suffix = '_001'
   fastp = partial(runFastp, suffix)
@@ -91,6 +81,6 @@ def copyFiles(sampleName):
   shutil.copy(f'{sampleName}.sam', "../../input/")
   os.chdir("../../")
 
-with Pool(t) as pool:
+with Pool(tSmall) as pool:
   pool.map(copyFiles, samplesNames)
 

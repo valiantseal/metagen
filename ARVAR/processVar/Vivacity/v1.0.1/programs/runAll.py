@@ -5,10 +5,12 @@ import shutil
 from multiprocessing import Pool
 import time
 
+#after prepprocess took 106m55
+
 t = 6
 tSMall = 6
 
-make_annotation_file = False
+make_annotation_file = True
 
 run_preprocess = True
 

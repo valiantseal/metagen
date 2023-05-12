@@ -264,7 +264,7 @@ def typeAllele(df):
 # annotate substitutions
 def annotSubst(pos, codNumb, region, corVarAl, annot, codons):
   # subset codon table
-  selAnot = annot.loc[(annot['Region/Gene'] == region) & (annot['Codon#'] == str(codNumb))].reset_index().drop(['index'], axis=1)
+  selAnot = annot.loc[(annot['All_Products'] == region) & (annot['Codon#'] == str(codNumb))].reset_index().drop(['index'], axis=1)
   # find index of the nucleotide to change 
   chInd = selAnot.index[selAnot['NT'] == pos].astype('int')
   # change nucleotide
@@ -285,7 +285,7 @@ def annotSubst(pos, codNumb, region, corVarAl, annot, codons):
 def annotInsert(pos, codNumb, region, corVarAl, annot, codons):
   nucleotides = corVarAl[1:]
   # subset codon table
-  selAnot = annot.loc[(annot['Region/Gene'] == region) & (annot['Codon#'] == str(codNumb))].reset_index().drop(['index'], axis=1)
+  selAnot = annot.loc[(annot['All_Products'] == region) & (annot['Codon#'] == str(codNumb))].reset_index().drop(['index'], axis=1)
   # find index of the nucleotide to change 
   chInd = selAnot.index[selAnot['NT'] == pos].astype('int')
   # get reference amino acid
@@ -323,7 +323,7 @@ def annotInsert(pos, codNumb, region, corVarAl, annot, codons):
 def annotDel(pos, codNumb, region, corVarAl, annot):
   nucleotides = corVarAl[1:]
   # subset codon table
-  selAnot = annot.loc[(annot['Region/Gene'] == region) & (annot['Codon#'] == str(codNumb))].reset_index().drop(['index'], axis=1)
+  selAnot = annot.loc[(annot['All_Products'] == region) & (annot['Codon#'] == str(codNumb))].reset_index().drop(['index'], axis=1)
   # find index of the nucleotide to change 
   chInd = selAnot.index[selAnot['NT'] == pos].astype('int')
   # deletions never need a new amino acid or a check at what codon position nucleotide is deleted
@@ -345,7 +345,7 @@ def annotate(df, annot, codons):
   allAaCh = []
   for i in range(len(df)):
     pos = df.loc[i, 'Position_corrected']
-    region = annot.loc[annot['NT'] == pos, 'Region/Gene'].iloc[0]
+    region = annot.loc[annot['NT'] == pos, 'All_Products'].iloc[0]
     codNumb = annot.loc[annot['NT'] == pos, 'Codon#'].iloc[0]
     corVarAl = df.loc[i, 'VAR-allele_corrected']
     newRegion = annot.loc[annot['NT'] == pos, 'All_Products_Edit'].iloc[0]
