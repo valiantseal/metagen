@@ -6,7 +6,7 @@ from multiprocessing import Pool
 from functools import partial
 
 t = 6
-tSMall = 6
+tSmall = 6
 
 # currently use 4 cores for multiprocessor parallel tasks
 

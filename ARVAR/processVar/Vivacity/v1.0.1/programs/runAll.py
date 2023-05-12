@@ -8,7 +8,7 @@ import time
 #after prepprocess took 106m55
 
 t = 6
-tSMall = 6
+tSmall = 6
 
 make_annotation_file = True
 
@@ -62,7 +62,7 @@ def copyFiles(sampleName):
   os.makedirs(targDir, exist_ok = True)
   shutil.copy(curFile, targDir)
   
-with Pool(tSMall) as pool:
+with Pool(tSmall) as pool:
   pool.map(copyFiles, samplesList)
 
 
@@ -92,12 +92,9 @@ def runFilterLofreq(sampleName):
   subprocess.run(cmd_str, shell = True)
   os.chdir("../../")
 
-with Pool(tSMall) as pool:
+with Pool(tSmall) as pool:
   pool.map(runFilterLofreq, samplesList)
   
-for i in samplesList:
-  print(i)
-  runFilterLofreq(sampleName = i)
 
 
 
