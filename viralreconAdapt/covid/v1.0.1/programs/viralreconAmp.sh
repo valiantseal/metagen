@@ -1,0 +1,20 @@
+/home/ubuntu/nextflow/nextflow run nf-core/viralrecon -r 2.5 \
+    --max_cpus 94 \
+    --max_memory '370.GB' \
+    --input input.csv \
+    --outdir output \
+    --platform illumina \
+    --protocol amplicon \
+    --genome 'MN908947.3' \
+    --kraken2_db ../../references/kraken2-human-db \
+    --skip_kraken2 \
+    --save_reference false \
+    --variant_caller 'ivar' \
+    --primer_bed /home/ubuntu/virilicon/AnneRegRuns/swift_refv3_primers.bed \
+    --primer_left_suffix "_LEFT" \
+    --primer_right_suffix "_RIGHT" \
+    --ivar_trim_offset 5 \
+    --skip_assembly \
+    -c ../custom.config \
+    -profile docker \
+    -with-docker nfcore/virarecon

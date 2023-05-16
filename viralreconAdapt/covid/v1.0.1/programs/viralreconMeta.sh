@@ -1,0 +1,16 @@
+/home/ubuntu/nextflow/nextflow run nf-core/viralrecon -r 2.5 \
+    --input input.csv \
+    --outdir output \
+    --platform illumina \
+    --protocol metagenomic \
+    --genome 'MN908947.3' \
+    --kraken2_db ../../references/kraken2-human-db \
+    --skip_kraken2 \
+    --save_reference false \
+    --variant_caller 'ivar' \
+    --skip_assembly \
+    --max_cpus 94 \
+    --max_memory '370.GB' \
+    -c ../custom.config \
+    -profile docker \
+    -with-docker nfcore/virarecon
