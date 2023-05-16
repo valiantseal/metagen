@@ -30,7 +30,7 @@ levels(x =RNA.combined.norm) <- c('OPC', 'Intermideate', 'ODC')
 
 allMarkers <- FindAllMarkers(RNA.combined.norm , only.pos = F, min.pct = 0.1, logfc.threshold = 0.25, test.use = "MAST")
 
-write.csv(allMarkers, paste0(targDir, "All_RNA_Markers_", curDate, ".csv"), row.names = F)
+#write.csv(allMarkers, paste0(targDir, "All_RNA_Markers_", curDate, ".csv"), row.names = F)
 
 
 clusters = c('OPC', 'Intermideate', 'ODC')
@@ -50,7 +50,7 @@ getTopMarkers = function(df, topNumb) {
   return(unMark)
 }
 
-topMark = getTopMarkers(df = allMarkers, topNumb = 8)
+topMark = getTopMarkers(df = allMarkers, topNumb = 10)
 
 makePlot<-function(x, genesSet, proj) {
   dotPlot<-DotPlot(object = proj, features = x, scale.max = 100, dot.scale = 16)+
@@ -63,8 +63,7 @@ makePlot<-function(x, genesSet, proj) {
   ggsave(paste0(targDir,'DotPlot', genesSet, curDate, '.jpeg'), plot =  dotPlot, height = 12, width = 24, units = 'in', dpi = 300)
 }
 
-makePlot(x = topMark, genesSet = "_Top8PosMarkers_", proj = RNA.combined.norm)
-
+makePlot(x = topMark, genesSet = "_Top10PosMarkers_", proj = RNA.combined.norm)
 
 # AU cell
 

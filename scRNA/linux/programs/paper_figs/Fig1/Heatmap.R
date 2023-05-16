@@ -20,7 +20,7 @@ makePlot<-function(x, genesSet, proj) {
     theme(axis.text.y = element_text(size = 16)) +
     theme(legend.title = element_text(size = 16))
   
-  ggsave(paste0(targDir,'Heatmap', genesSet, curDate, '.jpeg'), plot =  curHeat, height = 16, width = 18, units = 'in', dpi = 300)
+  ggsave(paste0(targDir,'Heatmap', genesSet, curDate, '.jpeg'), plot =  curHeat, height = 16, width = 20, units = 'in', dpi = 300)
 }
 
 makePlot(x = genes, genesSet = "_CustomMarkers_", proj = RNA.combined.norm)
@@ -50,3 +50,25 @@ top10MarkersDf<-extractTopPosMarkers(x = allMarkersPct, topNumb = 3)
 topPosGenes = unique(top10MarkersDf$gene)
 
 makePlot(x = topPosGenes, genesSet = "_Top3PosMarkers_", proj = RNA.combined.norm)
+
+# AU cell
+
+addEnrich<-function(x){
+  load(x)
+  AUCmat <- AUCell::getAUC(cells_AUC)
+  RNA.combined.norm[['AUC']] <- CreateAssayObject(data = AUCmat)
+  DefaultAssay(RNA.combined.norm) <- 'AUC'
+  RNA.combined.norm <- ScaleData(RNA.combined.norm, assay = 'AUC', features = rownames(AUCmat))
+  return(RNA.combined.norm)
+}
+
+# add AUcell data
+RNA.combined.norm<-addEnrich(x='./cellsAUC_keggClustProf.RData')
+DefaultAssay(RNA.combined.norm)
+
+allMarkers = read.csv("/home/flyhunter/Wang/output/Paper_figs/Fig1/AuCell_KeggClustProfAllMarkers.csv" )
+allMarkersPct = allMarkers[(allMarkers$pct.1 >0.25) | (allMarkers$pct.2 >0.25), ]
+
+top10MarkersDf<-extractTopPosMarkers(x = allMarkersPct, topNumb = 8)
+topPosGenes = unique(top10MarkersDf$gene)
+makePlot(x = topPosGenes, genesSet = "_Top8PosMarkers_AuCellKeggClustProf_", proj = RNA.combined.norm)
