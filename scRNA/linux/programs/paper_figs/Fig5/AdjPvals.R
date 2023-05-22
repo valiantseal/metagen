@@ -70,7 +70,7 @@ adjPval = function(df, cluctCol, pCol) {
 }
 
 markAdj = adjPval(df = groupMarkers, cluctCol = "Cell_Type", pCol = "p_val")
-#write.csv(markAdj, paste0(targDir, 'DiffExprMonoc3ClustAdjP_', curDate, "csv"), row.names = F)
+write.csv(markAdj, paste0(targDir, 'DiffExprMonoc3ClustAdjP_', curDate, ".csv"), row.names = F)
 
 
 # adjust p values based on kegg pathways
@@ -87,7 +87,7 @@ getKeggSignGenes = function(df, db, cluctCol, pCol, genesDf) {
     keggList = unique(dfSub$Genes)
     dbSub = db[(db$Kegg_path %in% keggList),]
     genesList = unique(dbSub$Gene)
-    genesDfSub = genesDf[(genesDf$Genes %in% genesList),]
+    genesDfSub = genesDf[(genesDf$Genes %in% genesList) & (genesDf$Cell_Type == cluster),]
     line1 = paste("Cluster", cluster, 'need ', length(genesList), sep = "  ")
     line2 = paste("Cluster", cluster, 'found in current results', length(unique(genesDfSub$Genes)), sep = "  ")
     line3 = paste("Cluster", cluster, 'found in current all Genes', length(unique(genesList[genesList%in% allGenes])), sep = "  ")
@@ -101,10 +101,14 @@ getKeggSignGenes = function(df, db, cluctCol, pCol, genesDf) {
     writeLines(lines, curFile)
     curData = data.frame(genesList)
     curData$Cluster = cluster
-    combDat = rbind(combDat, curData)
+    combDat = rbind(combDat, genesDfSub)
   }
   close(curFile)
   return(combDat)
 }
 
 genesOfInt = getKeggSignGenes(df = keggMark, db = keggdb, cluctCol = "Cell_Type", pCol = "p_val", genesDf = groupMarkers)
+
+# adjust pvalues
+markAdj = adjPval(df = genesOfInt, cluctCol = "Cell_Type", pCol = "p_val")
+write.csv(markAdj, paste0(targDir, 'DiffExprMonoc3ClustAdjP_SignKeggGenes_', curDate, ".csv"), row.names = F)
