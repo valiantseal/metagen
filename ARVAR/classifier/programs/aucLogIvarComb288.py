@@ -37,24 +37,19 @@ colOpt2 = ['ALT_FREQ', 'ALT_QUAL', 'ALT_DP', 'REF_DP', 'REF_QUAL']
 colOpt3 = ['ALT_FREQ', 'ALT_QUAL', 'ALT_DP', 'REF_DP', 'REF_QUAL', 'REF_RV', 'ALT_RV', 'TOTAL_DP']
 colOpt4 = ['ALT_FREQ', 'ALT_QUAL', 'ALT_DP', 'ALT_RV']
 
+combDat = pd.concat([dfFilt, df288], ignore_index=True).reset_index().drop(["index"], axis =1)
 
-#X_train = df288[colOpt1]
-#y_train = df288['ConsTest']
+value_counts = combDat['ConsTest'].value_counts()
+print(value_counts)
 
-#X_test = dfFilt[colOpt1]
-#y_test = dfFilt['ConsTest']
-
-X_train = dfFilt[colOpt1]
-y_train = dfFilt['ConsTest']
-
-X_test = df288[colOpt1]
-y_test = df288['ConsTest']
+X = combDat[colOpt1]
+y = combDat['ConsTest']
 
 varNa = X[X.isna().any(axis=1)]
 respNa = y[y.isna()]
 
 # Split the data into training and test sets
-#X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
 # Create and train the logistic regression model
 model = LogisticRegression(max_iter=1000)
