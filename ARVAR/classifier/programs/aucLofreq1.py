@@ -3,6 +3,10 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
 import pandas as pd
 
+
+minFreq = 0.02
+maxFreq = 1
+
 def getConsensus(metaSeq, ampSeq, minFreq, maxFreq):
   metaseq = pd.read_csv(metaSeq)
   ampseq = pd.read_csv(ampSeq)
@@ -22,10 +26,35 @@ def getConsensus(metaSeq, ampSeq, minFreq, maxFreq):
 
 # increasing lower frequency increase accuracy 
 # colOption1, minFreq at least 0.02 and ampSeqIvar have the bset performance   
-dfFilt = getConsensus(metaSeq = "test_consensus/metaseqIvar.csv", ampSeq = "test_consensus/ampseqConsIvar.csv", minFreq = 0.02, maxFreq = 1)
+dfFilt = getConsensus(metaSeq = "test_consensus/metaseqIvar.csv", ampSeq = "test_consensus/ampseqConsIvar.csv", minFreq = minFreq, maxFreq = maxFreq)
+dfRef = dfFilt[dfFilt["ConsTest"] ==1].reset_index().drop(["index"], axis =1)
 
-value_counts = dfFilt['ConsTest'].value_counts()
+# get metaseq
+
+dfMeta = pd.read_csv("test_consensus/metaseqLofreq.csv")
+
+def annotLofreq(df, ref, minFreq, maxFreq):
+  ConsTest = []
+  metaseqFilt = df[(df["ALLELE.FREQUENCY"] >= minFreq) & (df["ALLELE.FREQUENCY"] <= maxFreq)].reset_index().drop(["index"], axis =1)
+  metaseqFilt = metaseqFilt.dropna(subset=['Var_Al_RelPos']).reset_index().drop(["index"], axis =1)
+  targSnv = ref["Samp_Pos_Ref_Alt"].to_list()
+  for i in range(len(metaseqFilt.index)):
+    curSnv = metaseqFilt.loc[i, "Samp_Pos_Ref_Alt"]
+    if curSnv in targSnv:
+      curCons = 1
+    else:
+      curCons = 0
+    ConsTest.append(curCons)
+  metaseqFilt["ConsTest"] = ConsTest
+  return(metaseqFilt)
+
+dfMetaFilt = annotLofreq(df = dfMeta, ref = dfRef, minFreq = minFreq, maxFreq = maxFreq)
+value_counts = dfMetaFilt['ConsTest'].value_counts()
 print(value_counts)
+
+q1 = dfMetaFilt[dfMetaFilt.isna().any(axis=1)]
+
+list(dfMetaFilt)
 
 def Summary(dfFilt, perSample):
   snvs = []
@@ -57,43 +86,22 @@ def Summary(dfFilt, perSample):
     print('Number of false positive SNVs  ' + str(dfNeg ['Samp_Pos_Ref_Alt'].nunique()))
     
 
-sumStat = Summary(dfFilt = dfFilt, perSample = True)
+sumStat = Summary(dfFilt = dfMetaFilt, perSample = True)
+sumIvar = Summary(dfFilt = dfRef, perSample = True)
+sumIvarSub = sumIvar[["Sample", "True_Positive"]]
+sumIvarSub.columns = ["Sample", "Total_Positive_Truth"]
+combSummary = pd.merge(sumStat, sumIvarSub, how = "left", on = "Sample")
+combSummary.to_csv(path_or_buf = "test_consensus/LofreqIvarSummary.csv", index = False)
 
-sumStat.to_csv(path_or_buf = "test_consensus/IvarSummary.csv", index = False)
 
-list(dfFilt)
 # Assuming you have a pandas DataFrame with your data
 # X represents the features, and y represents the target variable
-colOpt1 = ['ALT_FREQ', 'ALT_QUAL', 'ALT_DP', 'REF_DP', 'REF_QUAL', 'REF_RV', 'ALT_RV']
-colOpt2 = ['ALT_FREQ', 'ALT_QUAL', 'ALT_DP', 'REF_DP', 'REF_QUAL']
-colOpt3 = ['ALT_FREQ', 'ALT_QUAL', 'ALT_DP', 'REF_DP', 'REF_QUAL', 'REF_RV', 'ALT_RV', 'TOTAL_DP']
-colOpt4 = ['ALT_FREQ', 'ALT_QUAL', 'ALT_DP', 'ALT_RV']
-colOpt5 = ['ALT_FREQ', 'ALT_QUAL', 'ALT_DP', 'REF_DP', 'REF_QUAL', 'REF_RV', 'ALT_RV', 'Samp_Pos_Ref_Alt', "Sample"]
+colOpt1 = ['ALLELE.FREQUENCY', 'STRAND.BIAS', 'DEPTH', 'QUAL', 'Var_Al_RelPos', 'Ref_Al_RelPos']
+colOpt2 = ['ALLELE.FREQUENCY', 'STRAND.BIAS', 'DEPTH', 'QUAL', 'Var_Al_RelPos']
+colOpt5 = ['ALLELE.FREQUENCY', 'STRAND.BIAS', 'DEPTH', 'QUAL', 'Var_Al_RelPos','Ref_Al_RelPos', "Sample", 'Samp_Pos_Ref_Alt']
 
-X = dfFilt[colOpt1]
-y = dfFilt['ConsTest']
-
-varNa = X[X.isna().any(axis=1)]
-respNa = y[y.isna()]
-
-# Split the data into training and test sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-
-# Create and train the logistic regression model
-model = LogisticRegression(max_iter=1000)
-model.fit(X_train, y_train)
-
-# Predict probabilities on the test set
-y_pred_proba = model.predict_proba(X_test)[:, 1]
-
-# Calculate the AUC score
-auc_score = roc_auc_score(y_test, y_pred_proba)
-
-print(f"AUC Score: {auc_score}")
-
-## alternative version to extract predictions
-X = dfFilt[colOpt5]
-y = dfFilt['ConsTest']
+X = dfMetaFilt[colOpt5]
+y = dfMetaFilt['ConsTest']
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
 X_train1 = X_train[colOpt1]
@@ -117,7 +125,7 @@ X_test['ConsTest'] = y_test
 def SumPredict(df, minFreq, maxFreq):
   corPredict = []
   wrongPredict = []
-  dfFilt = df[(df["ALT_FREQ"] >= minFreq) & (df["ALT_FREQ"] <= maxFreq)].reset_index().drop(["index"], axis =1)
+  dfFilt = df[(df["ALLELE.FREQUENCY"] >= minFreq) & (df["ALLELE.FREQUENCY"] <= maxFreq)].reset_index().drop(["index"], axis =1)
   for i in range(len(dfFilt.index)):
     if dfFilt.loc[i, "Predict_val"] == dfFilt.loc[i, "ConsTest"]:
       corPredict.append(dfFilt.loc[i, "Samp_Pos_Ref_Alt"])
@@ -140,7 +148,7 @@ def SumPredictPerSamp(df, minFreq, maxFreq):
   corIdent = []
   wrongIdnet = []
   falseNeg = []
-  dfFilt = df[(df["ALT_FREQ"] >= minFreq) & (df["ALT_FREQ"] <= maxFreq)].reset_index().drop(["index"], axis =1)
+  dfFilt = df[(df["ALLELE.FREQUENCY"] >= minFreq) & (df["ALLELE.FREQUENCY"] <= maxFreq)].reset_index().drop(["index"], axis =1)
   samples = list(pd.unique(df["Sample"]))
   for sample in samples:
     corPredict = []
@@ -186,4 +194,4 @@ def SumPredictPerSamp(df, minFreq, maxFreq):
 
 sumTest = SumPredictPerSamp(df = X_test, minFreq = 0.02, maxFreq = 1)
 
-sumTest.to_csv(path_or_buf = "test_consensus/IvarTestSummary.csv", index = False)
+sumTest.to_csv(path_or_buf = "test_consensus/LofreqIvarTestSummary.csv", index = False)

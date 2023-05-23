@@ -12,7 +12,7 @@ def getConsensus(metaSeq, ampSeq, minFreq, maxFreq):
   ampseq = pd.read_csv(ampSeq)
   metaseqFilt = metaseq[(metaseq["ALT_FREQ"] >= minFreq) & (metaseq["ALT_FREQ"] <= maxFreq)].reset_index().drop(["index"], axis =1)
   ampseqFilt =  ampseq[(ampseq["ALT_FREQ"] >= minFreq) & (ampseq["ALT_FREQ"] <= maxFreq)].reset_index().drop(["index"], axis =1)
-  targSnv = ampseq["Samp_Pos_Ref_Alt"].to_list()
+  targSnv = ampseqFilt["Samp_Pos_Ref_Alt"].to_list()
   ConsTest = []
   for i in range(len(metaseqFilt.index)):
     curSnv = metaseqFilt.loc[i, "Samp_Pos_Ref_Alt"]
@@ -55,6 +55,45 @@ print(value_counts)
 q1 = dfMetaFilt[dfMetaFilt.isna().any(axis=1)]
 
 list(dfMetaFilt)
+
+def Summary(dfFilt, perSample):
+  snvs = []
+  truePos = []
+  falsePos = []
+  Samples = []
+  if perSample == True:
+    samplesList = list(pd.unique(dfFilt["Sample"]))
+    for sample in samplesList:
+      dfSub = dfFilt[dfFilt["Sample"] == sample]
+      dfPos = dfSub[dfSub["ConsTest"] ==1].reset_index().drop(["index"], axis =1)
+      dfNeg = dfSub[dfSub["ConsTest"] ==0].reset_index().drop(["index"], axis =1)
+      curSnvs = dfSub['Samp_Pos_Ref_Alt'].nunique()
+      curPos = dfPos['Samp_Pos_Ref_Alt'].nunique()
+      curNeg = dfNeg['Samp_Pos_Ref_Alt'].nunique()
+      
+      snvs.append(curSnvs)
+      truePos.append(curPos)
+      falsePos.append(curNeg)
+      Samples.append(sample)
+    combDat = pd.DataFrame({"Sample": Samples, "Total_SNVs": snvs, "True_Positive": truePos, 'False_Positive': falsePos})
+    return(combDat)
+      
+  elif perSample == False:
+    dfPos = dfFilt[dfFilt["ConsTest"] ==1].reset_index().drop(["index"], axis =1)
+    dfNeg = dfFilt[dfFilt["ConsTest"] ==0].reset_index().drop(["index"], axis =1)
+    print('Total number of unique SNVs  ' + str(dfFilt['Samp_Pos_Ref_Alt'].nunique()))
+    print('Number of true positive SNVs  ' + str(dfPos['Samp_Pos_Ref_Alt'].nunique()))
+    print('Number of false positive SNVs  ' + str(dfNeg ['Samp_Pos_Ref_Alt'].nunique()))
+    
+
+sumStat = Summary(dfFilt = dfMetaFilt, perSample = True)
+sumIvar = Summary(dfFilt = dfRef, perSample = True)
+sumIvarSub = sumIvar[["Sample", "True_Positive"]]
+sumIvarSub.columns = ["Sample", "Total_Positive_Truth"]
+combSummary = pd.merge(sumStat, sumIvarSub, how = "left", on = "Sample")
+combSummary.to_csv(path_or_buf = "test_consensus/LofreqIvarSummary.csv", index = False)
+
+
 # Assuming you have a pandas DataFrame with your data
 # X represents the features, and y represents the target variable
 colOpt1 = ['ALLELE.FREQUENCY', 'STRAND.BIAS', 'DEPTH', 'QUAL', 'Var_Al_RelPos', 'Ref_Al_RelPos']
