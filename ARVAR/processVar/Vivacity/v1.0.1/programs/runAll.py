@@ -7,8 +7,8 @@ import time
 
 #after prepprocess took 106m55
 
-t = 6
-tSmall = 6
+t = 12
+tSmall = 46
 
 make_annotation_file = True
 
@@ -30,21 +30,7 @@ def runPreprocess(run_preprocess):
 
 runPreprocess(run_preprocess = run_preprocess)
 
-## get iSNV files
-filesList = glob.glob("input/*.sam")
-
-def prepFiles():
-  samplesList = []
-  filesList = glob.glob("input/*.sam")
-  for file in filesList:
-    sampleName = file.replace("input/", "").replace(".sam", "")
-    targDir = "process/" + sampleName + "/"
-    samplesList.append(sampleName)
-    os.makedirs(targDir, exist_ok = True)
-    shutil.copy(file, targDir)
-  return samplesList
-
-
+# get iSNV files
 def getSampNames():
   samplesList = []
   filesList = glob.glob("input/*.sam")
@@ -60,7 +46,7 @@ def copyFiles(sampleName):
   curFile = "input/" + sampleName + ".sam"
   targDir = "process/" + sampleName + "/"
   os.makedirs(targDir, exist_ok = True)
-  shutil.copy(curFile, targDir)
+  shutil.move(curFile, targDir)
   
 with Pool(tSmall) as pool:
   pool.map(copyFiles, samplesList)

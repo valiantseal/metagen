@@ -5,8 +5,9 @@ import shutil
 from multiprocessing import Pool
 from functools import partial
 
-t = 6
-tSmall = 6
+t = 12
+tSmall = 48
+suffix = ""
 
 # currently use 4 cores for multiprocessor parallel tasks
 
@@ -36,7 +37,7 @@ def getSamplesName(suffix):
     samplesName.append(newName)
   return samplesName
 
-samplesNames = getSamplesName(suffix = '_001')
+samplesNames = getSamplesName(suffix = suffix)
 
 def splitFiles(sampleName):
   targDir = f'preprocess/{sampleName}/'
@@ -48,6 +49,7 @@ def splitFiles(sampleName):
 with Pool(tSmall) as pool:
   pool.map(splitFiles, samplesNames)
 
+print("Done copying files!")
 
 # filter fastqs with fastp seems like 2 threads are not enough
 def runFastp(suffix, sampleName):
@@ -59,10 +61,11 @@ def runFastp(suffix, sampleName):
   os.chdir("../../")
 
 with Pool(t) as pool:
-  suffix = '_001'
+  suffix = suffix
   fastp = partial(runFastp, suffix)
   pool.map(fastp, samplesNames)
-  
+
+print("Done fastp files!")  
 
 def runHisat2(sampleName):
   targDir = "preprocess/" + sampleName + "/"
@@ -73,14 +76,16 @@ def runHisat2(sampleName):
 
 with Pool(t) as pool:
   pool.map(runHisat2, samplesNames)
-  
+
+print("Done Hisat2 files!")  
 
 def copyFiles(sampleName):
   targDir = "preprocess/" + sampleName + "/"
   os.chdir(targDir)
-  shutil.copy(f'{sampleName}.sam', "../../input/")
+  shutil.move(f'{sampleName}.sam', "../../input/")
   os.chdir("../../")
 
 with Pool(tSmall) as pool:
   pool.map(copyFiles, samplesNames)
 
+print("Preprocessing complete!")
