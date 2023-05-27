@@ -1,0 +1,18 @@
+v1.0.1
+- made copying files parallel
+- fastp for preprocessing is used as a binary and added deduplication option
+- relaxed mapping quality and basequality for bamreadcount
+- for filtering lofreq output removed PASS lofreq filter and put minimum number of forward and reverse reference reads to 0
+- do not execute clean directory function
+- removed summing models for ampseq pipeline and manual only check file 
+- rerwote filterLofreqCLT.py to be organized in functions and to have consistent Ref_Al_RelPos and Var_Al_RelPos
+- in pipelines started to separate programs that use only one thread from multithread programs
+- for filterLofreqCLT, if indel is not in indel1-3 columns put NaN
+- set lofreq filter in getVarFilesCLT.py to 0
+
+## need to add sample name in error message
+
+v1.0.2
+- added program to install python packages
+- progress complettion messages
+- samtools as a binary
