@@ -1,12 +1,18 @@
+
+import importlib
 import subprocess
-import pkg_resources
 
-required = {'pandas', 'argparse', 'multiprocessing', 'time', 'math', 'functools'}
-installed = {pkg.key for pkg in pkg_resources.working_set}
-missing = required - installed
+def check_and_install_packages(packages):
+    for package in packages:
+        try:
+            importlib.import_module(package)
+            print(f"{package} is already installed.")
+        except ImportError:
+            print(f"{package} is not installed. Installing...")
+            subprocess.check_call(['pip', 'install', package])
+            print(f"{package} has been successfully installed.")
 
-# install required packages
-if missing:
-    python = sys.executable
-    subprocess.check_call([python, '-m', 'pip', 'install', *missing], stdout=subprocess.DEVNULL)
-    
+# Usage example
+packages_to_check = ['pandas', 'argparse', 'numpy', 'itertools']
+
+check_and_install_packages(packages_to_check)

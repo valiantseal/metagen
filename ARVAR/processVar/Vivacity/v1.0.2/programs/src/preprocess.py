@@ -5,9 +5,9 @@ import shutil
 from multiprocessing import Pool
 from functools import partial
 
-t = 12
-tSmall = 48
-suffix = ""
+t = 1
+tSmall = 1
+suffix = "_001"
 
 # currently use 4 cores for multiprocessor parallel tasks
 

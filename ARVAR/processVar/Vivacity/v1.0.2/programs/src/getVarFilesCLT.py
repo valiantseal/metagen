@@ -128,16 +128,16 @@ def editSam(inFile):
 
 
 #Convert the sam file into a bam file containing only mapped reads
-def sam2Bam(sam, threads):
-  cmd_str = 'samtools view -@ ' + threads + ' -bu -F 4 ' + sam + ' -o - | samtools sort -@ ' + threads + ' - -o output.bam'
+def sam2Bam(sam, threads, bin_path):
+  cmd_str = f"{bin_path}/samtools view -@ {threads} -bu -F 4 {sam} -o - | {bin_path}/samtools sort -@ {threads} - -o output.bam"
   subprocess.run(["bash", "-c", cmd_str],
                           stdout=subprocess.PIPE,
                           stderr=subprocess.PIPE,
                           text=True)
                           
 # index bam file
-def indexBam(bam, threads):
-  cmd_str = 'samtools index -@ ' + threads + ' ' + bam
+def indexBam(bam, threads, bin_path):
+  cmd_str = f'{bin_path}/samtools index -@ {threads} {bam}'
   subprocess.run(cmd_str, shell=True, stderr=subprocess.PIPE)
 
 # bam readcount
@@ -229,7 +229,7 @@ def writeDf(df, outName):
 def indelqual(bam, refFasta, bin_path):
   cmd_str = f"{bin_path}/lofreq indelqual --dindel -f {refFasta} -o sample_dindel.tmp.bam {bam}"
   subprocess.run(cmd_str, shell = True)
-  sam_str = f"samtools index sample_dindel.tmp.bam"
+  sam_str = f"{bin_path}/samtools index sample_dindel.tmp.bam"
   subprocess.run(sam_str, shell = True)
 
 # call lowfreq
@@ -322,13 +322,13 @@ def runAll():
     sys.exit(1)
     
   try:
-    sam2Bam(sam = 'editFile.sam', threads = threads)
+    sam2Bam(sam = 'editFile.sam', threads = threads, bin_path = bin_path)
   except Exception as e:
     print(e)
     sys.exit(1)
   #
   try:
-    indexBam(bam = 'output.bam', threads = threads)
+    indexBam(bam = 'output.bam', threads = threads, bin_path = bin_path)
   except Exception as e:
     print(e)
     sys.exit(1)

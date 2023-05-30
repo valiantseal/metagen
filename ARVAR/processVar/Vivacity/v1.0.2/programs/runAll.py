@@ -9,8 +9,8 @@ start_time = time.time()
 
 #after prepprocess took 106m55
 
-t = 12
-tSmall = 46
+t = 1
+tSmall = 1
 
 make_annotation_file = "true"
 
