@@ -271,11 +271,14 @@ def parseLowfreq(lofreqRes):
   indList = [0,1,3,4,5,6,8,10,12,14,15,16,17]
   results = []
   for i in range(len(lofreqRes)):
-    curLine = lofreqRes[i]
-    #if curLine[6] == "PASS" and float(curLine[10]) >= lofreq_filter:  # for now remove pass parameter since some snps are missing
-    if float(curLine[10]) >= lofreq_filter:
-      subsRes = subsetList(indList = indList, curList = curLine)
-      results.append(subsRes)
+    try:
+      curLine = lofreqRes[i]
+      #if curLine[6] == "PASS" and float(curLine[10]) >= lofreq_filter:  # for now remove pass parameter since some snps are missing
+      if len(curLine) > 9 and float(curLine[10]) >= lofreq_filter:
+        subsRes = subsetList(indList = indList, curList = curLine)
+        results.append(subsRes)
+    except Exception as e:
+      print(e)
   lofreqDf = pd.DataFrame(results, columns = colNames)
   lofreqDf = filterRefNumb(lofreqDf, 0) # replaced 2 with 0 to find missing snps
   return lofreqDf
