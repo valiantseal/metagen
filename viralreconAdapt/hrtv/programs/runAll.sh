@@ -1,6 +1,6 @@
 sh ./programs/download.sh
 
-Rscript --vanilla ./programs/inputFile.R
+python ./programs/inputFile.py
 
 sh ./programs/allHRTV.sh 
 

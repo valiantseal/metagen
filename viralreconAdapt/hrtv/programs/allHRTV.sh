@@ -1,4 +1,3 @@
-# kept de novo asssembly
 
 for i in $(cat programs/hrtv.segments)
 do
@@ -20,6 +19,7 @@ do
     --primer_right_suffix "_REV" \
     --ivar_trim_offset 5 \
     --skip_nextclade \
+    --skip_assembly \
     -profile docker \
     -with-docker nfcore/virarecon
 
@@ -46,6 +46,7 @@ do
     --primer_right_suffix "_REV" \
     --ivar_trim_offset 5 \
     --skip_nextclade \
+    --skip_assembly \
     -profile docker \
     -with-docker nfcore/virarecon
 
