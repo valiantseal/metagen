@@ -1,4 +1,3 @@
-# kept de novo asssembly
 
 
 /home/ubuntu/nextflow/nextflow run nf-core/viralrecon -r 2.5 \
@@ -18,6 +17,7 @@
     --primer_right_suffix "_RIGHT" \
     --ivar_trim_offset 5 \
     --skip_nextclade \
+    --skip_assembly \
     -profile docker \
     -with-docker nfcore/virarecon
 
@@ -41,6 +41,7 @@
     --primer_right_suffix "_RIGHT" \
     --ivar_trim_offset 5 \
     --skip_nextclade \
+    --skip_assembly \
     -profile docker \
     -with-docker nfcore/virarecon
 

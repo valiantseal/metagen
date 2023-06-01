@@ -1,9 +1,9 @@
 sh ./programs/download.sh
 
-Rscript --vanilla ./programs/inputFile.R
+python ./programs/inputFile.py
 
 sh ./programs/virDengue.sh
 
-python ./programs/genomSum.py
+#python ./programs/genomSum.py
 
 python ./programs/results2S3.py
