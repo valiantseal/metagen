@@ -51,3 +51,52 @@ y_pred_proba = model.predict_proba(X_test)[:, 1]
 auc_score = roc_auc_score(y_test, y_pred_proba)
 
 print(f"AUC Score: {auc_score}")
+
+
+## compare with excluding repeating samples from ampseq
+
+def dedupDat(dfFilt):
+  value_counts = dfFilt[["FullSamp",'Sample']].value_counts()
+  freqTab  = pd.DataFrame(value_counts.reset_index())
+  mapping = {0: 'Freq'} # dictionary
+  # Rename the columns based on the mapping dictionary
+  freqTab = freqTab.rename(columns=mapping) # columns can be dictionary as well columns={0: 'New Column'}
+  freqSamp  = pd.DataFrame(freqTab[['Sample']].value_counts().reset_index())
+  freqSamp  = freqSamp.rename(columns= {0: 'Freq'})
+  freqSub = freqSamp[freqSamp["Freq"] > 1]
+  repNames = freqSub["Sample"].to_list()
+  repSamples = freqTab[freqTab["Sample"].isin(repNames)]
+  repSampOrd = repSamples.sort_values(by='Sample')
+  repList = repSampOrd["FullSamp"].to_list()
+  excList  = repList[::2]
+  dedupDf = dfFilt[~dfFilt["FullSamp"].isin(excList)].reset_index(drop=True)
+  return(dedupDf)
+
+dfFilt = dedupDat(dfFilt = dfFilt)
+
+colOpt1 = ['ALT_FREQ', 'ALT_QUAL', 'ALT_DP', 'REF_DP', 'REF_QUAL', 'REF_RV', 'ALT_RV']
+colOpt2 = ['ALT_FREQ', 'ALT_QUAL', 'ALT_DP', 'REF_DP', 'REF_QUAL']
+colOpt3 = ['ALT_FREQ', 'ALT_QUAL', 'ALT_DP', 'REF_DP', 'REF_QUAL', 'REF_RV', 'ALT_RV', 'TOTAL_DP']
+colOpt4 = ['ALT_FREQ', 'ALT_QUAL', 'ALT_DP', 'ALT_RV']
+colOpt5 = ['ALT_FREQ', 'ALT_QUAL', 'ALT_DP', 'REF_DP', 'REF_QUAL', 'REF_RV', 'ALT_RV', 'Samp_Pos_Ref_Alt', "Sample"]
+
+X = dfFilt[colOpt1]
+y = dfFilt['ConsTest']
+
+varNa = X[X.isna().any(axis=1)]
+respNa = y[y.isna()]
+
+# Split the data into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Create and train the logistic regression model
+model = LogisticRegression(max_iter=1000)
+model.fit(X_train, y_train)
+
+# Predict probabilities on the test set
+y_pred_proba = model.predict_proba(X_test)[:, 1]
+
+# Calculate the AUC score
+auc_score = roc_auc_score(y_test, y_pred_proba)
+
+print(f"AUC Score: {auc_score}")

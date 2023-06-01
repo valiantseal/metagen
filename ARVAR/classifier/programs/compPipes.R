@@ -28,3 +28,6 @@ length(mySnvs[mySnvs%in%vivSnvs]) / length(unique(mySnv$Samp_Pos_Ref_Alt)) * 100
 length(mySnvs[mySnvs%in%vivSnvs]) / length(unique(mySnvFilt$Samp_Pos_Ref_Alt)) * 100
 
 length(mySnvs[mySnvs%in%vivSnvs]) / length(unique(vivSnv$Samp_Pos_Ref_Alt)) * 100
+
+
+unique(mySnv$Sample[!(mySnv$Sample%in%vivSnv$Sample)])
