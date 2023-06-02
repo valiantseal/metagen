@@ -386,6 +386,11 @@ def runAll():
     print("Lofreq run failed")
     sys.exit(1)
   #
+  if os.path.exists("sample_lf.vcf"):
+    pass
+  else:
+    lofreq(bam = 'output.bam', refFasta = refFasta, t = threads, bin_path = bin_path)
+  #
   try:
     lofreqRes = getlowfreqRes()
   except Exception as e:
