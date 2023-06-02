@@ -104,13 +104,14 @@ curHeaders = ['position', 'A_avg_pos_as_fraction', 'T_avg_pos_as_fraction', 'C_a
 
 # get reference name and length from alignment file bowtie2
 def getRefLen(f):
-  with open(f) as input_file:
-    head = list(islice(input_file, 2))
-  targLine = head[1].split('\t')
-  ref = targLine[1].replace("SN:", "")
-  alLen = targLine[2].replace("LN:", "").replace("\n", "")
+  with open(f) as file:
+    for line in file:
+      curLine = line.split('\t')
+      if curLine[0] == "@SQ":
+        ref = curLine[1].replace("SN:", "")
+        alLen = curLine[2].replace("LN:", "").replace("\n", "")
+        break
   return ref, alLen
-
 
 # replcase N with D in cigar string
 def editSam(inFile):
