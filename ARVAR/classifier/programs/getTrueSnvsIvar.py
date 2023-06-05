@@ -39,6 +39,12 @@ y_train = dfFilt['ConsTest']
 
 model = LogisticRegression(max_iter=1000)
 model.fit(X_train, y_train)
+y_pred_proba = model.predict_proba(X_train)[:, 1]
+
+# Calculate the AUC score
+auc_score = roc_auc_score(y_train, y_pred_proba)
+
+print(f"AUC Score: {auc_score}")
 
 curSamples = list(pd.unique(dfFilt["Sample"]))
 

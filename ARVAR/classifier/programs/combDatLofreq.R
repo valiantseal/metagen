@@ -28,7 +28,7 @@ addVarSB = function(metaResDf) {
   return(metaResDf)
 }
 
-metaResDf = getResBind(path = "Vivacilty_v1.0.1/process/", freqCol = 'ALLELE.FREQUENCY', minFreq = 0, maxFreq = 1)
+metaResDf = getResBind(path = "../Vivacilty_v1.0.1/process/", freqCol = 'ALLELE.FREQUENCY', minFreq = 0, maxFreq = 1)
 metaResDf = addVarSB(metaResDf)
 
 write.csv(metaResDf, "test_consensus/metaseqLofreq.csv", row.names = F)

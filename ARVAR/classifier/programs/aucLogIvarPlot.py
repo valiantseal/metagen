@@ -1,7 +1,9 @@
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_curve, roc_auc_score
 import pandas as pd
+import matplotlib.pyplot as plt
+
 
 def getConsensus(metaSeq, ampSeq, minFreq, maxFreq):
   metaseq = pd.read_csv(metaSeq)
@@ -79,19 +81,6 @@ varNa = X[X.isna().any(axis=1)]
 respNa = y[y.isna()]
 
 # Split the data into training and test sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-
-# Create and train the logistic regression model
-model = LogisticRegression(max_iter=1000)
-model.fit(X_train, y_train)
-
-# Predict probabilities on the test set
-y_pred_proba = model.predict_proba(X_test)[:, 1]
-
-# Calculate the AUC score
-auc_score = roc_auc_score(y_test, y_pred_proba)
-
-print(f"AUC Score: {auc_score}")
 
 ## alternative version to extract predictions
 X = dfFilt[colOpt5]
@@ -110,82 +99,29 @@ auc_score = roc_auc_score(y_test, y_pred_proba)
 
 print(f"AUC Score: {auc_score}")
 
+# plot
 
-val_predict=model.predict(X_test1)
-# make data with Ids and survival
-X_test["Predict_val"] = val_predict
-X_test['ConsTest'] = y_test
+def plot_auc_curve(y_test, y_pred_proba):
+    # Create a new figure and axes
+    fig, ax = plt.subplots(figsize=(10, 8))  # Adjust width and height as desired
 
-def SumPredict(df, minFreq, maxFreq):
-  corPredict = []
-  wrongPredict = []
-  dfFilt = df[(df["ALT_FREQ"] >= minFreq) & (df["ALT_FREQ"] <= maxFreq)].reset_index().drop(["index"], axis =1)
-  for i in range(len(dfFilt.index)):
-    if dfFilt.loc[i, "Predict_val"] == dfFilt.loc[i, "ConsTest"]:
-      corPredict.append(dfFilt.loc[i, "Samp_Pos_Ref_Alt"])
-    else:
-      wrongPredict.append(dfFilt.loc[i, "Samp_Pos_Ref_Alt"])
-  numbCorPred = len(corPredict)
-  numbWrongPred = len(wrongPredict)
-  return numbCorPred, numbWrongPred
+    fpr, tpr, _ = roc_curve(y_test, y_pred_proba)
 
-numbCorPred, numbWrongPred = SumPredict(df = X_test, minFreq = 0.02, maxFreq = 1)
+    # Clear the previous plot
+    ax.clear()
 
-numbCorPred / (numbCorPred + numbWrongPred) * 100
-  
-def SumPredictPerSamp(df, minFreq, maxFreq):
-  snvs = []
-  truePos = []
-  falsePos = []
-  Samples = []
-  totalPos = []
-  corIdent = []
-  wrongIdnet = []
-  falseNeg = []
-  dfFilt = df[(df["ALT_FREQ"] >= minFreq) & (df["ALT_FREQ"] <= maxFreq)].reset_index().drop(["index"], axis =1)
-  samples = list(pd.unique(df["Sample"]))
-  for sample in samples:
-    corPredict = []
-    wrongPredict = []
-    curTruePos = []
-    curFalsePos = []
-    curFalseNeg = []
-    dfSub = dfFilt[dfFilt["Sample"] == sample].reset_index().drop(["index"], axis =1)
-    for i in range(len(dfSub.index)):
-      if dfSub.loc[i, "Predict_val"] == dfSub.loc[i, "ConsTest"]:
-        corPredict.append(dfSub.loc[i, "Samp_Pos_Ref_Alt"])
-      else:
-        wrongPredict.append(dfSub.loc[i, "Samp_Pos_Ref_Alt"])
-        if dfSub.loc[i, "Predict_val"] == 1:
-          curFalsePos.append(dfSub.loc[i, "Samp_Pos_Ref_Alt"])
-        elif dfSub.loc[i, "Predict_val"] == 0:
-          curFalseNeg.append(dfSub.loc[i, "Samp_Pos_Ref_Alt"])
-    numbCorPred = len(corPredict)
-    numbWrongPred = len(wrongPredict)
-    dfPos = dfSub[dfSub["ConsTest"] ==1].reset_index().drop(["index"], axis =1)
-    curPos = dfPos['Samp_Pos_Ref_Alt'].nunique()
-    curSnvs = dfSub['Samp_Pos_Ref_Alt'].nunique()
-    for i in range(len(dfPos.index)):
-      if dfPos.loc[i, "Predict_val"] == dfPos.loc[i, "ConsTest"]:
-        curTruePos.append(dfPos.loc[i, "Samp_Pos_Ref_Alt"])
-        
-    numbTruePos = len(curTruePos)
-    numbFalsePos = len(curFalsePos)
-    numbFalseNeg = len(curFalseNeg)
+    # Plotting the AUC curve
+    ax.plot(fpr, tpr, label='AUC Curve (AUC = %0.2f)' % auc_score)
+    ax.plot([0, 1], [0, 1], 'k--', label='Random')
+    ax.set_xlabel('False Positive Rate (FPR)')
+    ax.set_ylabel('True Positive Rate (TPR)')
+    ax.set_title('Receiver Operating Characteristic (ROC)')
+    ax.legend(loc='lower right')
+
+    # Save the plot with adjusted width, height, and DPI
+    plt.savefig('auc_plot.png', dpi=300, bbox_inches='tight')
+
+    # Display the plot
+    plt.show()
     
-    #append values
-    snvs.append(curSnvs)
-    corIdent.append(numbCorPred)
-    wrongIdnet.append(numbWrongPred)
-    Samples.append(sample)
-    totalPos.append(curPos)
-    truePos.append(numbTruePos)
-    falsePos.append(numbFalsePos)
-    falseNeg.append(numbFalseNeg)
-  combDat = pd.DataFrame({"Sample": Samples, "Total_SNVs": snvs, "Correctly_identified": corIdent, "Incorrectly_identified": wrongIdnet ,
-  "True_Positive": truePos, 'False_Positive': falsePos, "False_Negative":falseNeg, "Total_Positive_Truth": totalPos})
-  return combDat
-
-sumTest = SumPredictPerSamp(df = X_test, minFreq = 0.02, maxFreq = 1)
-
-#sumTest.to_csv(path_or_buf = "test_consensus/IvarTestSummary.csv", index = False)
+plot_auc_curve(y_test = y_test, y_pred_proba = y_pred_proba)
