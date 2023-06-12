@@ -22,7 +22,7 @@ def getConsensus(metaSeq, ampSeq, minFreq, maxFreq):
 
 # increasing lower frequency increase accuracy 
 # colOption1, minFreq at least 0.02 and ampSeqIvar have the bset performance   
-dfFilt = getConsensus(metaSeq = "test_consensus/metaseqIvar.csv", ampSeq = "test_consensus/ampseqIvar.csv", minFreq = 0.02, maxFreq = 1)
+dfFilt = getConsensus(metaSeq = "test_consensus/metaseqIvar.csv", ampSeq = "test_consensus/ampseqConsIvar.csv", minFreq = 0.02, maxFreq = 1)
 
 #dfFilt.to_csv("Ludy_metaAmpIvar_overlapSnv.csv", index = False)
 

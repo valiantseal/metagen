@@ -3,8 +3,9 @@ mySnv = read.csv("combDatLudyTrueSnvs.csv")
 # my Samples
 mySumTab = data.frame(table(mySnv$ExactSamp))
 median(mySumTab$Freq)
-subSamp = mySumTab[(mySumTab$Freq >= 46) & (mySumTab$Freq <= 46),]
-targSamp = as.character(head(subSamp$Var1, 10))
+subSamp = mySumTab[(mySumTab$Freq >= 44) & (mySumTab$Freq <= 47),]
+targSamp = as.character(subSamp$Var1)
+length(targSamp)
 
 #
 
@@ -34,6 +35,15 @@ selDat = mySnv[(mySnv$ExactSamp%in%targSamp),]
 
 write.csv(selDat, "LogClassSNV_forManCheck.csv", row.names = F)
 system("aws s3 cp LogClassSNV_forManCheck.csv s3://abombin/Vivacity/ManCheckSamp/LogClass/")
+
+# ampseq data
+for (curSamp in targSamp) {
+  filesList = list.files("/home/ubuntu/extraVol/Viralrecon/covid/Ludy_Apr242023/output/variants/bowtie2", full.names = T, pattern = curSamp)
+  for (curFile in filesList) {
+    cmd_str = paste0("aws s3 cp ", curFile, " s3://abombin/Vivacity/ManCheckSamp/LogClass/ampRef/bams/")
+    system(cmd_str)
+  }
+}
 
 # lofreq output
 
