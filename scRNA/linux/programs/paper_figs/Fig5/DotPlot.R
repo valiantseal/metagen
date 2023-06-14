@@ -79,9 +79,9 @@ groupMarkers$Cell_Type[groupMarkers$Cell_Type == '3'] = "Intermideate"
 
 
 colnames(groupMarkers)[7] = "Description"
-topMarkDf = groupMarkers[(groupMarkers$Description%in%topMark),]
+#topMarkDf = groupMarkers[(groupMarkers$Description%in%topMark),]
 
-clusters = unique(topMarkDf$Cell_Type)
+clusters = unique(groupMarkers$Cell_Type)
 
 findMissing<-function(dataTab, clusters){
   keggList<-unique(dataTab$Description)
@@ -110,8 +110,9 @@ findMissing<-function(dataTab, clusters){
   return(finalTable)
 }
 
-missDat<-findMissing(dataTab =  topMarkDf, clusters = clusters)
-keggComplete<-rbind.fill(topMarkDf, missDat)
+missDat<-findMissing(dataTab =  groupMarkers, clusters = clusters)
+keggComplete<-rbind.fill(groupMarkers, missDat)
+keggComplete = keggComplete[(keggComplete$Description%in%topMark),]
 keggComplete$p_val_adj[is.na(keggComplete$p_val_adj)] = 1
 
 keggComplete$PvalMod = keggComplete$p_val
@@ -197,10 +198,12 @@ groupMarkers$Cell_Type[groupMarkers$Cell_Type == '2'] = "OPC"
 groupMarkers$Cell_Type[groupMarkers$Cell_Type == '3'] = "Intermideate"
 colnames(groupMarkers)[7] = "Description"
 
-topMarkDf = groupMarkers[(groupMarkers$Description%in%topMark),]
-clusters = unique(topMarkDf$Cell_Type)
-missDat<-findMissing(dataTab =  topMarkDf, clusters = clusters)
-keggComplete<-rbind.fill(topMarkDf, missDat)
+#topMarkDf = groupMarkers[(groupMarkers$Description%in%topMark),]
+clusters = unique(groupMarkers$Cell_Type)
+missDat<-findMissing(dataTab =  groupMarkers, clusters = clusters)
+keggComplete<-rbind.fill(groupMarkers, missDat)
+keggComplete = keggComplete[(keggComplete$Description%in%topMark),]
+
 keggComplete$p_val_adj[is.na(keggComplete$p_val_adj)] = 1
 
 keggComplete$PvalMod = keggComplete$p_val

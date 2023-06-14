@@ -1,4 +1,4 @@
-targDir = './Paper_figs/Fig1/'
+targDir = './Paper_figs/Fig1/DotPlot/'
 
 dir.create(targDir, recursive = T, showWarnings = F)
 
@@ -62,12 +62,12 @@ allMarkers <- FindAllMarkers(RNA.combined.norm , assay = "AUC", only.pos = F, mi
 write.csv(allMarkers, paste0(targDir, 'AuCell_KeggClustProfAllMarkers.csv'), row.names = F)
 
 makePlot<-function(x, genesSet, proj) {
-  dotPlot<-DotPlot(object = proj, features = x , scale.max = 100, dot.scale = 16)+
+  dotPlot<-DotPlot(object = proj, features = x , scale.max = 100, dot.scale = 14)+
     scale_colour_gradient2(low = "blue", mid = "grey", high = "red")+
-    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+    theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust=1))+
     theme(text = element_text(size = 16))+ # all text elements size
     theme(axis.text = element_text(size = 16)) + 
-    theme(axis.text.x = element_text(size = 9)) +
+    theme(axis.text.x = element_text(size = 14)) +
     scale_x_discrete(limits=rev)
   
   ggsave(paste0(targDir,'DotPlot', genesSet, curDate, '.jpeg'), plot =  dotPlot, height = 12, width = 24, units = 'in', dpi = 300)

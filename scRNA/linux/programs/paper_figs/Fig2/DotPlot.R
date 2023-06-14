@@ -95,10 +95,12 @@ groupMarkers = read.csv("allDiffExprLogfc0.25_ContrVsStress_2022-10-25.csv")
 topMark = getTopMarkers(df = groupMarkers, topNumb = 8)
 
 colnames(groupMarkers)[7] = "Description"
-topMarkDf = groupMarkers[(groupMarkers$Description%in%topMark),]
-clusters = unique(topMarkDf$Cell_Type)
-missDat<-findMissing(dataTab =  topMarkDf, clusters = clusters)
-keggComplete<-rbind.fill(topMarkDf, missDat)
+#topMarkDf = groupMarkers[(groupMarkers$Description%in%topMark),]
+
+clusters = unique(groupMarkers$Cell_Type)
+missDat<-findMissing(dataTab =  groupMarkers, clusters = clusters)
+keggComplete<-rbind.fill(groupMarkers, missDat)
+keggComplete = keggComplete[(keggComplete$Description%in%topMark),]
 keggComplete$p_val_adj[is.na(keggComplete$p_val_adj)] = 1
 
 keggComplete$PvalMod = keggComplete$p_val
@@ -145,7 +147,7 @@ getTopPath = function(groupMarkers, topNumb) {
 
 topMark = getTopPath(groupMarkers = groupMarkers, topNumb = 8)
 
-topMarkDf = groupMarkers[(groupMarkers$Description%in%topMark),]
+#topMarkDf = groupMarkers[(groupMarkers$Description%in%topMark),]
 
 findMissing<-function(dataTab, clusters){
   keggList<-unique(dataTab$Description)
@@ -179,9 +181,10 @@ findMissing<-function(dataTab, clusters){
   return(finalTable)
 }
 
-missDat<-findMissing(dataTab = topMarkDf, clusters = clusters)
+missDat<-findMissing(dataTab = groupMarkers, clusters = clusters)
 
-keggComplete<-rbind.fill(topMarkDf, missDat)
+keggComplete<-rbind.fill(groupMarkers, missDat)
+keggComplete = keggComplete[(keggComplete$Description%in%topMark),]
 
 addPCat<-function(dataTab){
   dataTab$P.value<-NA
@@ -275,7 +278,7 @@ deDat<-read.csv('AUCell_KeggClustProF_All_ContrVsStress_2022-11-28.csv')
 
 topMark = getTopMarkers(df = deDat, topNumb = 10)
 colnames(deDat)[7] = "Description"
-topMarkDf = deDat[(deDat$Description%in%topMark),]
+#topMarkDf = deDat[(deDat$Description%in%topMark),]
 
 findMissing<-function(dataTab, clusters){
   keggList<-unique(dataTab$Description)
@@ -304,9 +307,10 @@ findMissing<-function(dataTab, clusters){
   return(finalTable)
 }
 
-missDat<-findMissing(dataTab =  topMarkDf, clusters = clusters)
+missDat<-findMissing(dataTab =  deDat, clusters = clusters)
 
-keggComplete<-rbind.fill(topMarkDf, missDat)
+keggComplete<-rbind.fill(deDat, missDat)
+keggComplete = keggComplete[(keggComplete$Description%in%topMark),]
 
 keggComplete$PvalMod = keggComplete$p_val
 

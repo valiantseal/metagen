@@ -14,7 +14,7 @@ plotEmbedding(ArchRProj = projFilt, colorBy = "cellColData", name = "newClust", 
   theme_ArchR(baseSize = 20,legendTextSize = 20)
 
 projFilt$PeakGr <- 'All'
-projFilt<-addGroupCoverages(projFilt, groupBy = 'PeakGr')
+projFilt<-addGroupCoverages(projFilt, groupBy = 'PeakGr', force = T)
 
 macs2Path <- '/home/flyhunter/miniconda3/envs/macs2/bin/macs2'
 
@@ -33,7 +33,7 @@ getAvailableMatrices(projFilt)
 rm(projMacs2)
 
 projFilt <- addIterativeLSI(ArchRProj = projFilt, useMatrix = "PeakMatrix", name = "IterativeLSIMacs2", force = TRUE)
-projFilt <- addUMAP(ArchRProj = projFilt, reducedDims = "IterativeLSIMacs2", name = 'UMAP_macs2')
+projFilt <- addUMAP(ArchRProj = projFilt, reducedDims = "IterativeLSIMacs2", name = 'UMAP_macs2', force = T)
 plotEmbedding(ArchRProj = projFilt, colorBy = "cellColData", name = "newClust", embedding = "UMAP_macs2")+
   theme_ArchR(baseSize = 20,legendTextSize = 20)
 
