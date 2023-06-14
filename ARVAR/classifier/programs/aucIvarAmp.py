@@ -25,6 +25,7 @@ def getConsensus(metaSeq, ampSeq, minFreq, maxFreq):
 # colOption1, minFreq at least 0.02 and ampSeqIvar have the bset performance   
 dfFilt = getConsensus(metaSeq = "test_consensus/metaseqIvar.csv", ampSeq = "test_consensus/ampseqIvar.csv", minFreq = 0.02, maxFreq = 1)
 
+
 colOpt1 = ['ALT_FREQ', 'ALT_QUAL', 'ALT_DP', 'REF_DP', 'REF_QUAL', 'REF_RV', 'ALT_RV']
 colOpt2 = ['ALT_FREQ', 'ALT_QUAL', 'ALT_DP', 'REF_DP', 'REF_QUAL']
 colOpt3 = ['ALT_FREQ', 'ALT_QUAL', 'ALT_DP', 'REF_DP', 'REF_QUAL', 'REF_RV', 'ALT_RV', 'TOTAL_DP']

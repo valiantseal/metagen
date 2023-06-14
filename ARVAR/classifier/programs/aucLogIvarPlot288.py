@@ -22,6 +22,8 @@ def getConsensus(metaSeq, ampSeq, minFreq, maxFreq):
   return(metaseqFilt)
 
 dfFilt = getConsensus(metaSeq = "test_consensus/288_metaseqIvar.csv", ampSeq = "test_consensus/288_ampseqIvar.csv", minFreq = 0.02, maxFreq = 1)
+#dfFilt.to_csv("288_metaAmpIvar_overlapSnv.csv", index = False)
+
 value_counts = dfFilt['ConsTest'].value_counts()
 print(value_counts)
 
