@@ -14,5 +14,3 @@ combGroups = function(gr1, gr2) {
   return(newGr)
 }
 
-newGr = combGroups(gr1 = groups, gr2 = clusters)
-length(newGr)
