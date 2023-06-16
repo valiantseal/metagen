@@ -1,6 +1,10 @@
 library(MASS)
 df = read.csv("288_metaAmpIvar_overlapSnv.csv")
+df = read.csv("288_metaAmpIvarCons_overlapSnv.csv")
 df = read.csv("Ludy_metaAmpIvar_overlapSnv.csv")
+df = read.csv("Ludy_metaAmpIvarNC_overlapSnv.csv")
+df = read.csv("Ludy_ampMetaIvarDedup_overlapSnv.csv")
+df = read.csv("Ludy_metaAmpIvar_overlapSnv_train.csv")
 
 colOpt3 = c('ALT_FREQ', 'ALT_QUAL', 'ALT_DP', 'REF_DP', 'REF_QUAL', 'REF_RV', 'ALT_RV', 'TOTAL_DP')
 
@@ -49,6 +53,16 @@ step_model  = stepAIC(model1, direction = "both" , trace = T, steps = 10000)
 step_model  = stepAIC(model1, direction = "backward")
 summary(step_model)
 
+# test current best aic model
+model1 <- glm(ConsTest ~ ALT_FREQ + ALT_QUAL + ALT_DP + REF_DP + REF_QUAL + ALT_RV, data = df, family = "binomial")
+step_model  = stepAIC(model1, direction = "both" , trace = T, steps = 10000)
+step_model  = stepAIC(model1, direction = "backward")
+summary(step_model)
+
 # previous aic model would be wrong since several variables will be clearly linearly related
 # better one would be ConsTest ~ ALT_FREQ + ALT_QUAL + ALT_DP + REF_DP + REF_QUAL + ALT_RV
 # for 288 dataset best model is ALT_FREQ + ALT_QUAL + ALT_DP + REF_RV + ALT_RV
+
+model1 <- glm(ConsTest ~ ALLELE.FREQUENCY+STRAND.BIAS+DEPTH+QUAL+Var_Al_RelPos+Ref_Al_RelPos, data = metaResDf, family = "binomial")
+model1 <- glm(ConsTest ~ ALLELE.FREQUENCY+STRAND.BIAS+DEPTH+QUAL+Var_Al_RelPos, data = metaResDf, family = "binomial")
+summary(model1)

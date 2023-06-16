@@ -75,6 +75,8 @@ def dedupDat(dfFilt):
 
 dfFilt = dedupDat(dfFilt = dfFilt)
 
+#dfFilt.to_csv("Ludy_ampMetaIvarDedup_overlapSnv.csv", index = False)
+
 colOpt1 = ['ALT_FREQ', 'ALT_QUAL', 'ALT_DP', 'REF_DP', 'REF_QUAL', 'REF_RV', 'ALT_RV']
 colOpt2 = ['ALT_FREQ', 'ALT_QUAL', 'ALT_DP', 'REF_DP', 'REF_QUAL']
 colOpt3 = ['ALT_FREQ', 'ALT_QUAL', 'ALT_DP', 'REF_DP', 'REF_QUAL', 'REF_RV', 'ALT_RV', 'TOTAL_DP']
