@@ -5,6 +5,7 @@ df = read.csv("Ludy_metaAmpIvar_overlapSnv.csv")
 df = read.csv("Ludy_metaAmpIvarNC_overlapSnv.csv")
 df = read.csv("Ludy_ampMetaIvarDedup_overlapSnv.csv")
 df = read.csv("Ludy_metaAmpIvar_overlapSnv_train.csv")
+df = read.csv('Ludy_metaAmpIvar_overlapSnv_RelPos.csv')
 
 colOpt3 = c('ALT_FREQ', 'ALT_QUAL', 'ALT_DP', 'REF_DP', 'REF_QUAL', 'REF_RV', 'ALT_RV', 'TOTAL_DP')
 
@@ -66,3 +67,50 @@ summary(step_model)
 model1 <- glm(ConsTest ~ ALLELE.FREQUENCY+STRAND.BIAS+DEPTH+QUAL+Var_Al_RelPos+Ref_Al_RelPos, data = metaResDf, family = "binomial")
 model1 <- glm(ConsTest ~ ALLELE.FREQUENCY+STRAND.BIAS+DEPTH+QUAL+Var_Al_RelPos, data = metaResDf, family = "binomial")
 summary(model1)
+
+# evaluate with the relative positions
+dfFilt = df[!(df$Var_Al_RelPos == "NaN"),]
+dfFilt$Var_Al_RelPos = as.numeric(as.character(dfFilt$Var_Al_RelPos))
+dfFilt$Ref_Al_RelPos = as.numeric(as.character(dfFilt$Ref_Al_RelPos))
+
+model1 <- glm(ConsTest ~ ALT_FREQ + ALT_QUAL + ALT_DP + REF_DP + REF_QUAL + ALT_RV + Var_Al_RelPos + Ref_Al_RelPos, data = dfFilt, family = "binomial")
+summary(model1)
+step_model  = stepAIC(model1, direction = "both" , trace = T, steps = 10000)
+summary(step_model)
+
+# try without qualities
+model1 <- glm(ConsTest ~ ALT_FREQ + ALT_DP + REF_DP + ALT_RV + Var_Al_RelPos, data = dfFilt, family = "binomial")
+summary(model1)
+step_model  = stepAIC(model1, direction = "both" , trace = T, steps = 10000)
+summary(step_model)
+
+# best AIC model: ConsTest ~ ALT_FREQ + ALT_QUAL + ALT_DP + REF_DP + REF_QUAL + ALT_RV + Var_Al_RelPos
+dfFilt = df[!(df$Var_Al_RelPos == "NaN"),]
+dfFilt$Var_Al_RelPos = as.numeric(as.character(dfFilt$Var_Al_RelPos))
+dfFilt$Ref_Al_RelPos = as.numeric(as.character(dfFilt$Ref_Al_RelPos))
+model1 <- glm(ConsTest ~ ALT_FREQ + ALT_QUAL + ALT_DP + REF_DP + REF_QUAL + ALT_RV + Var_Al_RelPos, data = dfFilt, family = "binomial")
+summary(model1)
+
+##
+dfFilt = df[!(df$Var_Al_RelPos == "NaN"),]
+dfFilt$Var_Al_RelPos = as.numeric(as.character(dfFilt$Var_Al_RelPos))
+dfFilt$Ref_Al_RelPos = as.numeric(as.character(dfFilt$Ref_Al_RelPos))
+model1 <- glm(ConsTest ~ ALT_FREQ + ALT_QUAL + ALT_DP + REF_DP + REF_QUAL + ALT_RV + Var_Al_RelPos, data = dfFilt, family = "binomial")
+model2 =  glm(ConsTest ~ ALT_FREQ + REF_DP + REF_QUAL + ALT_RV + Var_Al_RelPos, data = dfFilt, family = "binomial")
+model3 = glm(ConsTest ~ ALT_FREQ + ALT_DP + REF_DP +  ALT_RV + Var_Al_RelPos, data = dfFilt, family = "binomial")
+
+anova(model1, model2, test = "Chisq")
+
+anova(model1, model3, test = "Chisq")
+
+
+sumModel = function(model) {
+  modSum = summary(model)
+  modRes = data.frame(modSum[["coefficients"]])
+  colnames(modRes)[4] = "Pval"
+  modRes$Variables = rownames(modRes)
+  modRes$AIC = modSum$aic
+  return(modRes)
+}
+
+modRes2 = sumModel(model2)
