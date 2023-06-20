@@ -3,7 +3,7 @@ import subprocess
 import pandas as pd
 import glob
 
-suffix = ""
+suffix = "_001"
 
 def getSamplesName(suffix):
   filesList = glob.glob("./input/*_R1*")
