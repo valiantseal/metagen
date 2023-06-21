@@ -1,4 +1,5 @@
 library(MASS)
+library(pscl)
 df = read.csv("288_metaAmpIvar_overlapSnv.csv")
 df = read.csv("288_metaAmpIvarCons_overlapSnv.csv")
 df = read.csv("Ludy_metaAmpIvar_overlapSnv.csv")
@@ -6,6 +7,7 @@ df = read.csv("Ludy_metaAmpIvarNC_overlapSnv.csv")
 df = read.csv("Ludy_ampMetaIvarDedup_overlapSnv.csv")
 df = read.csv("Ludy_metaAmpIvar_overlapSnv_train.csv")
 df = read.csv('Ludy_metaAmpIvar_overlapSnv_RelPos.csv')
+df = read.csv("Ludy_metaAmpIvar_overlapSnv_RelPos_RemCont.csv")
 
 colOpt3 = c('ALT_FREQ', 'ALT_QUAL', 'ALT_DP', 'REF_DP', 'REF_QUAL', 'REF_RV', 'ALT_RV', 'TOTAL_DP')
 
@@ -98,11 +100,15 @@ dfFilt$Ref_Al_RelPos = as.numeric(as.character(dfFilt$Ref_Al_RelPos))
 model1 <- glm(ConsTest ~ ALT_FREQ + ALT_QUAL + ALT_DP + REF_DP + REF_QUAL + ALT_RV + Var_Al_RelPos, data = dfFilt, family = "binomial")
 model2 =  glm(ConsTest ~ ALT_FREQ + REF_DP + REF_QUAL + ALT_RV + Var_Al_RelPos, data = dfFilt, family = "binomial")
 model3 = glm(ConsTest ~ ALT_FREQ + ALT_DP + REF_DP +  ALT_RV + Var_Al_RelPos, data = dfFilt, family = "binomial")
+step_model  = stepAIC(model3, direction = "both" , trace = T, steps = 10000)
+summary(step_model)
 
-anova(model1, model2, test = "Chisq")
+anova(model2, model1, test = "Chisq")
+anova(model3, model1, test = "Chisq")
 
-anova(model1, model3, test = "Chisq")
-
+lrt = pR2(model1)
+pR2(model2)
+pR2(model3)
 
 sumModel = function(model) {
   modSum = summary(model)
@@ -114,3 +120,27 @@ sumModel = function(model) {
 }
 
 modRes2 = sumModel(model2)
+
+# try coeficients with best auc including relative position
+model1 <- glm(ConsTest ~ ALT_FREQ + ALT_QUAL + REF_QUAL + REF_RV + Var_Al_RelPos, data = dfFilt, family = "binomial")
+summary(model1)
+
+
+# test model with removed contaminated samples
+library(MASS)
+library(pscl)
+df = read.csv("Ludy_metaAmpIvar_overlapSnv_RelPos_RemCont.csv")
+dfFilt = df[!(df$Var_Al_RelPos == "NaN"),]
+dfFilt$Var_Al_RelPos = as.numeric(as.character(dfFilt$Var_Al_RelPos))
+dfFilt$Ref_Al_RelPos = as.numeric(as.character(dfFilt$Ref_Al_RelPos))
+model1 <- glm(ConsTest ~ ALT_FREQ + ALT_QUAL + ALT_DP + REF_DP + REF_QUAL + ALT_RV + Var_Al_RelPos + Ref_Al_RelPos, data = dfFilt, family = "binomial")
+summary(model1)
+step_model  = stepAIC(model1, direction = "both" , trace = T, steps = 10000)
+summary(step_model) # ALT_FREQ + ALT_DP + REF_DP + REF_QUAL + ALT_RV + Var_Al_RelPos
+
+best_aic = glm(ConsTest ~ ALT_FREQ + ALT_DP + REF_DP + REF_QUAL + ALT_RV + Var_Al_RelPos, data = dfFilt, family = "binomial")
+best_aic_sum = sumModel(best_aic)
+
+write.csv(best_aic_sum , "LogIvarMeta_RelPos_CoefPval_BestAic_RemoveContam.csv", row.names = F)
+
+system("aws s3 cp LogIvarMeta_RelPos_CoefPval_BestAic_RemoveContam.csv s3://abombin/Vivacity/classifier/")
