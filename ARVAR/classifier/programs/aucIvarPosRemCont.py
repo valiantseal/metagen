@@ -11,11 +11,29 @@ len(varNa.index)
 
 dfFilt = df.dropna(subset=['Var_Al_RelPos', 'Ref_Al_RelPos'], how='any').reset_index(drop = True)
 'EHC-C19-2777U' in dfFilt["Sample"].to_list()
+'EHC-C19-2346H' in dfFilt["Sample"].to_list()
+'EHC-C19-2387W' in dfFilt["Sample"].to_list()
 exclList = ['EHC-C19-2346H-L2', 'EHC-C19-2387W-L2', 'EHC-C19-2777U-L2']
-dfFilt = dfFilt[~dfFilt["ExactSamp"].isin(exclList)]
-'EHC-C19-2777U' in dfFilt["Sample"].to_list()
 
-dfFilt.to_csv("Ludy_metaAmpIvar_overlapSnv_RelPos_RemCont.csv", index = False)
+exclDf = dfFilt[dfFilt["ExactSamp"].isin(exclList)]
+
+dfFilt = dfFilt[~dfFilt["ExactSamp"].isin(exclList)]
+'EHC-C19-2985U' in dfFilt["Sample"].to_list()
+
+blackList = pd.read_csv("samples.blacklist", header=None, names=["ExactSamp"])
+blackList = blackList["ExactSamp"].to_list()
+black_list = []
+for i in blackList:
+  newSamp = i.replace("_", "-")
+  black_list.append(newSamp)
+
+blackDf = dfFilt[dfFilt["ExactSamp"].isin(black_list)]
+pd.unique(blackDf["ExactSamp"])
+
+dfFilt = dfFilt[~dfFilt["ExactSamp"].isin(black_list)]
+pd.unique(dfFilt["ExactSamp"])
+
+#dfFilt.to_csv("Ludy_metaAmpIvar_overlapSnv_RelPos_RemCont.csv", index = False)
 
 # best on auc relPos_2 has the highest score 99.65
 best_aic2 = ['ALT_FREQ', 'ALT_QUAL', 'ALT_DP', 'REF_DP' , 'REF_QUAL' , 'ALT_RV']
