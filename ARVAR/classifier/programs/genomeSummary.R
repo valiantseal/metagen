@@ -26,14 +26,16 @@ runPar = function(filesList) {
   
   results = foreach(i=filesList) %dopar%{
     getCoverage(curSample = i)
-    getDepth(curSample = i)
+    #getDepth(curSample = i)
   }
   
   parallel::stopCluster(cl = cl)
   
 }
 
-editName = function(curSample) {
+editName = function(curSample, path) {
+  curSample = gsub(path, "", curSample)
+  curSample = gsub("\\/", "", curSample)
   exactSample = gsub("_", "-", curSample)
   sampNamelist = strsplit(exactSample, "-")
   sampleName =  sampNamelist[[1]][1:3]
@@ -49,16 +51,37 @@ runPar(filesList = metaList)
 ampList = list.files("Vivacilty_v1.0.1/amp_process_par", full.names = T)
 runPar(filesList = ampList)
 
-makeSummary = function(filesList) {
+makeSummary = function(path, protocol) {
   allSamples = character()
   allCoverage = numeric()
   allDepth = numeric()
+  filesList = list.files(path, full.names = T)
   for (curSample in filesList) {
     try ({
-      sampleName = editName(curSample = curSample)
-      
+      sampleName = editName(curSample = curSample, path = path)
+      inFile = paste0(curSample, "/", "coverage.tsv")
+      curDf = read.delim(inFile)
+      curCover = curDf$coverage
+      curDepth = curDf$meandepth
+      # combine
+      allSamples = c(allSamples, sampleName)
+      allCoverage = c(allCoverage, curCover)
+      allDepth = c(allDepth, curDepth)
       
     })
   }
-
+  combDf = data.frame(Sample = allSamples, Coverage = allCoverage, Mean_depth = allDepth)
+  curNames = c(paste("Coverage", protocol, sep = "_"), paste("Mean_depth", protocol, sep = "_"))
+  colnames(combDf)[2:3] =  curNames
+  return(combDf)
 }
+
+metaSum = makeSummary(path = "Vivacilty_v1.0.1/process_par", protocol = "MetaSeq")
+ampSum = makeSummary(path = "Vivacilty_v1.0.1/amp_process_par", protocol = "AmpSeq")
+
+combSum = plyr::join(metaSum, ampSum, by = "Sample", type = 'left', match = "all")
+combSum$Mean_depth_MetaSeq = format(as.numeric(combSum$Mean_depth_MetaSeq), scientific = F)
+
+write.csv(combSum, "Ludy_overlapSamples_depthCover.csv", row.names = F)
+system("aws s3 cp Ludy_overlapSamples_depthCover.csv s3://abombin/Vivacity/classifier/")
+
