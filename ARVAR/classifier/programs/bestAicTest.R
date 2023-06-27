@@ -7,7 +7,7 @@ df = read.csv("Ludy_metaAmpIvarNC_overlapSnv.csv")
 df = read.csv("Ludy_ampMetaIvarDedup_overlapSnv.csv")
 df = read.csv("Ludy_metaAmpIvar_overlapSnv_train.csv")
 df = read.csv('Ludy_metaAmpIvar_overlapSnv_RelPos.csv')
-df = read.csv("Ludy_metaAmpIvar_overlapSnv_RelPos_RemCont.csv")
+df = read.csv("result_tables/Ludy_metaAmpIvar_overlapSnv_RelPos_RemCont.csv")
 
 colOpt3 = c('ALT_FREQ', 'ALT_QUAL', 'ALT_DP', 'REF_DP', 'REF_QUAL', 'REF_RV', 'ALT_RV', 'TOTAL_DP')
 
@@ -129,7 +129,7 @@ summary(model1)
 # test model with removed contaminated samples
 library(MASS)
 library(pscl)
-df = read.csv("Ludy_metaAmpIvar_overlapSnv_RelPos_RemCont.csv")
+df = read.csv("result_tables/Ludy_metaAmpIvar_overlapSnv_RelPos_RemCont.csv")
 dfFilt = df[!(df$Var_Al_RelPos == "NaN"),]
 dfFilt$Var_Al_RelPos = as.numeric(as.character(dfFilt$Var_Al_RelPos))
 dfFilt$Ref_Al_RelPos = as.numeric(as.character(dfFilt$Ref_Al_RelPos))
@@ -144,3 +144,9 @@ best_aic_sum = sumModel(best_aic)
 write.csv(best_aic_sum , "LogIvarMeta_RelPos_CoefPval_BestAic_RemoveContam.csv", row.names = F)
 
 system("aws s3 cp LogIvarMeta_RelPos_CoefPval_BestAic_RemoveContam.csv s3://abombin/Vivacity/classifier/")
+
+
+model1 <- glm(ConsTest ~ ALT_FREQ + ALT_QUAL + ALT_DP + REF_DP + REF_QUAL + ALT_RV + Var_Al_RelPos, data = dfFilt, family = "binomial")
+summary(model1)
+step_model  = stepAIC(model1, direction = "both" , trace = T, steps = 10000)
+summary(step_model)

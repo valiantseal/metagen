@@ -1,7 +1,7 @@
 library(MASS)
 library(pscl)
 
-df = read.csv("Ludy_ampDedupMetaIvar_overlapSnv_RelPos.csv")
+df = read.csv("result_tables/Ludy_ampDedupMetaIvar_overlapSnv_RelPos.csv")
 
 dfFilt = df[!(df$Var_Al_RelPos == "NaN"),]
 dfFilt$Var_Al_RelPos = as.numeric(as.character(dfFilt$Var_Al_RelPos))
@@ -57,3 +57,9 @@ write.csv(pos_aic_sum, "ampSeq_Dedup_Coef_BestRelPosAic.csv", row.names = F)
 
 system("aws s3 cp ampSeq_Dedup_Coef_BestOriginalAic.csv s3://abombin/Vivacity/classifier/")
 system("aws s3 cp ampSeq_Dedup_Coef_BestRelPosAic.csv s3://abombin/Vivacity/classifier/")
+
+
+model1 <- glm(ConsTest ~ ALT_FREQ + ALT_QUAL + ALT_DP + REF_DP + REF_QUAL + ALT_RV + Var_Al_RelPos, data = dfFilt, family = "binomial")
+summary(model1)
+step_model  = stepAIC(model1, direction = "both" , trace = T, steps = 10000)
+summary(step_model)

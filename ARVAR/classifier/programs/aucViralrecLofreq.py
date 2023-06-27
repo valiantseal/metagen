@@ -25,17 +25,19 @@ def getConsensus(metaSeq, ampSeq, minFreq, maxFreq):
 df = getConsensus(metaSeq = "test_consensus/metaseq_comb_vivacity.csv", ampSeq = "test_consensus/ampseq_comb_vivacity.csv", minFreq = 0.02, maxFreq = 1)
 dfFilt = df.dropna(subset=['Var_Al_RelPos', 'Ref_Al_RelPos'], how='any').reset_index(drop = True)
 
-#dfFilt.to_csv("result_tables/Ludy_metaAmp_ViralrecLofreq_overlapSnv.csv", index = False)
+exclList = ['EHC-C19-2346H-L2', 'EHC-C19-2387W-L2', 'EHC-C19-2777U-L2']
+dfFilt = dfFilt[~dfFilt["ExactSample"].isin(exclList)]
+
+dfFilt.to_csv("result_tables/Ludy_metaAmp_ViralrecLofreq_overlapSnv_RemCont.csv", index = False)
 
 value_counts = dfFilt['ConsTest'].value_counts()
 print(value_counts)
 
 colOpt1 = ['ALLELE.FREQUENCY', 'STRAND.BIAS', 'DEPTH', 'QUAL', 'Var_Al_RelPos', 'Ref_Al_RelPos'] # 0.9297619867336868
-colOpt2 = ['ALLELE.FREQUENCY', 'STRAND.BIAS', 'DEPTH', 'QUAL', 'Var_Al_RelPos'] # 0.9297619867336868
-colOpt3 = ['DEPTH']
 colOpt5 = ['ALLELE.FREQUENCY', 'STRAND.BIAS', 'DEPTH', 'QUAL', 'Var_Al_RelPos','Ref_Al_RelPos', "Sample", 'Samp_Pos_Ref_Alt']
+best_aic = ['ALLELE.FREQUENCY', 'STRAND.BIAS', 'DEPTH', 'QUAL', 'Var_Al_RelPos'] # 0.948325608294075
 
-X = dfFilt[colOpt2]
+X = dfFilt[best_aic]
 y = dfFilt['ConsTest']
 
 varNa = X[X.isna().any(axis=1)]

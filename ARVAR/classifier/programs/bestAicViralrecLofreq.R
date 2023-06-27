@@ -1,7 +1,7 @@
 library(MASS)
 library(pROC)
 library(caret)
-df = read.csv("result_tables/Ludy_metaAmp_ViralrecLofreq_overlapSnv.csv")
+df = read.csv("result_tables/Ludy_metaAmp_ViralrecLofreq_overlapSnv_RemCont.csv")
 
 dfFilt = df[!is.na(df$Var_Al_RelPos),]
 dfFilt$Var_Al_RelPos = as.numeric(as.character(dfFilt$Var_Al_RelPos))
@@ -22,10 +22,13 @@ sumModel = function(model) {
   return(modRes)
 }
 
-modRes2 = sumModel(model1)
+multivarModel = glm(ConsTest ~ ALLELE.FREQUENCY + STRAND.BIAS + DEPTH + QUAL + Var_Al_RelPos, data = dfFilt, family = "binomial")
 
-write.csv()
+modRes2 = sumModel(multivarModel)
 
+write.csv(modRes2, "metaseq_ViralrecLofreq_coeficients.csv", row.names = F)
+
+system("aws s3 cp metaseq_ViralrecLofreq_coeficients.csv s3://abombin/Vivacity/classifier/")
 
 #AUC
 set.seed(123)
