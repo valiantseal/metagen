@@ -3,7 +3,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
 
-df = pd.read_csv('Ludy_metaAmpIvar_overlapSnv_RelPos.csv')
+df = pd.read_csv('result_tables/Ludy_metaAmpIvar_overlapSnv_RelPos.csv')
 mask = df[['Var_Al_RelPos', 'Ref_Al_RelPos']].isna().any(axis=1)
 varNa = df[mask]
 
@@ -55,6 +55,16 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_
 # Create and train the logistic regression model
 model = LogisticRegression(max_iter=1000)
 model.fit(X_train, y_train)
+
+coefficients = model.coef_[0]
+feature_names = best_aic_remCont
+
+# Pair the coefficients with feature names
+coef_with_names = list(zip(feature_names, coefficients))
+
+# Print the coefficients with their names
+for name, coef in coef_with_names:
+    print(name, coef)
 
 # Predict probabilities on the test set
 y_pred_proba = model.predict_proba(X_test)[:, 1]

@@ -131,11 +131,12 @@ library(MASS)
 library(pscl)
 df = read.csv("result_tables/Ludy_metaAmpIvar_overlapSnv_RelPos_RemCont.csv")
 dfFilt = df[!(df$Var_Al_RelPos == "NaN"),]
+dfFilt = dfFilt[!(is.na(dfFilt$Var_Al_RelPos)),]
 dfFilt$Var_Al_RelPos = as.numeric(as.character(dfFilt$Var_Al_RelPos))
 dfFilt$Ref_Al_RelPos = as.numeric(as.character(dfFilt$Ref_Al_RelPos))
 model1 <- glm(ConsTest ~ ALT_FREQ + ALT_QUAL + ALT_DP + REF_DP + REF_QUAL + ALT_RV + Var_Al_RelPos + Ref_Al_RelPos, data = dfFilt, family = "binomial")
 summary(model1)
-step_model  = stepAIC(model1, direction = "both" , trace = T, steps = 10000)
+step_model  = stepAIC(model1, direction = "both" , trace = F, steps = 10000)
 summary(step_model) # ALT_FREQ + ALT_DP + REF_DP + REF_QUAL + ALT_RV + Var_Al_RelPos
 
 best_aic = glm(ConsTest ~ ALT_FREQ + ALT_DP + REF_DP + REF_QUAL + ALT_RV + Var_Al_RelPos, data = dfFilt, family = "binomial")

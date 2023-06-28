@@ -28,7 +28,7 @@ dfFilt = df.dropna(subset=['Var_Al_RelPos', 'Ref_Al_RelPos'], how='any').reset_i
 exclList = ['EHC-C19-2346H-L2', 'EHC-C19-2387W-L2', 'EHC-C19-2777U-L2']
 dfFilt = dfFilt[~dfFilt["ExactSample"].isin(exclList)]
 
-dfFilt.to_csv("result_tables/Ludy_metaAmp_ViralrecLofreq_overlapSnv_RemCont.csv", index = False)
+#dfFilt.to_csv("result_tables/Ludy_metaAmp_ViralrecLofreq_overlapSnv_RemCont.csv", index = False)
 
 value_counts = dfFilt['ConsTest'].value_counts()
 print(value_counts)
@@ -49,6 +49,15 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_
 # Create and train the logistic regression model
 model = LogisticRegression(max_iter=1000)
 model.fit(X_train, y_train)
+coefficients = model.coef_[0]
+feature_names = best_aic
+
+# Pair the coefficients with feature names
+coef_with_names = list(zip(feature_names, coefficients))
+
+# Print the coefficients with their names
+for name, coef in coef_with_names:
+    print(name, coef)
 
 # Predict probabilities on the test set
 y_pred_proba = model.predict_proba(X_test)[:, 1]

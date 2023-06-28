@@ -63,3 +63,24 @@ model1 <- glm(ConsTest ~ ALT_FREQ + ALT_QUAL + ALT_DP + REF_DP + REF_QUAL + ALT_
 summary(model1)
 step_model  = stepAIC(model1, direction = "both" , trace = T, steps = 10000)
 summary(step_model)
+
+
+
+# removed contamination 
+df = read.csv("result_tables/Ludy_ampDedupMetaIvar_overlapSnv_RelPosRemCont.csv")
+
+dfFilt = df[!(df$Var_Al_RelPos == "NaN"),]
+dfFilt = df[!is.na(df$Var_Al_RelPos),]
+dfFilt$Var_Al_RelPos = as.numeric(as.character(dfFilt$Var_Al_RelPos))
+dfFilt$Ref_Al_RelPos = as.numeric(as.character(dfFilt$Ref_Al_RelPos))
+colnames(dfFilt)
+
+completeModel <- glm(ConsTest ~ ALT_FREQ+ALT_QUAL+ALT_DP+REF_DP+REF_QUAL+REF_RV+ALT_RV +Var_Al_RelPos+Ref_Al_RelPos , data = dfFilt, family = "binomial")
+summary(completeModel)
+completeStep  = stepAIC(completeModel, direction = "both" , trace = T, steps = 10000)
+summary(completeStep) # ConsTest ~ ALT_FREQ + ALT_QUAL + REF_QUAL + Ref_Al_RelPos
+
+# original without position
+model1 <- glm(ConsTest ~ ALT_FREQ+ALT_QUAL+ALT_DP+REF_DP+REF_QUAL+REF_RV+ALT_RV, data = dfFilt, family = "binomial")
+step_model  = stepAIC(model1, direction = "both" , trace = T, steps = 10000)
+summary(step_model) # ConsTest ~ ALT_FREQ + ALT_QUAL + REF_QUAL + REF_RV
