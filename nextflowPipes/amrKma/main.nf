@@ -2,6 +2,7 @@
 
 nextflow.enable.dsl = 2
 
+// set paths
 params.reads = "$baseDir/data/fastqs/*_R{1,2}.fastq.gz"
 params.amr_fasta = "$baseDir/data/AMR_CDS"
 params.data_dir = "$baseDir/data"
@@ -18,7 +19,7 @@ log.info """
          """
          .stripIndent()
 
-
+// index amr fasta
 process index_amr {
 
     publishDir params.data_dir, mode:'copy'
@@ -38,7 +39,7 @@ process index_amr {
   
 }
 
-
+// filter reads with basic fastp
 process fastp {
     /* 
        fastp process to remove adapters and low quality sequences
@@ -61,6 +62,7 @@ process fastp {
     """  
 }  
 
+// run kma 
 process run_kma {
     tag "AMR on $sample_id"
 
@@ -68,7 +70,6 @@ process run_kma {
     tuple val(sample_id), path(filtered_reads)
 
     output:
-    tuple val(sample_id), path("${sample_id}_kmamapped*")
     tuple val(sample_id), path("${sample_id}_kmamapped.res"), emit: kma_res
     tuple val(sample_id), path("${sample_id}_kmamapped.mapstat"), emit: kma_mapstat
 
@@ -80,6 +81,7 @@ process run_kma {
     """
 }
 
+// join kma results with csvtk and add sample name
 process format_kma_res {
   
   input:
@@ -100,6 +102,7 @@ process format_kma_res {
   """
 }
 
+// run kraken2
 process run_kraken {
 
     input:
@@ -120,7 +123,7 @@ process run_kraken {
   
 }
 
-
+// join formatted kma tables for all samples
 process join_cat {
   publishDir params.outdir, mode:'copy'
   input:
@@ -135,6 +138,7 @@ process join_cat {
   
 }
 
+// combine all samples of kraken result tables 
 process join_kraken {
   publishDir params.outdir, mode:'copy'
   input:
@@ -149,6 +153,7 @@ process join_kraken {
   
 }
 
+// format abundance table using R program
 process abundance_tab {
   publishDir params.outdir, mode:'copy'
   
@@ -169,6 +174,7 @@ process abundance_tab {
   
 }
 
+// workflow 
 workflow {
   reads = Channel.fromFilePairs(params.reads, checkIfExists: true)
   reference_fasta = Channel.fromPath(params.amr_fasta)
