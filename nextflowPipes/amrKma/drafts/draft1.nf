@@ -180,7 +180,7 @@ process join_cat {
   input:
   path "*.joined.name.tab"
   output:
-  path 'kma_all_joinned.tsv'
+  path 'kma_all_joinned.tsv', emit: kma_tab
   script:
   """
    cat *.joined.name.tab > kma_all_joinned.tsv
@@ -194,10 +194,30 @@ process join_kraken {
   input:
   path "*_name.txt"
   output:
-  path 'kraken_all_report.tsv'
+  path 'kraken_all_report.tsv', emit: kraken_tab
   script:
   """
    cat *_name.txt > kraken_all_report.tsv
+  
+  """
+  
+}
+
+process abundance_tab {
+  publishDir params.outdir, mode:'copy'
+  
+  input:
+  path kma_tab
+  path kraken_tab
+  
+  output:
+  path 'gene_abundance_table.tsv'
+  path 'abundance_plot.png'
+  
+  script:
+  """
+  echo The path is: $PATH
+  Rscript --vanilla  ~/extraVol/hackaton2/programs/abundanceTable1.R
   
   """
   
@@ -213,6 +233,7 @@ workflow {
   format_kma_res(run_kma.out.kma_res, run_kma.out.kma_mapstat) | collect | join_cat
   //join_kma(format_kma_res.out.kma_join)
   run_kraken(filtered_ch) | collect | join_kraken
+  abundance_tab(join_cat.out.kma_tab, join_kraken.out.kraken_tab)
 
 
   
