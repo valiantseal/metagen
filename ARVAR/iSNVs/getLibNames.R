@@ -22,9 +22,9 @@ getLibNames = function(libList, curSample) {
   for ( j in 1:length(libList) ) {
     lib = libList[j]
     newName = paste0(curSample, "_", names(libList)[j])
-    if (!is.na(lib) & lib == "metaseq") {
+    if (!is.na(lib) && lib == "metaseq") {
       metaList = c(metaList, newName)
-    } else if (!is.na(lib) & lib == "ampseq") {
+    } else if (!is.na(lib) && lib == "ampseq") {
       ampList = c(ampList, newName)
     }
   }
@@ -59,8 +59,8 @@ sumTable = function(df, minDepth) {
     names(libList) = c('L1', 'L2', 'L3', 'L4', 'L5', 'LAmp')
     
    combLib = getLibNames(libList = libList, curSample = curSample)
-   curMeta = paste(combLib[[1]], collapse = ",")
-   curAmp = paste(combLib[[2]], collapse = ",")
+   curMeta = paste(combLib[[1]], collapse = ";")
+   curAmp = paste(combLib[[2]], collapse = ";")
    
    curDat = data.frame(curSample, curMeta, curAmp)
    combDat = rbind(combDat, curDat)
@@ -70,3 +70,5 @@ sumTable = function(df, minDepth) {
 }
 
 combDat = sumTable(df = ludy_df, minDepth = 10)
+
+write.csv(combDat, "SeqSamplesNames_Depth10.csv", row.names = F)
