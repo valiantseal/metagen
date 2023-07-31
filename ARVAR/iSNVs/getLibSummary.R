@@ -52,3 +52,5 @@ sumTable = function(df, minDepth) {
 sumDat = sumTable(df = ludy_df, minDepth = 10)
 
 sum(sumDat$MetaseqCount) + sum(sumDat$AmpseqCount)
+
+write.csv(sumDat, "SeqSamplesNumbers_Depth10.csv", row.names = F)
