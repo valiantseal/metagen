@@ -21,7 +21,11 @@ getLibNames = function(libList, curSample) {
   ampList = character()
   for ( j in 1:length(libList) ) {
     lib = libList[j]
-    newName = paste0(curSample, "_", names(libList)[j])
+    if ( names(libList)[j] == "L1") {
+      newName = paste0(curSample)
+    } else {
+      newName = paste0(curSample, "_", names(libList)[j])
+    }
     if (!is.na(lib) && lib == "metaseq") {
       metaList = c(metaList, newName)
     } else if (!is.na(lib) && lib == "ampseq") {
