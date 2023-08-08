@@ -105,7 +105,7 @@ dxMissing = function(df) {
         curMainStr = paste(curMainStr, collapse = ".")
         if (length(curSeqCh) > 3) {
           curLib = curSeqCh[4]
-          curLib = gsub("[Ll]", "*",  curLib )
+          #curLib = gsub("[Ll]", "*",  curLib )
           curPattern = paste(curMainStr, curLib, sep = ".")
         } else {
           curPattern = paste0(curMainStr, "(?![_-].*)")
@@ -145,7 +145,8 @@ selectPathsMetaseq = function(df) {
         curMainStr = paste(curMainStr, collapse = ".")
         if (length(curSeqCh) > 3) {
           curLib = curSeqCh[4]
-          curLib = gsub("[Ll]", "*",  curLib )
+          #curLib = gsub("[Ll]", "*",  curLib )
+          curLib = paste0(curLib, "[_-]S")
           curPattern = paste(curMainStr, curLib, sep = ".")
           curFiles = unique(curDx[grepl(curPattern, curDx, ignore.case = T)])
         } else if (length(curSeqCh) == 3) {
@@ -175,7 +176,7 @@ getFastqPerLib = function(df) {
         curMainStr = paste(curMainStr, collapse = ".")
         if (length(curSeqCh) > 3) {
           curLib = curSeqCh[4]
-          curLib = gsub("[Ll]", "*",  curLib )
+          #curLib = gsub("[Ll]", "*",  curLib )
           curPattern = paste(curMainStr, curLib, sep = ".")
           curFiles = unique(curDx[grepl(curPattern, curDx, ignore.case = T)])
         } else if (length(curSeqCh) == 3) {
@@ -192,7 +193,33 @@ getFastqPerLib = function(df) {
   return(combData)
 }
 
+getClearDownloadSamples = function(df) {
+  combDat = data.frame(matrix(nrow = 0, ncol = 0))
+  failDat = data.frame(matrix(nrow = 0, ncol = 0))
+  df$Spike.in.confirmed = toupper(df$Spike.in.confirmed)
+  df$Spike.in.confirmed[is.na(df$Spike.in.confirmed)] = 0
+  df$Spike.in.confirmed = gsub(" ", "", df$Spike.in.confirmed)
+  for ( i in 1:nrow(df) ) {
+    curFastq = strsplit(df$combFastq[i], ";")[[1]]
+    if ( length(curFastq) == 2 & any(grepl("_R1", curFastq)) & any(grepl("_R2", curFastq)) & df$Spike.in.confirmed[i] == "Y" ) {
+      combDat = rbind(combDat, df[i,])
+    } else {
+      failDat = rbind(failDat, df[i,])
+    }
+  }
+  dataList = list(passDat = combDat, failDat = failDat)
+  return(dataList)
+}
 
+adjustL2 = function(df) {
+  df$Original_miss = df$Missing_Metaseq
+  for ( i in 1:nrow(df) ) {
+    if (!grepl("_L2", df$Missing_Metaseq[i])) {
+      df$Missing_Metaseq[i] = paste0(df$Missing_Metaseq[i], "_L2")
+    }
+  }
+  return(df)
+}
 
 # current samples table
 curDat = read.csv("SeqSamples_Eval_Depth10.csv")
@@ -224,4 +251,42 @@ metaseqDxDownload = selectPathsMetaseq(df = metaseqDxSamples)
 # represent as one row per Lib with download samples
 metaseqDownloadLibs = getFastqPerLib(df = metaseqDxDownload )
 # check against Annes sheet
+postseq = read.csv("Anne_postseq.csv")
+postseq$Sample.ID = gsub("-", "_", postseq$Sample.ID)
+postseq_sel = unique(postseq[, c("Sample.ID" , "Spike.in.confirmed" )])
+colnames(postseq_sel)[1] = "combSeqName"
+metaseqDLSpike = plyr::join(metaseqDownloadLibs, postseq_sel, by = "combSeqName", type = "left", match = "all")
 
+metaCheck = getClearDownloadSamples(df = metaseqDLSpike)
+metaPass = metaCheck[[1]]
+metaFail = metaCheck[[2]]
+
+# adjust for missingDX
+missingDx = metaDxUpdate[!is.na(metaDxUpdate$Missing_meta_dx),]
+rownames(missingDx) = NULL
+
+missingDx$Meta_dx_download = missingDx$Meta_dx_fastq
+missingDx = adjustL2(df = missingDx)
+missDownloadLibs = getFastqPerLib(df = missingDx)
+missDownloadLibs$combSeqName[3:nrow(missDownloadLibs)] = gsub("_L2", "", missDownloadLibs$combSeqName[3:nrow(missDownloadLibs)])
+
+missDLSpike = plyr::join(missDownloadLibs, postseq_sel, by = "combSeqName", type = "left", match = "all")
+
+metaMissCheck = getClearDownloadSamples(df = missDLSpike)
+metaMissPass = metaMissCheck[[1]]
+metaMissFail = metaMissCheck[[2]]
+missingDx = metaDxUpdate[!is.na(metaDxUpdate$Missing_meta_dx),]
+metaMissFail$combFastq[1] = missingDx$Meta_dx_fastq[1]
+metaMissFail$combFastq[2] = missingDx$Meta_dx_fastq[2]
+
+# combine automatically resolved and those that have to be reviewd further
+combPassMetaseq = rbind(metaPass, metaMissPass)
+combFailMeta = rbind(metaFail, metaMissFail)
+
+nrow(combPassMetaseq)
+nrow(combFailMeta)
+
+write.csv(combPassMetaseq, "metaseq_libs_pass.csv", row.names = F)
+write.csv(combFailMeta, "metaseq_libs_fail.csv", row.names = F)
+
+system("aws s3 cp metaseq_libs_fail.csv s3://abombin/ARVAR/iSNVs/")
