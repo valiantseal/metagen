@@ -15,6 +15,7 @@ formatNames = function(samplesList) {
   newNames = character()
   samplesList = basename(samplesList)
   sampleNames = gsub("-", "_", samplesList)
+  sampleNames = sub(".*EHC", "EHC", sampleNames)
   for ( curSample in sampleNames ) {
     sampNamelist = strsplit(curSample, "_")
     sampleName =  sampNamelist[[1]][1:4]
@@ -54,6 +55,7 @@ addDx = function(mainDf, dxDf) {
 }
 
 dxMissing = function(df) {
+  df$Missing_meta_dx = NA
   for ( i in 1:nrow(df) ) {
     metaseqStr = df$Missing_Metaseq[i]
     if (!is.na(metaseqStr)) {
@@ -77,9 +79,17 @@ dxMissing = function(df) {
         }
         # stopped here recording if any of the samples are still missing after dx
         # if length curMissingMetaseq == 0 record as NA otherwise collapse vector into a string
+        if (length(curMissingMetaseq) == 0) {
+          curMissingMetaseq = NA
+        }
+        if (!is.na(curMissingMetaseq)) {
+          curMissingMetaseq = paste(curMissingMetaseq, collapse = ";")
+        }
+        df$Missing_meta_dx[i] = curMissingMetaseq
       }
     }
   }
+  return(df)
 }
 
 # current samples table
@@ -96,3 +106,14 @@ fastqs = combDat[grepl("fastq.gz", combDat$V6),]
 # update main table with data from dx
 metaDxUpdate = addDx(mainDf = metaSamples, dxDf = fastqs)
 rownames(metaDxUpdate) = 1:nrow(metaDxUpdate)
+
+# update the table if anything is missing after dx search
+metaDxUpdate = dxMissing(df = metaDxUpdate)
+
+missingDx = metaDxUpdate[!is.na(metaDxUpdate$Missing_meta_dx),]
+
+metaseqDxSamples = metaDxUpdate[!is.na(metaDxUpdate$Missing_Metaseq),]
+
+# if name pattern consists of 3 parts exclude strings with patterns .L..S
+grepl("EHC_C19_1637A([_-].*[_-]S)", "EHC_C19_1637A_S10_R2_001.fastq.gz")
+
