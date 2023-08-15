@@ -50,6 +50,11 @@ splitFailFiles = function(df, fastqs) {
     curFilesList = strsplit(df$combFastq[i], ";")[[1]]
     curFastqs = fastqs[fastqs$Pbnas_path%in%curFilesList,]
     curFastqs$Group = NA
+    curFastqs$combSeqName = NA
+    curFastqs$Spike.in.confirmed = NA
+    
+    curFastqs$combSeqName = df$combSeqName[i]
+    curFastqs$Spike.in.confirmed = df$Spike.in.confirmed[i]
     for (j in 1:nrow(curFastqs)) {
       pathList = strsplit(curFastqs$Pbnas_path[j], "/")[[1]]
       grInd = length(pathList) - 1
@@ -66,3 +71,61 @@ rownames(failedFilesFastqs) = NULL
 
 write.csv(failedFilesFastqs, "ampseq_failed_diffSize.csv", row.names = F)
 system("aws s3 cp ampseq_failed_diffSize.csv s3://abombin/ARVAR/iSNVs/")
+
+# resolve missing
+ampMiss = read.csv("ampseq_libs_miss.csv")
+
+splitMissFiles = function(df, fastqs) {
+  combDat = data.frame(matrix(nrow = 0, ncol = 0))
+  for ( i in 1:nrow(df)) {
+    curFilesList = strsplit(df$combFastq[i], ";")[[1]]
+    curFastqs = fastqs[fastqs$Pbnas_path%in%curFilesList,]
+    curFastqs$Group = NA
+    curFastqs$combSeqName = NA
+    curFastqs$combOrigMiss = NA
+    curFastqs$Spike.in.confirmed = NA
+    
+    curFastqs$combSeqName = df$combSeqName[i]
+    curFastqs$combOrigMiss = df$combOrigMiss[i]
+    curFastqs$Spike.in.confirmed = df$Spike.in.confirmed[i]
+    for (j in 1:nrow(curFastqs)) {
+      pathList = strsplit(curFastqs$Pbnas_path[j], "/")[[1]]
+      grInd = length(pathList) - 1
+      elem =  pathList[grInd]
+      curFastqs$Group[j] =  elem
+    }
+    combDat = rbind(combDat, curFastqs)
+  }
+  return(combDat)
+}
+
+
+missFastqs = unique(splitMissFiles(df = ampMiss , fastqs = fastqs))
+
+# get unique miss files
+getUniqueFastqs = function(df) {
+  uniqueList = character()
+  combDat = data.frame(matrix(nrow = 0, ncol = 0))
+  for ( i in 1:nrow(df) ) {
+    curRow = df[i ,]
+    curFile = paste(basename(df$Pbnas_path[i]), df$File_size[i], sep = "__")
+    if (!curFile %in% uniqueList) {
+      combDat = rbind(combDat, curRow )
+      uniqueList = c(uniqueList, curFile)
+    }
+  }
+  return(combDat)
+}
+
+uniqueMiss = getUniqueFastqs(df = missFastqs)
+
+sum(uniqueMiss$File_size) / 1000
+
+# get unique failed samples
+uniqueFail = getUniqueFastqs(df = failedFilesFastqs)
+
+write.csv(uniqueMiss, "amp_uniqueMiss.csv", row.names = F)
+write.csv(uniqueFail, "amp_uniqueFail.csv", row.names = F)
+
+system("aws s3 cp amp_uniqueMiss.csv s3://abombin/ARVAR/iSNVs/")
+system("aws s3 cp amp_uniqueFail.csv s3://abombin/ARVAR/iSNVs/")
