@@ -232,6 +232,8 @@ filesList = list.files("dx_metaseq_paths")
 combDat = combAll(filesList = filesList , inDir = "dx_metaseq_paths")
 fastqs = combDat[grepl("fastq.gz", combDat$V6),]
 
+write.csv(fastqs, "metaseq_dx_fastqs.csv", row.names = F)
+
 # update main table with data from dx
 metaDxUpdate = addDx(mainDf = metaSamples, dxDf = fastqs)
 rownames(metaDxUpdate) = 1:nrow(metaDxUpdate)
@@ -290,3 +292,4 @@ write.csv(combPassMetaseq, "metaseq_libs_pass.csv", row.names = F)
 write.csv(combFailMeta, "metaseq_libs_fail.csv", row.names = F)
 
 system("aws s3 cp metaseq_libs_fail.csv s3://abombin/ARVAR/iSNVs/")
+system("aws s3 cp metaseq_libs_pass.csv s3://abombin/ARVAR/iSNVs/")
