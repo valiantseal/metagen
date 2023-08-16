@@ -69,8 +69,8 @@ splitFailFiles = function(df, fastqs) {
 failedFilesFastqs = unique(splitFailFiles(df = ampSpFail, fastqs = fastqs))
 rownames(failedFilesFastqs) = NULL
 
-write.csv(failedFilesFastqs, "ampseq_failed_diffSize.csv", row.names = F)
-system("aws s3 cp ampseq_failed_diffSize.csv s3://abombin/ARVAR/iSNVs/")
+# write.csv(failedFilesFastqs, "ampseq_failed_diffSize.csv", row.names = F)
+# system("aws s3 cp ampseq_failed_diffSize.csv s3://abombin/ARVAR/iSNVs/")
 
 # resolve missing
 ampMiss = read.csv("ampseq_libs_miss.csv")
@@ -124,8 +124,31 @@ sum(uniqueMiss$File_size) / 1000
 # get unique failed samples
 uniqueFail = getUniqueFastqs(df = failedFilesFastqs)
 
-write.csv(uniqueMiss, "amp_uniqueMiss.csv", row.names = F)
-write.csv(uniqueFail, "amp_uniqueFail.csv", row.names = F)
+# write.csv(uniqueMiss, "amp_uniqueMiss.csv", row.names = F)
+# write.csv(uniqueFail, "amp_uniqueFail.csv", row.names = F)
+# 
+# system("aws s3 cp amp_uniqueMiss.csv s3://abombin/ARVAR/iSNVs/")
+# system("aws s3 cp amp_uniqueFail.csv s3://abombin/ARVAR/iSNVs/")
 
-system("aws s3 cp amp_uniqueMiss.csv s3://abombin/ARVAR/iSNVs/")
-system("aws s3 cp amp_uniqueFail.csv s3://abombin/ARVAR/iSNVs/")
+filterUniqueFail = function(df) {
+  libNames = unique(df$combSeqName)
+  combDat = data.frame(matrix(nrow = 0, ncol = 0))
+  for ( libName in libNames ) {
+    curDf = df[df$combSeqName == libName,]
+    if (nrow(curDf) > 2) {
+      curSelDf = curDf[grepl("may222023", curDf$Group),]
+      if (nrow(curSelDf) < 2 ) {
+        curSelDf = curDf
+      }
+    } else {
+      curSelDf = curDf
+    }
+    combDat = rbind(combDat, curSelDf)
+  }
+  return(combDat)
+}
+
+uniqueFailFiltr = filterUniqueFail(df = uniqueFail)
+
+write.csv(uniqueFailFiltr, "amp_uniqueFailFiltr.csv", row.names = F)
+system("aws s3 cp amp_uniqueFailFiltr.csv s3://abombin/ARVAR/iSNVs/")
