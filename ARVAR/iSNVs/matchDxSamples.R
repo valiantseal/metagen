@@ -165,12 +165,13 @@ selectPathsMetaseq = function(df) {
 getFastqPerLib = function(df) {
   combSeqName = character()
   combFastq = character()
+  combFilesStr = character()
   for ( i in 1:nrow(df)) {
     metaseqStr = df$Missing_Metaseq[i]
     curMetaseq = strsplit(metaseqStr, ";")[[1]]
     curDx = strsplit(df$Meta_dx_download[i], ";")[[1]]
+    curFastq = character()
       for (curSeq in curMetaseq) {
-        curFastq = character()
         curSeqCh = strsplit(curSeq, "_")[[1]]
         curMainStr = curSeqCh[1:3]
         curMainStr = paste(curMainStr, collapse = ".")
@@ -183,13 +184,12 @@ getFastqPerLib = function(df) {
           curPattern = paste0(curMainStr, "[_-].*[_-]S")
           curFiles = unique(curDx[!grepl(curPattern, curDx, ignore.case = T)])
         }
-        curFastq = c(curFastq, curFiles)
-        combFilesStr = paste(curFastq, collapse = ";")
+        combSeqName = c(combSeqName, curSeq)
+        FilesStr = paste( curFiles, collapse = ";")
+        combFilesStr = c(combFilesStr, FilesStr)
       }
-    combSeqName = c(combSeqName, curSeq)
-    combFastq = c(combFastq, combFilesStr)
     }
-  combData = data.frame(combSeqName, combFastq)
+  combData = data.frame(combSeqName, combFilesStr)
   return(combData)
 }
 
@@ -232,7 +232,7 @@ filesList = list.files("dx_metaseq_paths")
 combDat = combAll(filesList = filesList , inDir = "dx_metaseq_paths")
 fastqs = combDat[grepl("fastq.gz", combDat$V6),]
 
-write.csv(fastqs, "metaseq_dx_fastqs.csv", row.names = F)
+#write.csv(fastqs, "metaseq_dx_fastqs.csv", row.names = F)
 
 # update main table with data from dx
 metaDxUpdate = addDx(mainDf = metaSamples, dxDf = fastqs)
@@ -252,6 +252,7 @@ metaseqDxDownload = selectPathsMetaseq(df = metaseqDxSamples)
 
 # represent as one row per Lib with download samples
 metaseqDownloadLibs = getFastqPerLib(df = metaseqDxDownload )
+write.csv(metaseqDownloadLibs, "metaseq_additional_samples.csv", row.names = F)
 # check against Annes sheet
 postseq = read.csv("Anne_postseq.csv")
 postseq$Sample.ID = gsub("-", "_", postseq$Sample.ID)

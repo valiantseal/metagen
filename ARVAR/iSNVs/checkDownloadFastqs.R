@@ -15,7 +15,7 @@ spreadList = function(x) {
 curMisLibs = spreadList(missingSamples)
 
 meta1  = list.files("metaseq_pass_fastqs")
-meta2 = list.files("meta_fail_stats")
+meta2 = list.files("metaseq_test_samples", recursive = T)
 newMeta = c(meta1, meta2)
 
 missingPerLib = function(missingList, curFiles) {
@@ -60,6 +60,17 @@ missingPerSamp = function(missingList, curFiles) {
 
 missSamples = missingPerSamp(missingList = curMisLibs, curFiles = newMeta)
 
+# ampseq
+ampSamples = unique(curDat$Missing_Ampseq)
+missingSamples = ampSamples[!is.na(ampSamples)]
+curMisLibs = spreadList(missingSamples)
 
+#
+amp1 = list.files("amp_fail_files")
+amp2 = list.files("amp_miss_files")
+amp3 = list.files("amp_pass_files")
+amp4 = list.files("amp_spResolve_files")
+newAmp = c(amp1, amp2, amp3, amp4)
 
-
+missingLibs = missingPerLib(missingList = curMisLibs, curFiles = newAmp)
+missSamples = missingPerSamp(missingList = curMisLibs, curFiles = newAmp)

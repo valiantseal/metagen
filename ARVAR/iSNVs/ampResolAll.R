@@ -40,6 +40,9 @@ getBiggestFiles = function(df, fastqs) {
 
 bigamp = getBiggestFiles(df = ampSpike, fastqs = fastqs)
 bmSum = data.frame(table(bigamp$Lib_name))
+write.csv(bigamp, "amp_fail_spResolv.csv", row.names = F)
+system("aws s3 cp amp_fail_spResolv.csv s3://abombin/ARVAR/iSNVs/")
+
 
 bigampFail = unique(getBiggestFiles(df = ampSpFail, fastqs = fastqs))
 
