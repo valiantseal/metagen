@@ -57,7 +57,8 @@ amp1 = list.files("amp_fail_files")
 amp2 = list.files("amp_miss_files")
 amp3 = list.files("amp_pass_files")
 amp4 = list.files("amp_spResolve_files")
-newAmp = c(amp1, amp2, amp3, amp4)
+amp5 = list.files("ampseq_additional")
+newAmp = c(amp1, amp2, amp3, amp4, amp5)
 
 editName = function(filesList) {
   combList = character()
@@ -91,3 +92,9 @@ editAmpList = function(df, filesList) {
 
 curAmp = editName(filesList = newAmp)
 editAmpList = editAmpList(df = selDat, filesList = curAmp)
+
+ampAllSamp = editAmpList[, c("Sample_id", "AmpseqNames", "AmpFound" , "Found_Samples")]
+colnames(ampAllSamp) = c("Sample_id", "Ludy_Lib_Names", "Orig_Lib_Found", "New_Lib_Found")
+
+ write.csv(ampAllSamp, "ampseq_search_result.csv", row.names = F)
+ system("aws s3 cp ampseq_search_result.csv s3://abombin/ARVAR/iSNVs/")
