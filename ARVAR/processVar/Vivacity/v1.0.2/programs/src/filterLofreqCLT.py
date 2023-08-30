@@ -181,13 +181,13 @@ def adjFreq(df, relPos):
   df['Ref_Al_RelPos'] = df['Ref_Al_RelPos'].astype(float)
   df['Var_Al_RelPos'] = df['Var_Al_RelPos'].astype(float)
   for i in range(len(df.index)):
-    if df.loc[i, 'Level'] == 'consensus' and df.loc[i, 'Ref_Al_RelPos'] > relPos:
+    if df.loc[i, 'Level'] == 'consensus' and df.loc[i, 'Ref_Al_RelPos'] >= relPos:
       freq = df.loc[i, 'ALLELE-FREQUENCY']
       posTest = 'Pass'
     elif df.loc[i, 'Level'] == 'consensus' and df.loc[i, 'Ref_Al_RelPos'] < relPos:
       freq = 1
       posTest = 'Fail'
-    elif df.loc[i, 'Level'] == 'minority' and df.loc[i, 'Var_Al_RelPos'] > relPos:
+    elif df.loc[i, 'Level'] == 'minority' and df.loc[i, 'Var_Al_RelPos'] >= relPos:
       freq = df.loc[i, 'ALLELE-FREQUENCY']
       posTest = 'Pass'
     elif df.loc[i, 'Level'] == 'minority' and df.loc[i, 'Var_Al_RelPos'] < relPos:
