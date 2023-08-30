@@ -26,7 +26,7 @@ getStats = function(inFile) {
 
 # run parallel
 runPar = function(filesList) {
-  useCores = 6
+  useCores = 80
   cl <- makeCluster(useCores, type = "FORK")
   registerDoParallel(cl)
   
@@ -40,5 +40,22 @@ runPar = function(filesList) {
 # ampStats = runPar(filesList = ampList)
 # write.csv(ampStats, "ampseqCovDepth.csv", row.names = F)
 
-metaStats = runPar(filesList = metaList)
-write.csv(metaStats, "metaseqCovDepth.csv", row.names = F)
+#metaStats = runPar(filesList = metaList)
+#write.csv(metaStats, "metaseqCovDepth.csv", row.names = F)
+
+# get summaries for previous runs
+# ampseq
+# amp1 = getFilesList(inPath = "/home/ubuntu/extraVol/Viralrecon/covid/Ludy_ampseq_2023-06-16/output/variants/bowtie2", pattern = "_trim.sorted.bam$")
+# amp2 = getFilesList(inPath = "/home/ubuntu/extraVol/Viralrecon/covid/Ludy_Apr242023/output/variants/bowtie2", pattern = "_trim.sorted.bam$")
+# amp_comb = c(amp1, amp2)
+# 
+# #ampOldCombStats = runPar(filesList = amp_comb)
+# write.csv(ampOldCombStats, "ampseqOldSampCovDepth.csv", row.names = F)
+# 
+# #metaseq
+meta1 = getFilesList(inPath = "/home/ubuntu/extraVol/Viralrecon/covid/Ludy_metaseq_2023-05-24/output/variants/bowtie2", pattern = ".sorted.bam$")
+meta2 = getFilesList(inPath = "/home/ubuntu/extraVol/Viralrecon/covid/Ludy_metaseq_2023-06-29/output/variants/bowtie2", pattern = ".sorted.bam$")
+meta_comb = c(meta1, meta2)
+
+metaOldCombStats = runPar(filesList = meta_comb)
+write.csv(metaOldCombStats, "metaseqOldSampCovDepth.csv", row.names = F)
