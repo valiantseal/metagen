@@ -1,5 +1,7 @@
 lmmDf = read.delim("output_gwas/lmm_unitig_pyseer.txt")
 assocDf = read.delim("output_gwas/assoc_unitig_pyseer.txt")
+lmmSnps = read.delim("output_gwas/lmm_core_pirate_vcf_pyseer.txt")
+assocSnps = read.delim("output_gwas/assoc_core_pirate_vcf_pyseer.txt")
 
 
 adjPFilter = function(df) {
@@ -12,5 +14,7 @@ adjPFilter = function(df) {
 
 lmmSign = adjPFilter(df = lmmDf)
 assocSign = adjPFilter(df = assocDf)
+lmmSnpsSign = adjPFilter(df = lmmSnps)
+assocSnpsSign = adjPFilter(df = assocSnps)
 
 overlSign = lmmSign[lmmSign$variant%in%assocSign$variant,]
