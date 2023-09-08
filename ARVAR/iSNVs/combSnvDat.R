@@ -12,7 +12,7 @@ combDat = function(path) {
       curDf = paste0(path, "/", curSample, "/filtered.csv")
       df = read.csv(curDf)
       exactSample = gsub("_", "-", curSample)
-      eaxactSample = sub(".*EHC", "EHC", curSample)
+      eaxactSample = sub(".*EHC", "EHC", exactSample)
       df$OrigName = curSample
       df$ExactSample = exactSample
       sampNamelist = strsplit(exactSample, "-")
@@ -85,3 +85,22 @@ dir.create("snvs_comb_res")
 
 write.csv(ampseq_new, "snvs_comb_res/ampseq_found.csv", row.names = F)
 write.csv(ampseq_old, "snvs_comb_res/ampseq_old.csv", row.names = F)
+
+## metaseq samples
+metaseq_new = combDat(path = "metaseq_vivacity_found")
+metaseq_new$Batch = "New"
+
+#  make edited list of samples to exclude from summary of old samples
+metaseq_new_samples = unique(metaseq_new$OrigName)
+metaseq_new_samples = gsub("\\_S.*", "", metaseq_new_samples)
+metaseq_new_samples = gsub("_", "-", metaseq_new_samples)
+
+oldMetaList = getOldSampleslist(targetPattern=targetPattern, targDir="metaseq_vivacity_old", newSamples = metaseq_new_samples)
+
+metaseq_old = combOldDat(path = "metaseq_vivacity_old", samplesList = oldMetaList)
+metaseq_old$Batch = "Old"
+
+write.csv(metaseq_new, "snvs_comb_res/metaseq_found.csv", row.names = F)
+write.csv(metaseq_old, "snvs_comb_res/metaseq_old.csv", row.names = F)
+
+

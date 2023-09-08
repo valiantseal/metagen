@@ -1,0 +1,93 @@
+amp_new = read.csv("snvs_comb_res/ampseq_found.csv")
+
+amp_old = read.csv("snvs_comb_res/ampseq_old.csv")
+
+cov_amp_new = read.csv("ampseqCovDepth.csv")
+cov_amp_old = read.csv("ampseqOldSampCovDepth.csv")
+comb_amp_cov = rbind(cov_amp_new, cov_amp_old)
+colnames(comb_amp_cov)[1] = "OrigName"
+
+colnames(amp_new)
+
+ampCompComb = rbind(amp_new, amp_old)
+
+#amp_old_filt = amp_old[amp_old$ALLELE.FREQUENCY >= 0.02,]
+#amp_new_filt = amp_new[amp_new$ALLELE.FREQUENCY >= 0.02,]
+
+#ampComb = rbind(amp_new_filt,amp_old_filt)
+
+libsDf = unique(ampCompComb[, c("OrigName", "ExactSample", "Sample", "Batch" )])
+
+sumSampFreq = data.frame(table(libsDf$Sample))
+
+repSamples = as.character(sumSampFreq$Var1[sumSampFreq$Freq > 1])
+singSamples = as.character(sumSampFreq$Var1[sumSampFreq$Freq < 2])
+length(repSamples)
+length(singSamples)
+
+#
+selectMaxCovDepth = function(df, samplesList, sumStatDf) {
+  combSamples = c()
+  for (curSample in samplesList) {
+    curDf = df[df$Sample == curSample,]
+    curDfCov = plyr::join(curDf, sumStatDf, by = "OrigName", type = "left", match = "all")
+    maxCov = max(curDfCov$Coverage)
+    covDf = curDfCov[curDfCov$Coverage == maxCov,]
+    if (nrow(covDf) > 1) {
+      maxDepth = max(covDf$Mean_depth)
+      depthDf = covDf[covDf$Mean_depth == maxDepth,]
+      selSampleName = depthDf$OrigName[1]
+    } else {
+      selSampleName = covDf$OrigName[1]
+    }
+    combSamples = c(combSamples, selSampleName)
+  }
+  return(combSamples)
+}
+
+maxDepthSamples = selectMaxCovDepth(df=libsDf, samplesList=repSamples, sumStatDf = comb_amp_cov)
+
+derepLib =  libsDf[libsDf$OrigName%in%maxDepthSamples,]
+singLib = libsDf[libsDf$Sample%in%singSamples,]
+combSingLib = rbind(derepLib, singLib)
+
+ampFilterLibs = ampCompComb[ampCompComb$OrigName%in%combSingLib$OrigName,]
+
+q1 = unique(ampFilterLibs[, c("OrigName", "ExactSample", "Sample", "Batch" )])
+q2 = data.frame(table(q1$Sample))
+
+write.csv(ampFilterLibs, "snvs_comb_res/ampseq_comb_derep.csv", row.names = F)
+
+q3 = ampFilterLibs[ampFilterLibs$ALLELE.FREQUENCY >= 0.02 &  ampFilterLibs$ALLELE.FREQUENCY <= 0.98,]
+
+## metaseq
+meta_new = read.csv("snvs_comb_res/metaseq_found.csv")
+
+meta_old = read.csv("snvs_comb_res/metaseq_old.csv")
+
+cov_meta_new = read.csv("metaseqCovDepth.csv")
+cov_meta_old = read.csv("metaseqOldSampCovDepth.csv")
+comb_meta_cov = rbind(cov_meta_new, cov_meta_old)
+colnames(comb_meta_cov)[1] = "OrigName"
+colnames(meta_new)
+metaCompComb = rbind(meta_new, meta_old)
+
+libsDf = unique(metaCompComb[, c("OrigName", "ExactSample", "Sample", "Batch" )])
+sumSampFreq = data.frame(table(libsDf$Sample))
+repSamples = as.character(sumSampFreq$Var1[sumSampFreq$Freq > 1])
+singSamples = as.character(sumSampFreq$Var1[sumSampFreq$Freq < 2])
+length(repSamples)
+length(singSamples)
+
+maxDepthSamples = selectMaxCovDepth(df=libsDf, samplesList=repSamples, sumStatDf = comb_meta_cov)
+
+derepLib =  libsDf[libsDf$OrigName%in%maxDepthSamples,]
+singLib = libsDf[libsDf$Sample%in%singSamples,]
+combSingLib = rbind(derepLib, singLib)
+
+metaFilterLibs = metaCompComb[metaCompComb$OrigName%in%combSingLib$OrigName,]
+q1 = unique(metaFilterLibs[, c("OrigName", "ExactSample", "Sample", "Batch" )])
+q2 = data.frame(table(q1$Sample))
+write.csv(metaFilterLibs, "snvs_comb_res/metaseq_comb_derep.csv", row.names = F)
+
+q3 = metaFilterLibs[metaFilterLibs$ALLELE.FREQUENCY >= 0.02 &  metaFilterLibs$ALLELE.FREQUENCY <= 0.98,]
