@@ -1,10 +1,10 @@
-
 ### main program
 import sys
 import subprocess
 import pandas as pd
 import argparse
 import math
+import os
 
 
 parser=argparse.ArgumentParser(description='format and filter Lofreq output')
@@ -248,19 +248,25 @@ def typeAllele(df):
 def annotSubst(pos, codNumb, region, corVarAl, annot, codons):
   # subset codon table
   selAnot = annot.loc[(annot['All_Products'] == region) & (annot['Codon#'] == str(codNumb))].reset_index().drop(['index'], axis=1)
-  # find index of the nucleotide to change 
-  chInd = selAnot.index[selAnot['NT'] == pos].astype('int')
-  # change nucleotide
-  selAnot.loc[chInd, 'Ref'] = corVarAl
-  # write new codon
-  codList = selAnot['Ref'].tolist()
-  newCod = ''.join(codList)
-  newAA = codons.loc[codons['codon'] == newCod, 'aa'].iloc[0]
-  oldAA = selAnot.loc[chInd, 'Ref_AA'].iloc[0]
-  if newAA == oldAA:
+  if len(selAnot.index) < 3:
     mType = 'Synonymous'
+    chInd = selAnot.index[selAnot['NT'] == pos].astype('int')
+    oldAA = selAnot.loc[chInd, 'Ref_AA'].iloc[0]
+    newAA = oldAA
   else:
-    mType = 'Nonsynonymous'
+    # find index of the nucleotide to change 
+    chInd = selAnot.index[selAnot['NT'] == pos].astype('int')
+    # change nucleotide
+    selAnot.loc[chInd, 'Ref'] = corVarAl
+    # write new codon
+    codList = selAnot['Ref'].tolist()
+    newCod = ''.join(codList)
+    newAA = codons.loc[codons['codon'] == newCod, 'aa'].iloc[0]
+    oldAA = selAnot.loc[chInd, 'Ref_AA'].iloc[0]
+    if newAA == oldAA:
+      mType = 'Synonymous'
+    else:
+      mType = 'Nonsynonymous'
   aaChange = oldAA + codNumb + newAA
   return [mType, aaChange]
 
@@ -393,31 +399,32 @@ def writeResults(resDf, splitVar, output):
 
 # runn all functions
 def runAll():
+  current_directory = os.getcwd()
   try:
     refDf=pd.read_table(ref, sep = '\t')
     resDf=pd.read_table(df, sep = '\t')
   except:
-    print("Failed to read files")
+    print(f"Failed to read files {current_directory}")
     sys.exit(1)
   try:
     resDf = getCorAndRelPos(refDf = refDf, resDf = resDf)
   except:
-    print("Failed to find corrected and relative positions")
+    print(f"Failed to find corrected and relative positions {current_directory}")
     sys.exit(1)
   try:
     resDf = isConsensus(df = resDf, freq = cons)
   except:
-    print("Failed to find if variant is consensus")
+    print(f"Failed to find if variant is consensus, {current_directory}")
     sys.exit(1)
   try:
     resDf = adjFreq(df = resDf, relPos = rel)
   except:
-    print("Failed to adjust frequencies")
+    print(f"Failed to adjust frequencies {current_directory}")
     sys.exit(1)
   try:
     resDf = typeAllele(df = resDf)
   except:
-    print("Failed to make corrected alleles and nucleotide change")
+    print(f"Failed to make corrected alleles and nucleotide change {current_directory}")
     sys.exit(1)
   ## annotations 
   # do we need these files as user input options?
@@ -425,17 +432,17 @@ def runAll():
     annot = pd.read_csv(f'{annot_dir}/py_annotations.csv')
     codons = pd.read_csv(f'{annot_dir}/programs/data/codons_table.csv', names = ['full_name', 'aa', 'codon', 'aa2', 'full_name2'])
   except:
-    print("Failed to read annotation and/or codon tables")
+    print(f"Failed to read annotation and/or codon tables {current_directory}")
     sys.exit(1)
   try:
     resDf = annotate(df=resDf, annot = annot, codons = codons)
   except:
-    print("Failed annotating and translating mutations")
+    print(f"Failed annotating and translating mutations {current_directory}")
     sys.exit(1)
   try:
     resDf = ShPi(df = resDf)
   except:
-    print("Failed to add Pi*Ln(Pi) for shannon index")
+    print(f"Failed to add Pi*Ln(Pi) for shannon index {current_directory}")
     sys.exit(1)
     
   resDf = filterResRelPos(resDf = resDf, filt = filt)
@@ -447,9 +454,5 @@ if __name__ == "__main__":
   writeResults(resDf = resDf, splitVar = splitVar, output = output)
 
 
-    
-    
-  
-        
     
   
