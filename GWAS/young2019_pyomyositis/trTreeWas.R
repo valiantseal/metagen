@@ -25,7 +25,8 @@ suffixes <- unique(suffixes)
 
 if(all(suffixes %in% c(".a", ".c", ".g", ".t"))){
   ## SNPs:
-  snps <- get.binary.snps(mat)
+  #snps <- get.binary.snps(mat)
+  snps = mat
 }
 
 #hist(phen)
@@ -35,9 +36,9 @@ dir.create("treeWAS", showWarnings = F)
 out <- treeWAS(snps = snps,
                phen = phen,
                tree = tree,
-               seed = 1, filename.plot = "treeWAS/tr_output.pdf")
+               seed = 1, filename.plot = "treeWAS/tr_output_allCol.pdf")
 
 
-saveRDS(out, "treeWAS/tr_output.rds")
+saveRDS(out, "treeWAS/tr_output_allCol.rds")
 
 print(out, sort.by.p=FALSE)

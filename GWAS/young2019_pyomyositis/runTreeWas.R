@@ -2,7 +2,7 @@ library(treeWAS)
 
 
 runTreeWas = function(fastaPath, treePath, runName) {
-  dna <- read.dna(file = fastaPath)
+  dna <- read.dna(file = fastaPath, format = "fasta")
   tree <- read.tree(file = treePath)
   phen_df = read.csv("metadata.csv")
   
@@ -28,6 +28,6 @@ runTreeWas = function(fastaPath, treePath, runName) {
   
 }
 
-runTreeWas(fastaPath = "/home/ubuntu/extraVol/GWAS/young2019_pyomyositis/pangenome_alignment.fasta", 
-           treePath = "/home/ubuntu/extraVol/GWAS/young2019_pyomyositis/pangenome_clonMl.labelled_tree.newick", 
+runTreeWas(fastaPath = "pangenome_pirate/bactopia-runs/pangenome-20230825-133952/clonalMl/pangenome_alignment.fasta", 
+           treePath = "pangenome_pirate/bactopia-runs/pangenome-20230825-133952/clonalMl/pangenome_clonMl.labelled_tree.newick", 
            runName = "pirate_pangenome")
