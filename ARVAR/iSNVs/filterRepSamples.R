@@ -61,6 +61,8 @@ write.csv(ampFilterLibs, "snvs_comb_res/ampseq_comb_derep.csv", row.names = F)
 q3 = ampFilterLibs[ampFilterLibs$ALLELE.FREQUENCY >= 0.02 &  ampFilterLibs$ALLELE.FREQUENCY <= 0.98,]
 
 ## metaseq
+contamList = read.table("metaseqContam.list")
+contamList = contamList$V1
 meta_new = read.csv("snvs_comb_res/metaseq_found.csv")
 
 meta_old = read.csv("snvs_comb_res/metaseq_old.csv")
@@ -73,6 +75,22 @@ colnames(meta_new)
 metaCompComb = rbind(meta_new, meta_old)
 
 libsDf = unique(metaCompComb[, c("OrigName", "ExactSample", "Sample", "Batch" )])
+# remove contaminated samples
+remCont = function(contamList, libsDf) {
+  exclSamples = character()
+  contamList = gsub("_", ".", contamList)
+  samplesList = libsDf$OrigName
+  for (i in contamList) {
+    curSamples = samplesList[grepl(i, samplesList)]
+    exclSamples = c(exclSamples, curSamples)
+  }
+  return(exclSamples)
+}
+
+excludeSamples = remCont(contamList, libsDf)
+
+libsDf = libsDf[!libsDf$OrigName%in%excludeSamples,]
+
 sumSampFreq = data.frame(table(libsDf$Sample))
 repSamples = as.character(sumSampFreq$Var1[sumSampFreq$Freq > 1])
 singSamples = as.character(sumSampFreq$Var1[sumSampFreq$Freq < 2])
@@ -88,6 +106,6 @@ combSingLib = rbind(derepLib, singLib)
 metaFilterLibs = metaCompComb[metaCompComb$OrigName%in%combSingLib$OrigName,]
 q1 = unique(metaFilterLibs[, c("OrigName", "ExactSample", "Sample", "Batch" )])
 q2 = data.frame(table(q1$Sample))
-write.csv(metaFilterLibs, "snvs_comb_res/metaseq_comb_derep.csv", row.names = F)
+write.csv(metaFilterLibs, "snvs_comb_res/metaseq_comb_derep_decont.csv", row.names = F)
 
 q3 = metaFilterLibs[metaFilterLibs$ALLELE.FREQUENCY >= 0.02 &  metaFilterLibs$ALLELE.FREQUENCY <= 0.98,]
