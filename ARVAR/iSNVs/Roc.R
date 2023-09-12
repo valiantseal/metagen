@@ -15,7 +15,7 @@ test_data <- df[-train_idx, ]
 
 
 
-multivarModel =  glm(ConsTest ~ ALLELE.FREQUENCY + STRAND.BIAS + DEPTH + QUAL + Var_Al_RelPos + Ref_Al_RelPos, data = df, family = "binomial")
+multivarModel =  glm(ConsTest ~ ALLELE.FREQUENCY + STRAND.BIAS + DEPTH + QUAL + Var_Al_RelPos + Ref_Al_RelPos, data = train_data , family = "binomial")
 summary(multivarModel)
 
 probs <- predict(multivarModel, newdata = test_data, type = "response")

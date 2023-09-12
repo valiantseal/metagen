@@ -38,3 +38,12 @@ length(unique(ampOverlap$Sample))
 
 write.csv(metaOverlap, "snvs_comb_res/metaseq_overlap_comb_derep_decont_covFilt_97.csv", row.names = F)
 write.csv(ampOverlap, "snvs_comb_res/ampseq_overlap_comb_derep_covFilt_97.csv", row.names = F)
+
+# get overlapping set for all coverage
+overlapSamplesAll = unique(metaseqCov$Sample[metaseqCov$Sample%in%ampseqCov$Sample])
+
+metaOverlapAll = metaseqCov[metaseqCov$Sample%in%overlapSamplesAll,]
+ampOverlapAll = ampseqCov[ampseqCov$Sample%in%overlapSamplesAll,]
+
+write.csv(metaOverlapAll, "snvs_comb_res/metaseq_overlap_comb_derep_decont_all.csv", row.names = F)
+write.csv(ampOverlapAll, "snvs_comb_res/ampseq_overlap_comb_derep_all.csv", row.names = F)
