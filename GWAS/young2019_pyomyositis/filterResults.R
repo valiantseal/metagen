@@ -18,3 +18,6 @@ lmmSnpsSign = adjPFilter(df = lmmSnps)
 assocSnpsSign = adjPFilter(df = assocSnps)
 
 overlSign = lmmSign[lmmSign$variant%in%assocSign$variant,]
+
+lmmSignUn = lmmSign$variant
+write.table(lmmSignUn, "annotate/pyseer_signUnitig.lmm", row.names = F, col.names = F, quote = F)
