@@ -6,7 +6,7 @@ import pandas as pd
 
 
 minFreq = 0.02
-maxFreq = 1
+maxFreq = 0.98
 
 def getConsensus(metaSeq, ampSeq, minFreq, maxFreq):
   metaseq = pd.read_csv(metaSeq)
@@ -37,12 +37,13 @@ print(value_counts)
 colOpt1 = ['ALLELE.FREQUENCY', 'STRAND.BIAS', 'DEPTH', 'QUAL', 'Var_Al_RelPos', 'Ref_Al_RelPos']
 colOpt2 = ['ALLELE.FREQUENCY', 'STRAND.BIAS', 'DEPTH', 'QUAL', 'Var_Al_RelPos']
 colOpt3 = ['Var_Al_RelPos', 'Ref_Al_RelPos']
+selVars = ['ALLELE.FREQUENCY', "QUAL", "Var_Al_RelPos", "Mean_depth"]
 
 selected_columns = ['Var_Al_RelPos', 'Ref_Al_RelPos']
 
 df_cleaned = dfFilt.dropna(subset=selected_columns).reset_index().drop(["index"], axis = 1)
 
-X = df_cleaned[colOpt2]
+X = df_cleaned[selVars]
 y = df_cleaned['ConsTest']
 
 varNa = X[X.isna().any(axis=1)]

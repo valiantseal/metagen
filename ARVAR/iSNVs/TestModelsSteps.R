@@ -38,8 +38,10 @@ print(vif(vif_model3))
 vif_model4 <- glm(ConsTest ~ ALLELE.FREQUENCY+STRAND.BIAS+DEPTH+QUAL+Var_Al_RelPos +Coverage  , data = dfFilt, family = "binomial")
 print(vif(vif_model4))
 
+vif_model4 <- glm(ConsTest ~ ALLELE.FREQUENCY+STRAND.BIAS+QUAL+Var_Al_RelPos +Coverage + Mean_depth  , data = dfFilt, family = "binomial")
+print(vif(vif_model4))
 
-aucModel = glm(ConsTest ~ ALLELE.FREQUENCY + STRAND.BIAS  + QUAL + Var_Al_RelPos + I(Var_Al_RelPos^2) + Coverage + Mean_depth , data = train_data , family = "binomial")
+aucModel = glm(ConsTest ~ ALLELE.FREQUENCY + STRAND.BIAS  + QUAL + Var_Al_RelPos + I(Mean_depth^2)   , data = train_data , family = "binomial")
 probs <- predict(aucModel, newdata = test_data, type = "response")
 roc_obj <- roc(test_data$ConsTest ~ probs, plot = TRUE, print.auc = TRUE)
 
@@ -93,7 +95,8 @@ vif_model4 <- glm(ConsTest ~ ALLELE.FREQUENCY + DEPTH  + Var_Al_RelPos + Mean_de
 print(vif(vif_model4))
 
 
-aucModel = glm(ConsTest ~ ALLELE.FREQUENCY +  Var_Al_RelPos + I(Var_Al_RelPos^2) , data = train_data , family = "binomial")
+aucModel = glm(ConsTest ~ ALLELE.FREQUENCY + DEPTH + Var_Al_RelPos  +
+                 Mean_depth  , data = train_data , family = "binomial")
 probs <- predict(aucModel, newdata = test_data, type = "response") 
 roc_obj <- roc(test_data$ConsTest ~ probs, plot = TRUE, print.auc = TRUE)
 
