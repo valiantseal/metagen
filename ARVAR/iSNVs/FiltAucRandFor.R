@@ -22,13 +22,13 @@ runRoc = function(df, protocol, freqCol, splitPerc) {
   
   if (protocol == "metaseq") {
     
-    glm_formula <- as.formula(paste("ConsTest ~", freqCol, "+ STRAND.BIAS + QUAL + Var_Al_RelPos + I(Mean_depth^2)" ))
-    aucModel <- glm(formula = glm_formula, data = train_data, family = "binomial")
+    glm_formula <- as.formula(paste("ConsTest ~", freqCol, "+ STRAND.BIAS + QUAL + Var_Al_RelPos + Mean_depth" ))
+    aucModel <- randomForest(formula = glm_formula, data = train_data, ntree = 3000)
     
   } else if (protocol == "ampseq") {
     
-    glm_formula <- as.formula(paste("ConsTest ~", freqCol, " + QUAL + Var_Al_RelPos  + I(Mean_depth^2)"))
-    aucModel <- glm(formula = glm_formula, data = train_data, family = "binomial")
+    glm_formula <- as.formula(paste("ConsTest ~", freqCol, " + QUAL + Var_Al_RelPos  + Mean_depth"))
+    aucModel <- randomForest(formula = glm_formula, data = train_data, ntree = 3000)
   }
   
   probs <- predict(aucModel, newdata = test_data, type = "response")
@@ -50,7 +50,7 @@ runRoc = function(df, protocol, freqCol, splitPerc) {
 
 df = read.csv("snvs_comb_res/metaseq_ampseq_overlap_comb_derep_decont_covFilt_97.csv")
 #df1 = df[df$ALLELE.FREQUENCY <= 0.98,]
-dfFilt = filterFreq(df=df, freqCol="ALLELE.FREQUENCY", maxFreq=1, minFreq=0.02)
+dfFilt = filterFreq(df=df, freqCol="ALLELE.FREQUENCY", maxFreq=0.98, minFreq=0.02)
 metaseqFreqConsPred = runRoc(df=dfFilt , protocol = "metaseq", freqCol = "ALLELE.FREQUENCY", splitPerc = 0.7)
 
 dfFilt = filterFreq(df=df, freqCol="Freq_adj", maxFreq=0.98, minFreq=0.02)
@@ -62,6 +62,5 @@ df = read.csv("snvs_comb_res/ampseq_metaseq_overlap_comb_derep_decont_covFilt_97
 dfFilt = filterFreq(df=df, freqCol="Freq_adj", maxFreq=0.98, minFreq=0.02)
 ampseqFreqConsPred = runRoc(df=dfFilt , protocol = "ampseq", freqCol = "Freq_adj", splitPerc = 0.7)
 
-dfFilt = filterFreq(df=df, freqCol="ALLELE.FREQUENCY", maxFreq=1, minFreq=0.02)
+dfFilt = filterFreq(df=df, freqCol="ALLELE.FREQUENCY", maxFreq=0.98, minFreq=0.02)
 ampseqFreqConsPred = runRoc(df=dfFilt , protocol = "ampseq", freqCol = "ALLELE.FREQUENCY", splitPerc = 0.7)
-

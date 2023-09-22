@@ -6,7 +6,7 @@ import pandas as pd
 
 
 minFreq = 0.02
-maxFreq = 0.98
+maxFreq = 1
 
 def getConsensus(metaSeq, ampSeq, minFreq, maxFreq):
   metaseq = pd.read_csv(metaSeq)
