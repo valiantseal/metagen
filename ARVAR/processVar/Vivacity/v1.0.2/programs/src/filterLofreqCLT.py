@@ -368,7 +368,7 @@ def annotate(df, annot, codons):
 # add  Pi*Ln(Pi) for shannon index 
 def ShPi(df):
   pi = []
-  for i in range(len(df)):
+  for i in range(len(df.index)):
     if df.loc[i, 'Freq_adj'] == 0:
       newPi = 0
     else:
