@@ -48,9 +48,9 @@ runRoc = function(df, protocol, freqCol, splitPerc) {
 
 
 
-df = read.csv("snvs_comb_res/metaseq_ampseq_overlap_comb_derep_decont_covFilt_97.csv")
+df = read.csv("snvs_comb_res/metaseq_ampseq_overlap_comb_derep_decont_covFilt_97_v2.csv")
 #df1 = df[df$ALLELE.FREQUENCY <= 0.98,]
-dfFilt = filterFreq(df=df, freqCol="ALLELE.FREQUENCY", maxFreq=1, minFreq=0.02)
+dfFilt = filterFreq(df=df, freqCol="ALLELE.FREQUENCY", maxFreq=0.98, minFreq=0.02)
 metaseqFreqConsPred = runRoc(df=dfFilt , protocol = "metaseq", freqCol = "ALLELE.FREQUENCY", splitPerc = 0.7)
 
 dfFilt = filterFreq(df=df, freqCol="Freq_adj", maxFreq=0.98, minFreq=0.02)
@@ -58,10 +58,10 @@ metaseqFreqConsPred = runRoc(df=dfFilt , protocol = "metaseq", freqCol = "Freq_a
 
 
 ## ampseq
-df = read.csv("snvs_comb_res/ampseq_metaseq_overlap_comb_derep_decont_covFilt_97.csv")
+df = read.csv("snvs_comb_res/ampseq_metaseq_overlap_comb_derep_decont_covFilt_97_v2.csv")
 dfFilt = filterFreq(df=df, freqCol="Freq_adj", maxFreq=0.98, minFreq=0.02)
 ampseqFreqConsPred = runRoc(df=dfFilt , protocol = "ampseq", freqCol = "Freq_adj", splitPerc = 0.7)
 
-dfFilt = filterFreq(df=df, freqCol="ALLELE.FREQUENCY", maxFreq=1, minFreq=0.02)
+dfFilt = filterFreq(df=df, freqCol="ALLELE.FREQUENCY", maxFreq=0.98, minFreq=0.02)
 ampseqFreqConsPred = runRoc(df=dfFilt , protocol = "ampseq", freqCol = "ALLELE.FREQUENCY", splitPerc = 0.7)
 

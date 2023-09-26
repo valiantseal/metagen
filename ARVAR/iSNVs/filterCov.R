@@ -1,6 +1,28 @@
 metaseq = read.csv("snvs_comb_res/metaseq_comb_derep_decont.csv")
 ampseq = read.csv("snvs_comb_res/ampseq_comb_derep.csv")
 
+
+editNames = function(df) {
+  combNames = character()
+  for (i in 1:nrow(df)) {
+    curName = df$OrigName[i]
+    newName = gsub("_", "-", curName)
+    newName = sub(".*EHC", "EHC", newName)
+    nameList = strsplit(newName, "-")[[1]]
+    nameList= nameList[1:3]
+    newName  = paste(nameList , collapse = "-")
+    combNames = c(combNames, newName)
+  }
+  df$Sample1 = combNames
+  return(df)
+}
+
+metaseq = editNames(df = metaseq)
+ampseq = editNames(df = ampseq)
+
+metaseq$Samp_Pos_Ref_Alt = paste(metaseq$Sample1, metaseq$POSITION, metaseq$REF.NT, metaseq$VAR.NT, sep = "__" )
+ampseq$Samp_Pos_Ref_Alt = paste(ampseq$Sample1, ampseq$POSITION, ampseq$REF.NT, ampseq$VAR.NT, sep = "__" )
+
 cov_amp_new = read.csv("ampseqCovDepth.csv")
 cov_amp_old = read.csv("ampseqOldSampCovDepth.csv")
 comb_amp_cov = rbind(cov_amp_new, cov_amp_old)
@@ -18,32 +40,32 @@ any(is.na(metaseqCov$Coverage))
 ampseqCov = plyr::join(ampseq, comb_amp_cov, by="OrigName", type="left", match = "all")
 any(is.na(ampseqCov$Coverage))
 
-metaseqCovFilt = metaseqCov[!metaseqCov$Coverage < 97,]
-ampseqCovFit = ampseqCov[!ampseqCov$Coverage < 97,]
+metaseqCovFilt = metaseqCov[!metaseqCov$Coverage < 0,]
+ampseqCovFit = ampseqCov[!ampseqCov$Coverage < 0,]
 
-length(unique(metaseqCovFilt$Sample))
-length(unique(ampseqCovFit$Sample))
-length(unique(metaseqCovFilt$Sample[metaseqCovFilt$Sample%in%ampseqCovFit$Sample]))
-overlapSamples = unique(metaseqCovFilt$Sample[metaseqCovFilt$Sample%in%ampseqCovFit$Sample])
+length(unique(metaseqCovFilt$Sample1))
+length(unique(ampseqCovFit$Sample1))
+length(unique(metaseqCovFilt$Sample1[metaseqCovFilt$Sample1%in%ampseqCovFit$Sample1]))
+overlapSamples = unique(metaseqCovFilt$Sample1[metaseqCovFilt$Sample1%in%ampseqCovFit$Sample1])
 
-write.csv(metaseqCovFilt, "snvs_comb_res/metaseq_comb_derep_decont_covFilt_97.csv", row.names = F)
-write.csv(ampseqCovFit, "snvs_comb_res/ampseq_comb_derep_covFilt_97.csv", row.names = F)
+write.csv(metaseqCovFilt, "snvs_comb_res/metaseq_comb_derep_decont_covFilt_0_v2.csv", row.names = F)
+write.csv(ampseqCovFit, "snvs_comb_res/ampseq_comb_derep_covFilt_0_v2.csv", row.names = F)
 
 # select only sample that overlap
 
-metaOverlap = metaseqCovFilt[metaseqCovFilt$Sample%in%overlapSamples,]
-ampOverlap = ampseqCovFit[ampseqCovFit$Sample%in%overlapSamples,]
-length(unique(metaOverlap$Sample))
-length(unique(ampOverlap$Sample))
+metaOverlap = metaseqCovFilt[metaseqCovFilt$Sample1%in%overlapSamples,]
+ampOverlap = ampseqCovFit[ampseqCovFit$Sample1%in%overlapSamples,]
+length(unique(metaOverlap$Sample1))
+length(unique(ampOverlap$Sample1))
 
-write.csv(metaOverlap, "snvs_comb_res/metaseq_overlap_comb_derep_decont_covFilt_97.csv", row.names = F)
-write.csv(ampOverlap, "snvs_comb_res/ampseq_overlap_comb_derep_covFilt_97.csv", row.names = F)
+write.csv(metaOverlap, "snvs_comb_res/metaseq_overlap_comb_derep_decont_covFilt_0_v2.csv", row.names = F)
+write.csv(ampOverlap, "snvs_comb_res/ampseq_overlap_comb_derep_covFilt_0_v2.csv", row.names = F)
 
 # get overlapping set for all coverage
-overlapSamplesAll = unique(metaseqCov$Sample[metaseqCov$Sample%in%ampseqCov$Sample])
+overlapSamplesAll = unique(metaseqCov$Sample1[metaseqCov$Sample1%in%ampseqCov$Sample1])
 
-metaOverlapAll = metaseqCov[metaseqCov$Sample%in%overlapSamplesAll,]
-ampOverlapAll = ampseqCov[ampseqCov$Sample%in%overlapSamplesAll,]
+metaOverlapAll = metaseqCov[metaseqCov$Sample1%in%overlapSamplesAll,]
+ampOverlapAll = ampseqCov[ampseqCov$Sample1%in%overlapSamplesAll,]
 
-write.csv(metaOverlapAll, "snvs_comb_res/metaseq_overlap_comb_derep_decont_all.csv", row.names = F)
-write.csv(ampOverlapAll, "snvs_comb_res/ampseq_overlap_comb_derep_all.csv", row.names = F)
+write.csv(metaOverlapAll, "snvs_comb_res/metaseq_overlap_comb_derep_decont_all_v2.csv", row.names = F)
+write.csv(ampOverlapAll, "snvs_comb_res/ampseq_overlap_comb_derep_all_v2.csv", row.names = F)

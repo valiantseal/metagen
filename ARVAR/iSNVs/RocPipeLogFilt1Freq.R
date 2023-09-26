@@ -93,7 +93,7 @@ runRoc = function(df, protocol, freqCol, splitPerc) {
   return(test_data)
 }
 
-ampseqFreqCons = getConsensus(metaSeq="snvs_comb_res/metaseq_overlap_comb_derep_decont_covFilt_0.csv", ampSeq="snvs_comb_res/ampseq_overlap_comb_derep_covFilt_0.csv", 
+ampseqFreqCons = getConsensus(metaSeq="snvs_comb_res/metaseq_overlap_comb_derep_decont_covFilt_0_v2.csv", ampSeq="snvs_comb_res/ampseq_overlap_comb_derep_covFilt_0_v2.csv", 
                                protocol="ampseq", maxFreq=0.98, minFreq=0.02, freqCol="Freq_adj")
 
 #ampseqFreqCons = ampseqFreqCons[order(ampseqFreqCons$Samp_Pos_Ref_Alt),]

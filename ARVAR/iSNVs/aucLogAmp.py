@@ -27,7 +27,7 @@ def getConsensus(metaSeq, ampSeq, minFreq, maxFreq):
 
 # increasing lower frequency increase accuracy 
 # colOption1, minFreq at least 0.02 and ampSeqIvar have the bset performance   
-dfFilt = getConsensus(metaSeq = "snvs_comb_res/metaseq_overlap_comb_derep_decont_covFilt_97.csv", ampSeq = "snvs_comb_res/ampseq_overlap_comb_derep_covFilt_97.csv", minFreq = minFreq, maxFreq = maxFreq)
+dfFilt = getConsensus(metaSeq = "snvs_comb_res/metaseq_overlap_comb_derep_decont_covFilt_97_v2.csv", ampSeq = "snvs_comb_res/ampseq_overlap_comb_derep_covFilt_97_v2.csv", minFreq = minFreq, maxFreq = maxFreq)
 dfRef = dfFilt[dfFilt["ConsTest"] ==1].reset_index().drop(["index"], axis =1)
 
 value_counts = dfFilt['ConsTest'].value_counts()
@@ -64,4 +64,4 @@ auc_score = roc_auc_score(y_test, y_pred_proba)
 
 print(f"AUC Score: {auc_score}")
 
-dfFilt.to_csv("snvs_comb_res/ampseq_metaseq_overlap_comb_derep_decont_covFilt_97.csv", index = False)
+dfFilt.to_csv("snvs_comb_res/ampseq_metaseq_overlap_comb_derep_decont_covFilt_97_v2.csv", index = False)

@@ -88,22 +88,22 @@ runRoc = function(df, protocol, freqCol, splitPerc) {
 }
 
 # ampseq
-ampseqFreqCons = getConsensus(metaSeq="snvs_comb_res/metaseq_overlap_comb_derep_decont_covFilt_0.csv", ampSeq="snvs_comb_res/ampseq_overlap_comb_derep_covFilt_0.csv", 
-                              protocol="ampseq", maxFreq=1, minFreq=0.02, freqCol="Freq_adj")
+ampseqFreqCons = getConsensus(metaSeq="snvs_comb_res/metaseq_overlap_comb_derep_decont_covFilt_0_v2.csv", ampSeq="snvs_comb_res/ampseq_overlap_comb_derep_covFilt_0_v2.csv", 
+                              protocol="ampseq", maxFreq=0.98, minFreq=0.02, freqCol="Freq_adj")
 ampseqFreqConsPred = runRoc(df=ampseqFreqCons, protocol = "ampseq", freqCol = "Freq_adj", splitPerc = 0.7)
 
 
-ampseqFreqCons = getConsensus(metaSeq="snvs_comb_res/metaseq_overlap_comb_derep_decont_covFilt_0.csv", ampSeq="snvs_comb_res/ampseq_overlap_comb_derep_covFilt_0.csv", 
-                              protocol="ampseq", maxFreq=1, minFreq=0.02, freqCol="ALLELE.FREQUENCY")
+ampseqFreqCons = getConsensus(metaSeq="snvs_comb_res/metaseq_overlap_comb_derep_decont_covFilt_0_v2.csv", ampSeq="snvs_comb_res/ampseq_overlap_comb_derep_covFilt_0_v2.csv", 
+                              protocol="ampseq", maxFreq=0.98, minFreq=0.02, freqCol="ALLELE.FREQUENCY")
 ampseqFreqConsPred = runRoc(df=ampseqFreqCons, protocol = "ampseq", freqCol = "ALLELE.FREQUENCY", splitPerc = 0.7)
 
 
 # metaseq
-metaseqFreqCons = getConsensus(metaSeq="snvs_comb_res/metaseq_overlap_comb_derep_decont_covFilt_0.csv", ampSeq="snvs_comb_res/ampseq_overlap_comb_derep_covFilt_0.csv", 
-                               protocol="metaseq", maxFreq=1, minFreq=0.02, freqCol="ALLELE.FREQUENCY")
+metaseqFreqCons = getConsensus(metaSeq="snvs_comb_res/metaseq_overlap_comb_derep_decont_covFilt_0_v2.csv", ampSeq="snvs_comb_res/ampseq_overlap_comb_derep_covFilt_0_v2.csv", 
+                               protocol="metaseq", maxFreq=0.98, minFreq=0.02, freqCol="ALLELE.FREQUENCY")
 metaseqFreqConsPred = runRoc(df=metaseqFreqCons , protocol = "metaseq", freqCol = "ALLELE.FREQUENCY", splitPerc = 0.7)
 
 
-metaseqFreqCons = getConsensus(metaSeq="snvs_comb_res/metaseq_overlap_comb_derep_decont_covFilt_0.csv", ampSeq="snvs_comb_res/ampseq_overlap_comb_derep_covFilt_0.csv", 
+metaseqFreqCons = getConsensus(metaSeq="snvs_comb_res/metaseq_overlap_comb_derep_decont_covFilt_0_v2.csv", ampSeq="snvs_comb_res/ampseq_overlap_comb_derep_covFilt_0_v2.csv", 
                                protocol="metaseq", maxFreq=0.98, minFreq=0.02, freqCol="Freq_adj")
 metaseqFreqConsPred = runRoc(df=metaseqFreqCons , protocol = "metaseq", freqCol = "Freq_adj", splitPerc = 0.7)
