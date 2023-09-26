@@ -94,12 +94,16 @@ cols_to_scale <- c("ALLELE.FREQUENCY", "QUAL", "STRAND.BIAS", "Var_Al_RelPos", "
 df = read.csv("snvs_comb_res/metaseq_ampseq_overlap_comb_derep_decont_covFilt_97_v2.csv")
 #df1 = df[df$ALLELE.FREQUENCY <= 0.98,]
 dfFilt = filterFreq(df=df, freqCol="ALLELE.FREQUENCY", maxFreq=0.98, minFreq=0.02)
+dfFilt$Origina_Mean_Depth = dfFilt$Mean_depth
+dfFilt$Original_freq = dfFilt$ALLELE.FREQUENCY
 # scale
 dfFilt[, cols_to_scale] <- scale(dfFilt[, cols_to_scale])
 metaseqFreqConsPred = runRoc(df=dfFilt , protocol = "metaseq", freqCol = "ALLELE.FREQUENCY", splitPerc = 0.7)
 
 all_snvs = read.csv("snvs_comb_res/metaseq_comb_derep_decont_covFilt_97_v2.csv")
 all_snvs_filt = filterFreq(df=all_snvs, freqCol="ALLELE.FREQUENCY", maxFreq=0.98, minFreq=0.02)
+all_snvs_filt$Origina_Mean_Depth = all_snvs_filt$Mean_depth
+all_snvs_filt$Original_freq = all_snvs_filt$ALLELE.FREQUENCY
 # Scale the selected columns and assign them back to the data frame
 all_snvs_filt[, cols_to_scale] <- scale(all_snvs_filt[, cols_to_scale])
 
@@ -113,4 +117,4 @@ predictedDat = makeRealPredictions(trainData=dfFilt, testData=all_snvs_filt, fre
 combDat = combineData(realDat=dfFilt, predictDat=predictedDat)
 table(predictedDat$combDat)
 
-write.csv(combDat, "snvs_comb_res/metaseq_LogPredict_scale_covFilt_97_v2.csv")
+write.csv(combDat, "snvs_comb_res/metaseq_LogPredict_scale_covFilt_97_v2.csv", row.names = F)
