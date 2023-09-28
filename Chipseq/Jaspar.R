@@ -39,7 +39,7 @@ pwms <- toPWM(PFMatrixList)
 # originally used min score 7
 res <- findMotifHits(query = pwms,
                      subject = seqs,
-                     min.score = "80%",
+                     min.score = 7,
                      method = "matchPWM",
                      BPPARAM = BiocParallel::SerialParam())
 
@@ -48,7 +48,7 @@ res <- findMotifHits(query = pwms,
 res_df = data.frame(res)
 length(unique(res_df$pwmname))
 
-write.csv(res_df, paste0("motifs/motifs_chr4_", curStart, "_", curEnd, "_jaspar2022_80%_vertebrates.csv"), row.names = F)
+#write.csv(res_df, paste0("motifs/motifs_chr4_", curStart, "_", curEnd, "_jaspar2022_80%_vertebrates.csv"), row.names = F)
 
 
 ## custom motifs
@@ -57,7 +57,7 @@ pwms <- toPWM(pfms)
 
 res <- findMotifHits(query = pwms,
                      subject = seqs,
-                     min.score = "80%",
+                     min.score = 7,
                      method = "matchPWM",
                      BPPARAM = BiocParallel::SerialParam())
 
