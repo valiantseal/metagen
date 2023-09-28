@@ -88,6 +88,7 @@ getKeggSignGenes = function(df, db, cluctCol, pCol, genesDf) {
     dbSub = db[(db$Kegg_path %in% keggList),]
     genesList = unique(dbSub$Gene)
     genesDfSub = genesDf[(genesDf$Genes %in% genesList) & (genesDf$Cell_Type == cluster),]
+    
     line1 = paste("Cluster", cluster, 'need ', length(genesList), sep = "  ")
     line2 = paste("Cluster", cluster, 'found in current results', length(unique(genesDfSub$Genes)), sep = "  ")
     line3 = paste("Cluster", cluster, 'found in current all Genes', length(unique(genesList[genesList%in% allGenes])), sep = "  ")
@@ -112,3 +113,29 @@ genesOfInt = getKeggSignGenes(df = keggMark, db = keggdb, cluctCol = "Cell_Type"
 # adjust pvalues
 markAdj = adjPval(df = genesOfInt, cluctCol = "Cell_Type", pCol = "p_val")
 write.csv(markAdj, paste0(targDir, 'DiffExprMonoc3ClustAdjP_SignKeggGenes_', curDate, ".csv"), row.names = F)
+
+
+# add kegg pathways to markers
+list.files(targDir, pattern = '.csv')
+curDf = read.csv(paste0(targDir, "DiffExprMonoc3ClustAdjP_SignKeggGenes_2023-06-12.csv"))
+colnames(keggdb)[1] = "Genes"
+joinDat = unique(plyr::join(curDf, keggdb, by = "Genes", type = "left", match = "all"))
+unique(is.na(combDat$Kegg_path))
+
+filterPath = function(df ,refDf) {
+  combDat = data.frame(matrix(nrow = 0 , ncol = 0))
+  clusters = unique(df$Cell_Type)
+  for (cluster in clusters) {
+    refSub = refDf[(refDf$Cell_Type == cluster) & (refDf$p_val < 0.05),]
+    refPath = unique(refSub$Genes)
+    dfSub = df[(df$Cell_Type == cluster),]
+    dfSub = dfSub[(dfSub$Kegg_path%in%refPath),]
+    combDat = rbind(combDat, dfSub)
+  }
+  combUniq = unique(combDat)
+  return(combUniq)
+}
+
+combUnique = filterPath(df = joinDat, refDf = keggMark)
+
+write.csv(combUnique, paste0(targDir, "DiffExprMonoc3ClustAdjP_SignKeggGenes_2023-06-20.csv"), row.names = F)
