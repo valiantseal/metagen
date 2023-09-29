@@ -4,6 +4,10 @@ library(glmmTMB)
 library(MASS)
 library(rstatix)
 library(dplyr)
+library(pscl)
+library(car)
+
+dir.create("statistic_res")
 
 df = read.csv('snvs_comb_res/metaseq_LogPredict_scale_covFilt_97_v2.csv')
 metadat = read.csv("Final_vaxbt_dataset_AP_metadata.csv")
@@ -164,7 +168,135 @@ runWilcox = function(curPred, combShannon) {
 }
 
 wilcVax = runWilcox(curPred ="vax_doses_received", combShannon= combShannon)
-
+colnames(wilcVax)[1] = "Variable"
 wilcVar = runWilcox(curPred ="WHO_variant", combShannon= combShannon)
 wilcVar = wilcVar[wilcVar$n1 > 4 & wilcVar$n2 > 4, ]
+colnames(wilcVar)[1] = "Variable"
+sel_columns = c("Variable", "group1", "group2" , "p", "Groups_difference")
 
+wilcVax=  wilcVax[, sel_columns]
+wilcVar= wilcVar[, sel_columns]
+
+# polymodel
+model1  <- lm(NormShan ~ days_since_last_vax+I(days_since_last_vax^2), data = combShannon)
+model1  <- lm(NormShan ~ Mean_depth+I(Mean_depth^2), data = combShannon)
+model1  <- lm(NormShan ~ days_post_symptom_onset+I(days_post_symptom_onset^2), data = combShannon)
+model1  <- lm(NormShan ~ vax_doses_received+I(vax_doses_received^2), data = combShannon)
+summary(model1)
+
+# multivariate model
+multModel = lm(NormShan ~ Mean_depth + Ct_value + vax_doses_received + days_since_last_vax + disease_severity, data = combShannon)
+#multModel = glm.nb(Shannon ~ Ct_depth_adj + vax_doses_received + days_since_last_vax + disease_severity, data = combShannon)
+#multModel = glmmTMB(Shannon ~  Ct_depth_adj + vax_doses_received + days_since_last_vax + disease_severity, data = combShannon, family = Gamma(link = "log"))
+summary(multModel)
+# Obtain the residuals from the model
+residuals <- residuals(multModel, type = "pearson")
+# Perform a KS test on the residuals
+ks.test(residuals, "pnorm", mean = 0, sd = 1)
+shapiro.test(residuals)
+
+multModel2 = lm(NormShan ~ Ct_depth_adj + vax_doses_received , data = combShannon)
+#multModel2 = glm.nb(Shannon ~ Ct_depth_adj + vax_doses_received , data = combShannon)
+#multModel2 = glmmTMB(Shannon ~  Ct_depth_adj + vax_doses_received + disease_severity, data = combShannon, family = Gamma(link = "log"))
+summary(multModel2)
+# Obtain the residuals from the model
+residuals <- residuals(multModel2, type = "pearson")
+# Perform a KS test on the residuals
+ks.test(residuals, "pnorm", mean = 0, sd = 1)
+shapiro.test(residuals)
+
+multColumns = c("Estimate", "Std.Error", 't.value', "Pval")
+fullMult = summary(multModel)
+fullMult = data.frame(fullMult$coefficients)
+colnames(fullMult) = multColumns
+
+partMult = summary(multModel2)
+partMult = data.frame(partMult$coefficients)
+colnames(partMult) = multColumns
+
+# save results
+
+write.csv(shanCor, "statistic_res/log_predict_shann_spear_cor.csv")
+write.csv(wilcVax, "statistic_res/log_predict_shann_vax_recieved_wilcox.csv")
+write.csv(wilcVar, "statistic_res/log_predict_shann_Variant_wilcox.csv")
+write.csv(fullMult, "statistic_res/log_predict_shann_full_multivar.csv")
+write.csv(partMult, "statistic_res/log_predict_shann_partial_multivar.csv")
+
+#stepAIC(multModel, direction = "both" , trace = T, steps = 10000)
+
+model3  <- lm(NormShan ~ vax_doses_received, data = combShannon)
+summary(model3)
+
+
+## run Additional models for Anne
+
+combShannon$Vaccinated = NA
+combShannon$Vaccinated[combShannon$vax_doses_received == 0]<-"No"
+combShannon$Vaccinated[combShannon$vax_doses_received > 0]<-"Yes"
+
+
+wilcVax_2 = runWilcox(curPred ="Vaccinated", combShannon= combShannon)
+colnames(wilcVax_2)[1] = "Variable"
+wilcVax_2 =  wilcVax_2[, sel_columns]
+
+combShannonSub = combShannon[combShannon$WHO_variant == "Delta" | combShannon$WHO_variant =="Omicron",]
+
+multModel3 = lm(NormShan ~ Ct_value + Mean_depth + Vaccinated + days_post_symptom_onset + WHO_variant , data = combShannonSub)
+summary(multModel3)
+# Obtain the residuals from the model
+residuals <- residuals(multModel3, type = "pearson")
+# Perform a KS test on the residuals
+ks.test(residuals, "pnorm", mean = 0, sd = 1)
+shapiro.test(residuals)
+
+
+
+multModel4 = lm(NormShan ~  Vaccinated + WHO_variant , data = combShannonSub)
+summary(multModel4)
+# Obtain the residuals from the model
+residuals <- residuals(multModel4, type = "pearson")
+# Perform a KS test on the residuals
+ks.test(residuals, "pnorm", mean = 0, sd = 1)
+shapiro.test(residuals)
+
+
+fullMult = summary(multModel3)
+fullMult = data.frame(fullMult$coefficients)
+colnames(fullMult) = multColumns
+
+partMult = summary(multModel4)
+partMult = data.frame(partMult$coefficients)
+colnames(partMult) = multColumns
+
+write.csv(wilcVax_2, "statistic_res/log_predict_shann_BinVax_wilcox.csv")
+write.csv(fullMult, "statistic_res/log_predict_shann_Anne_multivar.csv")
+write.csv(partMult, "statistic_res/log_predict_shann_VaxOmni.csv")
+
+
+system("aws s3 cp --recursive statistic_res/ s3://abombin/ARVAR/iSNVs/statistic_res_IDWeek/")
+
+cols_to_scale =c("Ct_value" , "Mean_depth" , "days_post_symptom_onset" )
+combShannonSub[, cols_to_scale] <- scale(combShannonSub[cols_to_scale])
+
+
+multModel5 = lm(NormShan ~ Ct_value + Mean_depth + Vaccinated + days_post_symptom_onset + WHO_variant , data = combShannonSub)
+summary(multModel5)
+# Obtain the residuals from the model
+residuals <- residuals(multModel4, type = "pearson")
+# Perform a KS test on the residuals
+ks.test(residuals, "pnorm", mean = 0, sd = 1)
+shapiro.test(residuals)
+
+
+
+
+
+
+
+multModel3 = lm(Shannon ~ WHO_variant + Vaccinated * WHO_variant , data = combShannonSub)
+summary(multModel3)
+# Obtain the residuals from the model
+residuals <- residuals(multModel3, type = "pearson")
+# Perform a KS test on the residuals
+ks.test(residuals, "pnorm", mean = 0, sd = 1)
+shapiro.test(residuals)
