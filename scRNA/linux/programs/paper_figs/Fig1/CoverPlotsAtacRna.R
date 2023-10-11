@@ -77,7 +77,7 @@ covPlotPerClust = function(seurObj, curCluster, genesDf, annotGenes, clusters, t
       idents = clusters,
       extend.upstream = 20000,
       extend.downstream = 20000
-    ) + theme(text = element_text(size = 32))
+    ) & theme(text = element_text(size = 22)) & scale_fill_grey()
     
   
     outFile<-paste0(targetDir,'/CovPlot_AtacRna_',curCluster, '_', i, '_', curDate, '.png')
@@ -89,10 +89,10 @@ covPlotPerClust = function(seurObj, curCluster, genesDf, annotGenes, clusters, t
 
 unique(atacFilt$Annotations)
 # excluded C-R cluster as it has few cells
-clusters<-c('CA1', 'CA2', 'CA3', 'DG', 'GABA', 'OPC', 'ODC', 'SUB', 'MG', 'C-R')
+clusters<-c('CA1', 'CA2', 'CA3', 'DG', 'GABA', 'OPC', 'ODC')
 
 for (curCluster in clusters) {
-  targDir = targetDir<-paste0('Atac_Rna_coverPlots/macs2_Integ/', cond, '/All_Clusters/', curCluster, "/")
+  targDir = targetDir<-paste0('Atac_Rna_coverPlots/macs2_Integ/', cond, '/Grey_Col/', curCluster, "/")
   dir.create(targDir, recursive = T, showWarnings = F)
   covPlotPerClust(seurObj=atacFilt, curCluster=curCluster, genesDf=allMarkers, annotGenes=annotGenes, clusters=clusters, targetDir=targetDir, curDate=curDate)
 }

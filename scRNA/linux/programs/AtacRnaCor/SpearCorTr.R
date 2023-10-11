@@ -55,6 +55,7 @@ atacFilt <- RegionStats(atacFilt, genome = BSgenome.Mmusculus.UCSC.mm10)
 table(atacFilt$Annotations)
 
 # if needed ex
+clusters<-c('CA1', 'CA2', 'CA3', 'DG', 'GABA', 'OPC', 'ODC', 'SUB', 'MG', 'C-R')
 
 atacFilt<- LinkPeaks(
   object = atacFilt ,
@@ -72,8 +73,7 @@ CoveragePlot(
     idents = clusters,
     extend.upstream = 100000,
     extend.downstream = 100000
-  ) + theme(text = element_text(size = 50))
-
+  ) & theme(text = element_text(size = 22)) 
 ###
 
 # find gene coordinates
