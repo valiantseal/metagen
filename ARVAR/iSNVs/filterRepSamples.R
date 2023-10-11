@@ -28,6 +28,8 @@ colnames(amp_new)
 ampCompComb = rbind(amp_new, amp_old)
 ampCompComb = editNames(df=ampCompComb)
 
+write.csv(ampCompComb, "snvs_comb_res/ampseq_all_v2.csv", row.names = F)
+
 #amp_old_filt = amp_old[amp_old$ALLELE.FREQUENCY >= 0.02,]
 #amp_new_filt = amp_new[amp_new$ALLELE.FREQUENCY >= 0.02,]
 
@@ -91,6 +93,8 @@ colnames(comb_meta_cov)[1] = "OrigName"
 colnames(meta_new)
 metaCompComb = rbind(meta_new, meta_old)
 metaCompComb = editNames(df=metaCompComb)
+
+write.csv(metaCompComb, "snvs_comb_res/metaseq_all_v2.csv", row.names = F)
 
 libsDf = unique(metaCompComb[, c("OrigName", "ExactSample", "Sample1", "Batch" )])
 # remove contaminated samples
