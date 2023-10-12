@@ -7,19 +7,48 @@ library(pscl)
 library(car)
 library(randomForest)
 
-dir.create("Venn", showWarnings = F)
-###
-getConsensus <- function(metaSeq, ampSeq, protocol, maxFreq, minFreq, freqCol, filtSteps) {
-  if (filtSteps == 1) {
-    metaseq <- read.csv(metaSeq)
-    ampseq <- read.csv(ampSeq)
-    
+ampseq = read.csv("IntraSnv_ampseq_overlap/ampseq_comb_stats.csv")
+metaseq = read.csv("IntraSnv_metaseq_overlap/metaseq_comb_stats.csv")
+
+ampseq = ampseq[ampseq$coverage >= 97,]
+metaseq = metaseq[metaseq$coverage >= 97,]
+
+ampseqFilt = ampseq[ampseq$Sample%in%metaseq$Sample,]
+metaseqFilt = metaseq[metaseq$Sample %in% ampseq$Sample,]
+
+length(unique(ampseqFilt$OrigName))
+length(unique(metaseqFilt$OrigName))
+
+adjustPositions = function(df, protocol) {
+  combDat = data.frame()
+  sampleNames = unique(df$OrigName) 
+  for (curName in sampleNames) {
+    dfSub = df[df$OrigName == curName,]
+    if (protocol=="ampseq") {
+      indPath = paste0("Overlap_Pos_mapping/Indecies/Ampseq/", curName, ".csv")
+    } else if (protocol=="metaseq") {
+      indPath = paste0("Overlap_Pos_mapping/Indecies/Metaseq/", curName, ".csv")
+    }
+    try({
+      indDf = read.csv(indPath)
+      indDf = indDf[, c("Original_Pos", "Alignment_Pos")]
+      colnames(indDf)[1] = "POSITION"
+      joinDat = plyr::join(dfSub, indDf, by = "POSITION", type = "left", match = "all")
+      joinDat$Sample_AlignPos_Var = paste(joinDat$Sample, joinDat$Alignment_Pos, joinDat$VAR.NT, sep = "__")
+      #joinDat$AlignPos_Var = paste(joinDat$Alignment_Pos, joinDat$VAR.NT, sep = "__")
+      combDat = rbind(combDat, joinDat)
+    })
+  }
+  return(combDat)
+}
+
+getConsensus <- function(metaSeq, ampSeq, protocol, maxFreq, minFreq, freqCol) {
+    metaseq <- metaSeq
+    ampseq <- ampSeq
     metaseq =  metaseq[metaseq$coverage >= 97,]
     ampseq =   ampseq[ampseq$coverage >= 97,]
-    
     metaseqFilt <- metaseq[metaseq[[freqCol]] >= minFreq & metaseq[[freqCol]] <= maxFreq, ]
     ampseqFilt <- ampseq[ampseq[[freqCol]] >= minFreq & ampseq[[freqCol]] <= maxFreq, ]
-    
     ampseqFilt = ampseqFilt[ampseqFilt$Sample%in%metaseqFilt$Sample,]
     metaseqFilt = metaseqFilt[metaseqFilt$Sample%in%ampseqFilt$Sample,]
     if (protocol == "ampseq") {
@@ -27,17 +56,17 @@ getConsensus <- function(metaSeq, ampSeq, protocol, maxFreq, minFreq, freqCol, f
       targDf = ampseqFilt
       # data to check agains
       refDf = metaseqFilt
-      targSnv <- unique(refDf$Samp_Pos_Ref_Alt)
+      targSnv <- unique(refDf$Sample_AlignPos_Var)
     } else if (protocol == "metaseq") {
       # dataframe with stats
       targDf = metaseqFilt
       # data to check agains
       refDf = ampseqFilt
-      targSnv <- unique(refDf$Samp_Pos_Ref_Alt)
+      targSnv <- unique(refDf$Sample_AlignPos_Var)
     }
     ConsTest <- numeric()
     for (i in 1:nrow(targDf)) {
-      curSnv =  targDf[i, "Samp_Pos_Ref_Alt"]
+      curSnv =  targDf[i, "Sample_AlignPos_Var"]
       if (curSnv%in%targSnv){
         curCons = 1
       } else {
@@ -47,45 +76,29 @@ getConsensus <- function(metaSeq, ampSeq, protocol, maxFreq, minFreq, freqCol, f
     }
     targDf$ConsTest <- ConsTest
     return(targDf)
-  } else if (filtSteps == 2 & protocol == "metaseq") {
-    df = read.csv(metaSeq) 
-    dfFilt = df[df[[freqCol]] >= minFreq & df[[freqCol]] <= maxFreq, ]
-    return(dfFilt)
-  } else if (filtSteps == 2 & protocol == "ampseq") {
-    df = read.csv(ampSeq) 
-    dfFilt = df[df[[freqCol]] >= minFreq & df[[freqCol]] <= maxFreq, ]
-    return(dfFilt)
-  } 
 }
-
 
 runRoc = function(df, protocol, freqCol, splitPerc) {
   dfFilt = df[!is.na(df$Var_Al_RelPos),]
-  
   set.seed(42)
   train_idx <- createDataPartition(dfFilt$ConsTest, p = splitPerc, list = FALSE)
   train_data <- dfFilt[train_idx, ]
   test_data <- dfFilt[-train_idx, ]
-  
   if (protocol == "metaseq") {
-    
     # glm_formula <- as.formula(paste("ConsTest ~", freqCol, "+ STRAND.BIAS + QUAL + Var_Al_RelPos + I(meandepth^2)" ))
     # aucModel <- glm(formula = glm_formula, data = train_data, family = "binomial")
-    
-    glm_formula <- as.formula(paste("ConsTest ~", freqCol, "+ STRAND.BIAS + QUAL + Var_Al_RelPos + meandepth" ))
+    glm_formula <- as.formula(paste("ConsTest ~ ", freqCol, "+ STRAND.BIAS + QUAL + Var_Al_RelPos  + meandepth" ))
+    glm_formula = as.formula("ConsTest ~ ALLELE.FREQUENCY+ STRAND.BIAS + QUAL + Var_Al_RelPos + Ref_Al_RelPos + meandepth + coverage + meanmapq + meanbaseq")
     aucModel <- randomForest(formula = glm_formula, data = train_data, ntree = 1000)
-    
   } else if (protocol == "ampseq") {
     # glm_formula <- as.formula(paste("ConsTest ~", freqCol, " + QUAL + Var_Al_RelPos  + I(meandepth^2)"))
     # aucModel <- glm(formula = glm_formula, data = train_data, family = "binomial")
     glm_formula <- as.formula(paste("ConsTest ~", freqCol, " + QUAL + Var_Al_RelPos  + meandepth"))
+    glm_formula = as.formula("ConsTest ~ ALLELE.FREQUENCY+ STRAND.BIAS + QUAL + Var_Al_RelPos + Ref_Al_RelPos + meandepth + coverage + meanmapq + meanbaseq")
     aucModel <- randomForest(formula = glm_formula, data = train_data, ntree = 1000)
-    
   }
-  
   probs <- predict(aucModel, newdata = test_data, type = "response")
   roc_obj <- roc(test_data$ConsTest ~ probs, plot = TRUE, print.auc = TRUE)
-  
   # actual predictions and testing
   threshold <- 0.5
   test_data$PredictedConsTest <- ifelse(probs >= threshold, 1, 0)
@@ -99,11 +112,9 @@ runRoc = function(df, protocol, freqCol, splitPerc) {
 
 
 getVenn<-function(metaseq, ampseq, filtSteps, maxFreq, minFreq){
-  
-  ampSnps<-ampseq$Samp_Pos_Ref_Alt
+  ampSnps<-ampseq$Sample_AlignPos_Var
   # process meta
-  
-  metaSnps<-metaseq$Samp_Pos_Ref_Alt
+  metaSnps<-metaseq$Sample_AlignPos_Var
   print(length(metaSnps))
   print(length(ampSnps))
   print(length(metaSnps[metaSnps%in%ampSnps]))
@@ -116,46 +127,25 @@ getVenn<-function(metaseq, ampseq, filtSteps, maxFreq, minFreq){
     ggtitle(curTitle)+
     theme(text = element_text(size = 22)) +
     theme(plot.title = element_text(hjust = 0.5, vjust = 5, size = 24))
-  #ggsave(filename =  paste0("Venn/Intra_", curTitle,'.jpeg'), plot = venPlot, width = 9, height = 9, units = 'in', dpi = 600, device = 'jpeg')
+  ggsave(filename =  paste0("Venn/Intra_", curTitle,'.jpeg'), plot = venPlot, width = 9, height = 9, units = 'in', dpi = 600, device = 'jpeg')
 }
 
 
-# no frequency filtering
-metaseq = getConsensus(metaSeq="IntraSnv_metaseq_overlap/metaseq_comb_stats.csv", ampSeq="IntraSnv_ampseq_overlap/ampseq_comb_stats.csv", 
-                       protocol="metaseq", maxFreq=1, minFreq=0, freqCol="ALLELE.FREQUENCY", filtSteps=1)
-ampseq = getConsensus(metaSeq="IntraSnv_metaseq_overlap/metaseq_comb_stats.csv", ampSeq="IntraSnv_ampseq_overlap/ampseq_comb_stats.csv", 
-                      protocol="ampseq", maxFreq=1, minFreq=0, freqCol="ALLELE.FREQUENCY", filtSteps=1)
 
 
+ampseqFilt = adjustPositions(df=ampseqFilt, protocol="ampseq")
+metaseqFilt = adjustPositions(df=metaseqFilt, protocol="metaseq") 
 
-getVenn(metaseq=metaseq, ampseq=ampseq, filtSteps=1, maxFreq = 1, minFreq = 0)
+ampseqCons = getConsensus(metaSeq=metaseqFilt, ampSeq=ampseqFilt, protocol="ampseq", maxFreq=1, minFreq=0, freqCol="ALLELE.FREQUENCY")
+metaseqCons = getConsensus(metaSeq=metaseqFilt, ampSeq=ampseqFilt, protocol="metaseq", maxFreq=1, minFreq=0, freqCol="ALLELE.FREQUENCY")
+rm(ampseq, metaseq, ampseqFilt,metaseqFilt)
+gc()
+
+getVenn(metaseq=metaseqCons, ampseq=ampseqCons, filtSteps=1, maxFreq = 1, minFreq = 0)
+
+runRoc(df=metaseqCons, protocol="metaseq", freqCol="ALLELE.FREQUENCY", splitPerc=0.7)
+runRoc(df=ampseqCons, protocol="ampseq", freqCol="ALLELE.FREQUENCY", splitPerc=0.7)
 
 
-runRoc(df=metaseq, protocol="metaseq", freqCol="ALLELE.FREQUENCY", splitPerc=0.7)
-runRoc(df=ampseq, protocol="ampseq", freqCol="ALLELE.FREQUENCY", splitPerc=0.7)
-
-
-## get the coverage comparisons
-ampStats = unique(ampseq[, c("Sample", "coverage", "endpos", "OrigName")])
-ampStats = ampStats[order(ampStats$Sample),]
-metaStats = unique(metaseq[, c("Sample", "coverage", "endpos", "OrigName")])
-metaStats = metaStats[order(metaStats$Sample),]
-identical(ampStats$Sample, metaStats$Sample)
-identical(ampStats$coverage, metaStats$coverage)
-colnames(metaStats)[2:4] = c("coverage_meta", "endpos_meta", "OrigName_meta")
-combStats = plyr::join(ampStats, metaStats, by = "Sample", type = "left", match = "all")
-identical(combStats$endpos, combStats$endpos_meta)
-
-write.csv(combStats, "ampseq_metaseq_overlap_combStats.csv", row.names = F)
-
-# try without indels
-metaseqSub = metaseq[nchar(metaseq$REF.NT) == 1 & nchar(metaseq$VAR.NT) == 1, ]
-ampSub = ampseq[nchar(ampseq$REF.NT) == 1 & nchar(ampseq$VAR.NT) == 1, ]
-
-runRoc(df=metaseqSub, protocol="metaseq", freqCol="ALLELE.FREQUENCY", splitPerc=0.7)
-runRoc(df=ampSub, protocol="ampseq", freqCol="ALLELE.FREQUENCY", splitPerc=0.7)
-
-getVenn(metaseq=metaseqSub, ampseq=ampSub, filtSteps=1, maxFreq = 1, minFreq = 0)
-
-# make histograms for frequency distributions
-# make tables SNVs per Sample at freq 0, 0.01 and 0.02
+# write.csv(metaseqCons, "IntraSnv_metaseq_overlap/metaseq_ampseq_overlap_97_allFreq.csv", row.names= F)
+# write.csv(ampseqCons, "IntraSnv_ampseq_overlap/ampseq_metaseq_overlap_97_allFreq.csv", row.names = F)
