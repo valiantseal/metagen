@@ -58,5 +58,4 @@ for ( i in 1:nrow(combIndex) ) {
   if (curOriginalPos !=  curAlignPos ) {
     combChecks = c(combChecks, i)
   }
-    
 }

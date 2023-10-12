@@ -128,6 +128,8 @@ metaseq = getConsensus(metaSeq="IntraSnv_metaseq_overlap/metaseq_comb_stats.csv"
 ampseq = getConsensus(metaSeq="IntraSnv_metaseq_overlap/metaseq_comb_stats.csv", ampSeq="IntraSnv_ampseq_overlap/ampseq_comb_stats.csv", 
                       protocol="ampseq", maxFreq=1, minFreq=0, freqCol="ALLELE.FREQUENCY", filtSteps=1)
 
+
+
 getVenn(metaseq=metaseq, ampseq=ampseq, filtSteps=1, maxFreq = 1, minFreq = 0)
 
 
