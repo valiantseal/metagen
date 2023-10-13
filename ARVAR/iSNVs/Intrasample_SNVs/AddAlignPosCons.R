@@ -6,6 +6,7 @@ library(caret)
 library(pscl)
 library(car)
 library(randomForest)
+library(ggplot2)
 
 ampseq = read.csv("IntraSnv_ampseq_overlap/ampseq_comb_stats.csv")
 metaseq = read.csv("IntraSnv_metaseq_overlap/metaseq_comb_stats.csv")
@@ -89,13 +90,13 @@ runRoc = function(df, protocol, freqCol, splitPerc) {
     # aucModel <- glm(formula = glm_formula, data = train_data, family = "binomial")
     glm_formula <- as.formula(paste("ConsTest ~ ", freqCol, "+ STRAND.BIAS + QUAL + Var_Al_RelPos  + meandepth" ))
     glm_formula = as.formula("ConsTest ~ ALLELE.FREQUENCY+ STRAND.BIAS + QUAL + Var_Al_RelPos + Ref_Al_RelPos + meandepth + coverage + meanmapq + meanbaseq")
-    aucModel <- randomForest(formula = glm_formula, data = train_data, ntree = 1000)
+    aucModel <- randomForest(formula = glm_formula, data = train_data, ntree = 700)
   } else if (protocol == "ampseq") {
     # glm_formula <- as.formula(paste("ConsTest ~", freqCol, " + QUAL + Var_Al_RelPos  + I(meandepth^2)"))
     # aucModel <- glm(formula = glm_formula, data = train_data, family = "binomial")
     glm_formula <- as.formula(paste("ConsTest ~", freqCol, " + QUAL + Var_Al_RelPos  + meandepth"))
     glm_formula = as.formula("ConsTest ~ ALLELE.FREQUENCY+ STRAND.BIAS + QUAL + Var_Al_RelPos + Ref_Al_RelPos + meandepth + coverage + meanmapq + meanbaseq")
-    aucModel <- randomForest(formula = glm_formula, data = train_data, ntree = 1000)
+    aucModel <- randomForest(formula = glm_formula, data = train_data, ntree = 700)
   }
   probs <- predict(aucModel, newdata = test_data, type = "response")
   roc_obj <- roc(test_data$ConsTest ~ probs, plot = TRUE, print.auc = TRUE)
@@ -127,7 +128,7 @@ getVenn<-function(metaseq, ampseq, filtSteps, maxFreq, minFreq){
     ggtitle(curTitle)+
     theme(text = element_text(size = 22)) +
     theme(plot.title = element_text(hjust = 0.5, vjust = 5, size = 24))
-  ggsave(filename =  paste0("Venn/Intra_", curTitle,'.jpeg'), plot = venPlot, width = 9, height = 9, units = 'in', dpi = 600, device = 'jpeg')
+  ggsave(filename =  paste0("Venn/Intra_AlignPos_", curTitle,'.jpeg'), plot = venPlot, width = 9, height = 9, units = 'in', dpi = 600, device = 'jpeg')
 }
 
 
@@ -136,12 +137,10 @@ getVenn<-function(metaseq, ampseq, filtSteps, maxFreq, minFreq){
 ampseqFilt = adjustPositions(df=ampseqFilt, protocol="ampseq")
 metaseqFilt = adjustPositions(df=metaseqFilt, protocol="metaseq") 
 
-ampseqCons = getConsensus(metaSeq=metaseqFilt, ampSeq=ampseqFilt, protocol="ampseq", maxFreq=1, minFreq=0, freqCol="ALLELE.FREQUENCY")
-metaseqCons = getConsensus(metaSeq=metaseqFilt, ampSeq=ampseqFilt, protocol="metaseq", maxFreq=1, minFreq=0, freqCol="ALLELE.FREQUENCY")
-rm(ampseq, metaseq, ampseqFilt,metaseqFilt)
-gc()
+ampseqCons = getConsensus(metaSeq=metaseqFilt, ampSeq=ampseqFilt, protocol="ampseq", maxFreq=1, minFreq=0.001, freqCol="ALLELE.FREQUENCY")
+metaseqCons = getConsensus(metaSeq=metaseqFilt, ampSeq=ampseqFilt, protocol="metaseq", maxFreq=1, minFreq=0.001, freqCol="ALLELE.FREQUENCY")
 
-getVenn(metaseq=metaseqCons, ampseq=ampseqCons, filtSteps=1, maxFreq = 1, minFreq = 0)
+getVenn(metaseq=metaseqCons, ampseq=ampseqCons, filtSteps=1, maxFreq = 1, minFreq = 0.001)
 
 runRoc(df=metaseqCons, protocol="metaseq", freqCol="ALLELE.FREQUENCY", splitPerc=0.7)
 runRoc(df=ampseqCons, protocol="ampseq", freqCol="ALLELE.FREQUENCY", splitPerc=0.7)
@@ -149,3 +148,42 @@ runRoc(df=ampseqCons, protocol="ampseq", freqCol="ALLELE.FREQUENCY", splitPerc=0
 
 # write.csv(metaseqCons, "IntraSnv_metaseq_overlap/metaseq_ampseq_overlap_97_allFreq.csv", row.names= F)
 # write.csv(ampseqCons, "IntraSnv_ampseq_overlap/ampseq_metaseq_overlap_97_allFreq.csv", row.names = F)
+
+# make histogram ggplot
+ggplot(ampseqCons, aes(x=ALLELE.FREQUENCY)) + geom_histogram() + scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +  ggtitle("Ampseq Freq 0.01-1") + theme(text = element_text(size = 26))
+ggplot(metaseqCons, aes(x=ALLELE.FREQUENCY)) + geom_histogram() + scale_x_continuous(breaks = seq(0, 1, by = 0.1)) + ggtitle("Metaseq Freq 0.01-1") +  theme(text = element_text(size = 26))
+
+# try without indels
+
+ampseqCons = getConsensus(metaSeq=metaseqFilt, ampSeq=ampseqFilt, protocol="ampseq", maxFreq=1, minFreq=0, freqCol="ALLELE.FREQUENCY")
+metaseqCons = getConsensus(metaSeq=metaseqFilt, ampSeq=ampseqFilt, protocol="metaseq", maxFreq=1, minFreq=0, freqCol="ALLELE.FREQUENCY")
+
+getVenn<-function(metaseq, ampseq, filtSteps, maxFreq, minFreq){
+  ampSnps<-ampseq$Sample_AlignPos_Var
+  # process meta
+  metaSnps<-metaseq$Sample_AlignPos_Var
+  print(length(metaSnps))
+  print(length(ampSnps))
+  print(length(metaSnps[metaSnps%in%ampSnps]))
+  print(length(metaSnps[metaSnps%in%ampSnps]) / (length(metaSnps) + length(ampSnps)) * 100 )
+  # make a list
+  snps<-list('Amplicon'=ampSnps, 'Metagenomic'=metaSnps)
+  curTitle = paste0("FiltSteps_", filtSteps, "_MaxFreq_", maxFreq, "_minFreq_", minFreq)
+  # plot
+  venPlot<-ggvenn(snps, text_size=5, set_name_size=8)+
+    ggtitle(curTitle)+
+    theme(text = element_text(size = 22)) +
+    theme(plot.title = element_text(hjust = 0.5, vjust = 5, size = 24))
+  ggsave(filename =  paste0("Venn/Intra_AlignPos_ExclIndels_", curTitle,'.jpeg'), plot = venPlot, width = 9, height = 9, units = 'in', dpi = 600, device = 'jpeg')
+}
+
+metaseqSub = metaseqCons[nchar(metaseqCons$REF.NT) == 1 & nchar(metaseqCons$VAR.NT) == 1, ]
+ampseqSub = ampseqCons[nchar(ampseqCons$REF.NT) == 1 & nchar(ampseqCons$VAR.NT) == 1, ]
+
+runRoc(df=metaseqSub, protocol="metaseq", freqCol="ALLELE.FREQUENCY", splitPerc=0.7)
+runRoc(df=ampseqSub, protocol="ampseq", freqCol="ALLELE.FREQUENCY", splitPerc=0.7)
+
+getVenn(metaseq=metaseqSub, ampseq=ampseqSub, filtSteps=1, maxFreq = 1, minFreq = 0)
+
+
+
