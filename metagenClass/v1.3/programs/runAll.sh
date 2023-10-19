@@ -1,5 +1,3 @@
-cdcd ..
-
 bash -i ./programs/bin/prepInput.sh
 
 time bash -i ./programs/bin/filterMerge.sh 
