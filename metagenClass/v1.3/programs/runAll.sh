@@ -1,4 +1,4 @@
-cd ..
+cdcd ..
 
 bash -i ./programs/bin/prepInput.sh
 
@@ -8,7 +8,7 @@ time bash -i ./programs/bin/FqToFa.sh
 
 time bash -i ./programs/bin/krakenUniq.sh
 
-cd process; time ls -d */ | parallel -j 4 'cd {} && Rscript --vanilla ../../programs/bin/sortKraken.R'; 
+cd process; time ls -d */ | parallel -j 4 'cd {} && Rscript --vanilla ../../programs/bin/sortKraken.R'; cd ..
 
 time bash -i ./programs/bin/getSampKrakReads.sh 
 
