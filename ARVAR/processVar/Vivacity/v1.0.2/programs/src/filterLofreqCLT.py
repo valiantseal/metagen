@@ -98,10 +98,15 @@ def getCorPos(resDf, i, refAl, varAl):
     alPos = resDf.loc[i, 'POSITION']
   return alPos
 
-# handle deletion
+# handle deletion 
+#currently ambigous positions are not accounted for, however bamreadcount shpuld provide info for them, too
+# also need to acount for unfound variant positions
 def getRelPosDel(refAl, varAl, i, refSub):
   refRefAl = refAl[1] + '-POS'
-  Ref_Al_RelPos = refSub.loc[0, refRefAl]
+  if refRefAl == 'N-POS':
+    Ref_Al_RelPos = 'NaN'
+  else:
+    Ref_Al_RelPos = refSub.loc[0, refRefAl]
   # find which Indel column has deletion amd record relative position
   refVarAl = '-'  + refAl[1:]
   if refSub.loc[0, 'Indel1'] == refVarAl:
