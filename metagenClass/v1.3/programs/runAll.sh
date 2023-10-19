@@ -1,7 +1,5 @@
 cd ..
 
-bash -i ./programs/bin/downloadFromList.sh
-
 bash -i ./programs/bin/prepInput.sh
 
 time bash -i ./programs/bin/filterMerge.sh 
