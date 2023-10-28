@@ -1,4 +1,4 @@
-  GNU nano 6.2                                                                      runAll.sh                                                                               bash -i ./programs/bin/prepInput.sh
+bash -i ./programs/bin/prepInput.sh
 
 time bash -i ./programs/bin/filterMerge.sh
 
