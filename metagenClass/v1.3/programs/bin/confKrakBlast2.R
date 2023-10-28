@@ -4,12 +4,9 @@ library(tidytext)
 
 # Setting the working directory and reading in the data
 setwd("./process/R1_001.fastq.gz")
-
 blast_df <- read.delim("blastResTop_1.tsv", stringsAsFactors = FALSE, sep = "\t")
 kraken_df <- read.delim("krakenSelVirReads.tsv", stringsAsFactors = FALSE, sep = "\t")
-
 setwd("../../output")
-
 df <- inner_join(blast_df, kraken_df, by = "Read")
 df <- df %>%
   select(Read, stitle, Virus) %>%
@@ -28,7 +25,7 @@ check_virus <- function(blast, kraken, original_term, standardized_term) {
   }
 }
 
-# Apply this function for each virus term and each row of the data
+# Apply the function for each virus term and each row of the data
 for (i in 1:nrow(term_mapping)) {
   df[paste0(term_mapping$Standardized_Term[i], "_match")] <- mapply(
     check_virus, df$Blast, df$Kraken,
@@ -41,12 +38,12 @@ df$Virus <- "Mismatch"
 
 # Update the 'Virus' column based on matches
 for (i in 1:nrow(df)) {
-  if (!is.na(df$Influenza_match[i]) && df$Influenza_match[i] != "") {
-    df$Virus[i] <- "Influenza"
-  } else if (!is.na(df$coronavirus_match[i]) && df$coronavirus_match[i] != "") {
-    df$Virus[i] <- "coronavirus"
-  } else if (!is.na(df$ebola_match[i]) && df$ebola_match[i] != "") {
-    df$Virus[i] <- "ebola"
+  for (j in 1:nrow(term_mapping)) {
+    match_column <- paste0(term_mapping$Standardized_Term[j], "_match")
+    if (!is.na(df[[match_column]][i]) && df[[match_column]][i] != "") {
+      df$Virus[i] <- term_mapping$Standardized_Term[j]
+      break
+    }
   }
 }
 
