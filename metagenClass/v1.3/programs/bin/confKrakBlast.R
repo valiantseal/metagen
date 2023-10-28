@@ -33,7 +33,7 @@ common_terms <- inner_join(blast_terms, kraken_terms, by = c("Blast_Terms" = "Kr
   arrange(-Frequency)
 
 # Filter out terms that are shorter than 5 characters and non-viral terms
-non_viral_terms <- c("genome", "cds", "viral", "complete", "segment", "protein", "gene", "isolate", "polymerase", "syndrome", "sequence")
+non_viral_terms <- c("genome", "cds", "viral", "strain", "complete", "segment", "protein", "gene", "isolate", "polymerase", "syndrome", "sequence")
 common_terms <- common_terms %>%
   filter(nchar(Term) > 5 & !Term %in% non_viral_terms) %>%
   head(20)
