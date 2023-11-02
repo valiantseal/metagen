@@ -18,10 +18,12 @@ df <- df %>%
 # Load the mapping table
 term_mapping <- read.table("term_mapping.txt", stringsAsFactors = FALSE, header = TRUE)
 
-# Function to check if both Kraken and BLAST outputs contain either the original or the standardized virus term
+# Function to check if both Kraken and BLAST outputs contain either the original or the standardized virus term or a combination of both
 check_virus <- function(blast, kraken, original_term, standardized_term) {
-  if ((grepl(original_term, blast, ignore.case = TRUE) & grepl(original_term, kraken, ignore.case = TRUE)) |
-      (grepl(standardized_term, blast, ignore.case = TRUE) & grepl(standardized_term, kraken, ignore.case = TRUE))) {
+  if ( (grepl(original_term, blast, ignore.case = TRUE) & grepl(standardized_term, kraken, ignore.case = TRUE)) |
+       (grepl(standardized_term, blast, ignore.case = TRUE) & grepl(original_term, kraken, ignore.case = TRUE)) |
+       (grepl(original_term, blast, ignore.case = TRUE) & grepl(original_term, kraken, ignore.case = TRUE)) |
+       (grepl(standardized_term, blast, ignore.case = TRUE) & grepl(standardized_term, kraken, ignore.case = TRUE))) {
     return(standardized_term)
   } else {
     return(NA)
