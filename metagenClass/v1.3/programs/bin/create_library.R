@@ -15,7 +15,7 @@ for (fastq in fastq_files) {
   reads <- readFastq(fastq)
 
   # Get the IDs of the sequences
-  ids <- id(reads) # Change this line from sread() to id()
+  ids <- id(reads)
 
   # Combine the read IDs and labels into a data frame
   temp_df <- data.frame(ReadID = ids, Label = label)
