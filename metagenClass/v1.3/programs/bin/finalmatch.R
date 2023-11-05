@@ -29,15 +29,28 @@ final_data <- left_join(library_data, krakblast_grouped, by = "main_read") %>%
     TRUE ~ "Mismatch"
   ))
 
-# Function to calculate metrics
+# calculate metrics
 calculate_metrics <- function(label_col, pred_col) {
-  TP <- sum(final_data[[label_col]] == final_data[[pred_col]], na.rm = TRUE)
-  FP <- sum(final_data[[pred_col]] != "Mismatch" & final_data[[pred_col]] != "Non-Viral" & final_data[[label_col]] != final_data[[pred_col]], na.rm = TRUE)
-  FN <- sum(final_data[[pred_col]] == "Mismatch" | final_data[[pred_col]] == "Non-Viral", na.rm = TRUE)
+  # True Positives (TP): Label matches the prediction and is not NA.
+  TP <- sum(final_data[[label_col]] == final_data[[pred_col]] & !is.na(final_data[[label_col]]), na.rm = TRUE)
 
-  precision <- TP / (TP + FP)
-  recall <- TP / (TP + FN)
-  f1_score <- 2 * (precision * recall) / (precision + recall)
+  # False Positives (FP): Prediction does not match Label, is not Mismatch/Non-Viral/NA, and Label is not NA.
+  FP <- sum(final_data[[pred_col]] != final_data[[label_col]] &
+            final_data[[pred_col]] != "Mismatch" &
+            final_data[[pred_col]] != "Non-Viral" &
+            !is.na(final_data[[pred_col]]) &
+            !is.na(final_data[[label_col]]), na.rm = TRUE)
+
+  # False Negatives (FN): Prediction is Mismatch/Non-Viral/NA, and Label is not NA.
+  FN <- sum((final_data[[pred_col]] == "Mismatch" |
+             final_data[[pred_col]] == "Non-Viral" |
+             is.na(final_data[[pred_col]])) &
+            !is.na(final_data[[label_col]]), na.rm = TRUE)
+  
+  precision <- ifelse((TP + FP) > 0, TP / (TP + FP), 0)
+  recall <- ifelse((TP + FN) > 0, TP / (TP + FN), 0)
+  f1_score <- ifelse((precision + recall) > 0, 2 * (precision * recall) / (precision + recall), 0)
+
   return(c(precision, recall, 1, f1_score))
 }
 
