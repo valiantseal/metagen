@@ -32,11 +32,11 @@ common_terms <- inner_join(blast_terms, kraken_terms, by = c("Blast_Terms" = "Kr
   tally(name = "Frequency") %>%
   arrange(-Frequency)
 
-# Filter out terms that are shorter than 5 characters and non-viral terms
-non_viral_terms <- c("genome", "cds", "strain", "viral", "complete", "segment", "protein", "gene", "isolate", "polymerase", "syndrome", "sequence")
+# Filter out terms that are shorter than 3 characters and non-viral terms
+non_viral_terms <- c("genome", "cds", "strain", "viral", "complete", "segment", "protein", "gene", "isolate", "polymerase", "syndrome", "virus", "human", "sapien", "sequence")
 common_terms <- common_terms %>%
-  filter(nchar(Term) > 5 & !Term %in% non_viral_terms) %>%
-  head(20)  
+  filter(nchar(Term) > 3 & !Term %in% non_viral_terms) %>%
+  head(30)
 
 # Generate lookup table
 lookup_table <- common_terms %>%
