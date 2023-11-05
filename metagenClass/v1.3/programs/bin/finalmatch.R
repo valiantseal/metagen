@@ -11,14 +11,18 @@ krakblast$main_read <- str_extract(krakblast$Read, "^[^/]+")
 library_data$main_read <- str_extract(library_data$ReadID, "^[^/]+")
 
 # Step 1: Compare Paired-End Reads in krakBlastConfReads.csv
-krakblast_grouped <- krakblast %>% 
-  group_by(main_read) %>% 
-  summarise(virus = toString(unique(Virus))) %>% 
+krakblast_grouped <- krakblast %>%
+  group_by(main_read) %>%
+  summarise(
+    virus = toString(unique(Virus)),
+    Blast = first(Blast),  # Assuming that Blast column doesn't require any aggregation
+    Kraken = first(Kraken)  # Assuming that Kraken column doesn't require any aggregation
+  ) %>%
   mutate(result = ifelse(str_count(virus, ",") > 0, "mismatch", virus))
 
 # Step 2: Join the new df and read_label_library.csv
-final_data <- left_join(library_data, krakblast_grouped, by = "main_read") %>% 
-  select(main_read, Label, result) %>% 
+final_data <- left_join(library_data, krakblast_grouped, by = "main_read") %>%
+  select(main_read, Label, result, Blast, Kraken) %>%
   mutate(final_result = case_when(
     is.na(result) ~ "Non-Viral",
     result == Label ~ as.character(Label),
