@@ -23,13 +23,13 @@ find_standardized_term <- function(output, original_term, standardized_term) {
   if (grepl(original_term, output, ignore.case = TRUE) | grepl(standardized_term, output, ignore.case = TRUE)) {
     return(standardized_term)
   } else {
-    return(NA)
+    return("mismatch")
   }
 }
 
-# Initialize KrakID and BlastID with NA
-df$KrakID <- NA
-df$BlastID <- NA
+# Initialize KrakID and BlastID with "mismatch"
+df$KrakID <- rep("mismatch", nrow(df))
+df$BlastID <- rep("mismatch", nrow(df))
 
 # Apply the function for each virus term and each row of the data to fill KrakID and BlastID
 for (i in 1:nrow(term_mapping)) {
@@ -38,13 +38,11 @@ for (i in 1:nrow(term_mapping)) {
 
   # Update KrakID based on Kraken output
   krak_matches <- mapply(find_standardized_term, df$Kraken, MoreArgs = list(original_term = original_term, standardized_term = standardized_term))
-  non_na_indices <- which(!is.na(krak_matches))
-  df$KrakID[non_na_indices] <- krak_matches[non_na_indices]
+  df$KrakID[krak_matches != "mismatch"] <- krak_matches[krak_matches != "mismatch"]
 
   # Update BlastID based on Blast output
   blast_matches <- mapply(find_standardized_term, df$Blast, MoreArgs = list(original_term = original_term, standardized_term = standardized_term))
-  non_na_indices <- which(!is.na(blast_matches))
-  df$BlastID[non_na_indices] <- blast_matches[non_na_indices]
+  df$BlastID[blast_matches != "mismatch"] <- blast_matches[blast_matches != "mismatch"]
 }
 
 # Create a new column 'Virus' initialized to 'mismatch'
@@ -52,10 +50,8 @@ df$Virus <- "mismatch"
 
 # Update the 'Virus' column based on matches
 for (i in 1:nrow(df)) {
-  if (!is.na(df$KrakID[i]) && !is.na(df$BlastID[i]) && df$KrakID[i] == df$BlastID[i]) {
+  if (df$KrakID[i] != "mismatch" && df$KrakID[i] == df$BlastID[i]) {
     df$Virus[i] <- df$KrakID[i]
-  } else {
-    df$Virus[i] <- "mismatch"
   }
 }
 
@@ -81,6 +77,7 @@ write.csv(output, "krakBlastConfReads_summary.csv", row.names = FALSE)
 
 # Filter out mismatches
 mismatches_only <- df %>%
+  filter(Virus == "mismatch")
 
 # Write the mismatches to a CSV
-write.csv(mismatches_only, "krakBlastmismatches.csv", row.names = FALSE)
+write.csv(mismatches_only, "krakBlastMismatches.csv", row.names = FALSE)
