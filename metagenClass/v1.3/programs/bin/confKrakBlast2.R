@@ -47,15 +47,15 @@ for (i in 1:nrow(term_mapping)) {
   df$BlastID[non_na_indices] <- blast_matches[non_na_indices]
 }
 
-# Create a new column 'Virus' initialized to 'Mismatch'
-df$Virus <- "Mismatch"
+# Create a new column 'Virus' initialized to 'mismatch'
+df$Virus <- "mismatch"
 
 # Update the 'Virus' column based on matches
 for (i in 1:nrow(df)) {
   if (!is.na(df$KrakID[i]) && !is.na(df$BlastID[i]) && df$KrakID[i] == df$BlastID[i]) {
     df$Virus[i] <- df$KrakID[i]
   } else {
-    df$Virus[i] <- "Mismatch"
+    df$Virus[i] <- "mismatch"
   }
 }
 
@@ -63,17 +63,17 @@ for (i in 1:nrow(df)) {
 write.csv(df %>% select(Read, Blast, Kraken, KrakID, BlastID, Virus), "krakBlastConfReads.csv", row.names = FALSE)
 
 # Count mismatches
-num_mismatches <- nrow(df[df$Virus == "Mismatch", ])
+num_mismatches <- nrow(df[df$Virus == "mismatch", ])
 
 # Gather the matches for a summary excluding mismatches
 output <- df %>%
-  filter(Virus != "Mismatch") %>%
+  filter(Virus != "mismatch") %>%
   group_by(Virus) %>%
   summarize(Frequency = n()) %>%
   arrange(-Frequency)
 
 # Append the mismatches to the summary
-mismatch_df <- data.frame(Virus = "Mismatch", Frequency = num_mismatches)
+mismatch_df <- data.frame(Virus = "mismatch", Frequency = num_mismatches)
 output <- rbind(output, mismatch_df)
 
 # Write the summary to a CSV
@@ -83,4 +83,4 @@ write.csv(output, "krakBlastConfReads_summary.csv", row.names = FALSE)
 mismatches_only <- df %>%
 
 # Write the mismatches to a CSV
-write.csv(mismatches_only, "krakBlastMismatches.csv", row.names = FALSE)
+write.csv(mismatches_only, "krakBlastmismatches.csv", row.names = FALSE)
