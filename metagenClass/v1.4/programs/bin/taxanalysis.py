@@ -74,4 +74,4 @@ for level in levels:
 metrics_df = pd.DataFrame(precision_data, columns=['Precision Level', 'Kraken', 'BLAST', 'Pipeline'])
 
 # Write the DataFrame to a CSV file
-metrics_df.to_csv('pipeline_metrics.csv', index=False)
+metrics_df.to_csv('output/pipeline_metrics.csv', index=False)
