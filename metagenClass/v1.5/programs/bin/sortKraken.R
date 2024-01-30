@@ -1,7 +1,7 @@
 library(tidyverse)
 library(readr)
 
-kraken_to_ncbi_mapping <- read_csv('~/v1.4/kraken_to_ncbi_mapping.csv')
+kraken_to_ncbi_mapping <- read_csv('../../kraken_to_ncbi_mapping.csv')
 ncbi_parent_mapping <- setNames(kraken_to_ncbi_mapping$NCBI_Parent, kraken_to_ncbi_mapping$KrakenDB)
 
 # Read sample name
