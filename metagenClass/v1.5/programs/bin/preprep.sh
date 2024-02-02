@@ -13,11 +13,11 @@ done
 Rscript --vanilla ./programs/bin/create_library.R
 
 # Concatenate all _R1 reads into one combined file
-cat input/*_R1.fastq > input/R1_001.fastq
+cat input/*_R1.fastq > input/Sample_1_R1_001.fastq
 
 # Concatenate all _R2 reads into one combined file
-cat input/*_R2.fastq > input/R2_001.fastq
+cat input/*_R2.fastq > input/Sample_1_R2_001.fastq
 
 # Gzip both files
-gzip input/R1_001.fastq
-gzip input/R2_001.fastq
+gzip input/Sample_1_R1_001.fastq
+gzip input/Sample_1_R2_001.fastq
