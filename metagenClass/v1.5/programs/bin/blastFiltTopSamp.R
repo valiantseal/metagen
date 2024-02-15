@@ -19,27 +19,18 @@ filterReads <- function(df) {
       filter(!grepl('Synthetic|clone', stitle, ignore.case = TRUE)) %>%
       arrange(qseqid, desc(bitscore)) %>%
       group_by(qseqid) %>%
+      mutate(staxids = as.character(staxids)) %>%
       summarize(BID1 = first(staxids),
-                BID2 = nth(unique(staxids), 2),
-                BID3 = nth(unique(staxids), 3)) %>%
+                BID2 = nth(unique(staxids), 2, default = NA_character_),
+                BID3 = nth(unique(staxids), 3, default = NA_character_)) %>%
       ungroup()
 
-    # Convert BID1, BID2, BID3 to character type after they are defined
     x <- x %>%
-      mutate(
-        BID1 = as.character(BID1),
-        BID2 = as.character(BID2),
-        BID3 = as.character(BID3)
-      )
-
-    x <- x %>%
-      mutate(BID1 = if_else(str_detect(BID1, ";"), str_split(BID1, ";")[[1]][1], BID1),
-             BID2 = if_else(str_detect(BID1, ";"), str_split(BID1, ";")[[1]][2],
-                            if_else(str_detect(BID2, ";"), str_split(BID2, ";")[[1]][1], BID2)),
-             BID3 = if_else(str_detect(BID2, ";") & length(str_split(BID2, ";")[[1]]) > 1, str_split(BID2, ";")[[1]][2],
-                            if_else(str_detect(BID3, ";"), str_split(BID3, ";")[[1]][1], BID3))) %>%
-      mutate(BID2 = if_else(is.na(BID2) | BID2 == BID1, NA_character_, BID2),
-             BID3 = if_else(is.na(BID3) | BID3 == BID1 | BID3 == BID2, NA_character_, BID3))
+      mutate(BID1 = if_else(str_detect(BID1, ";"),
+                            str_extract(BID1, "^[^;]+"),
+                            BID1),
+             BID2 = if_else(BID2 == BID1, NA_character_, BID2),
+             BID3 = if_else(BID3 == BID1 | BID3 == BID2, NA_character_, BID3))
     return(x)
   } else {
     return(NULL)
