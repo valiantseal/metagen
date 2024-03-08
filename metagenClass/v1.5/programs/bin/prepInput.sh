@@ -1,5 +1,10 @@
 cd input
 
+gzip -d *.fastq.gz
+sed -i 's/ 1:N:/\/1 N:/' *_R1_*.fastq
+sed -i 's/ 2:N:/\/2 N:/' *_R2_*.fastq
+gzip *.fastq
+
 # Create a list of unique sample prefixes by cutting off the filenames at the '_R1' or '_R2' part
 for i in *R1_001.fastq.gz; do 
     echo "${i%%_R1_001.fastq.gz}" >> ../newdir.list
