@@ -4,6 +4,7 @@ import pandas as pd
 import itertools
 from concurrent.futures import ProcessPoolExecutor
 from collections import defaultdict
+import multiprocessing as mp
 
 ncbi = NCBITaxa()
 
@@ -60,9 +61,9 @@ def elevate_taxid(taxid):
     return taxid  # Return original if no elevation is possible
 
 def determine_final_lca(row):
-    all_taxids = set()
-    for i in range(1, 4):
-        all_taxids.update(filter(pd.notnull, [row.get(f'BID{i}_1'), row.get(f'BID{i}_2'), row.get(f'KID{i}_1'), row.get(f'KID{i}_2')]))
+    # Separate BLAST and Kraken IDs
+    blast_ids = set(filter(pd.notnull, [row.get(f'BID{i}_{j}') for i in range(1, 4) for j in (1, 2)]))
+    kraken_ids = set(filter(pd.notnull, [row.get(f'KID{i}_{j}') for i in range(1, 4) for j in (1, 2)]))
 
     # Function to get rank or lineage-based rank position
     def get_rank_position(taxid):
@@ -76,32 +77,31 @@ def determine_final_lca(row):
                 current_rank = ranks.get(tid, None)
                 if current_rank in standard_ranks:
                     return standard_ranks.index(current_rank)
-            # Penalize non-standard ranks without a standard rank in their lineage
-            return len(standard_ranks) + 1
+            return len(standard_ranks) + 1  # Penalize non-standard ranks
 
-    if len(all_taxids) == 1:
-        taxid = all_taxids.pop()
-        elevated_taxid = elevate_taxid(taxid)
-        return elevated_taxid, elevated_taxid, elevated_taxid
+    # Combine BLAST and Kraken IDs for processing only if they are to be compared
+    all_taxids = [(bid, kid) for bid in blast_ids for kid in kraken_ids]
 
-    lcas = []
-    for taxid1, taxid2 in itertools.combinations(all_taxids, 2):
-        lca = ncbi.get_topology([taxid1, taxid2])
-        lcas.append((taxid1, taxid2, lca.taxid))
+    if not all_taxids:
+        return None, None, None
 
+    # Initialize list for valid LCAs from BID-KID comparisons
     valid_lcas = []
-    for lca in lcas:
-        taxid = elevate_taxid(lca[2])
+    for bid, kid in all_taxids:
+        lca_taxid = ncbi.get_topology([bid, kid]).taxid
+        taxid = elevate_taxid(lca_taxid)
         lineage = ncbi.get_lineage(taxid)
         ranks = ncbi.get_rank(lineage)
         if any(rank in standard_ranks for rank in ranks.values()):
-            valid_lcas.append((lca[0], lca[1], taxid))
+            valid_lcas.append((bid, kid, taxid))
 
     if valid_lcas:
+        # Sort and select the lowest-ranking valid LCA
         valid_lcas.sort(key=lambda x: get_rank_position(x[2]))
-        return valid_lcas[0]
+        best_lca = valid_lcas[0]
+        return best_lca[0], best_lca[1], best_lca[2]
     else:
-        return None, None, None  # Return this if no valid LCA is found
+        return None, None, None
 
 def fetch_lineage(taxid):
     try:
@@ -130,8 +130,6 @@ def main():
         merged_df['Sample'] = sample_dir
 
         preprocessed_df = preprocess_dataframe(merged_df)
-
-        # Use multiprocessing to process rows within the current sample
         with ProcessPoolExecutor(max_workers=os.cpu_count()) as executor:
             results = list(executor.map(process_row, [row for _, row in preprocessed_df.iterrows()]))
 
@@ -145,4 +143,5 @@ def main():
         results_df.to_csv(f'output/fullresults_{sample_dir}.csv', sep=',', index=False)
 
 if __name__ == '__main__':
+    mp.set_start_method('spawn')
     main()
