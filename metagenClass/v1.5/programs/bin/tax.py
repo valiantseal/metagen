@@ -117,8 +117,10 @@ def translate_taxids_to_names(taxids):
 
 def main():
     process_dir = './process'
-    dfs = []
-    for sample_dir in os.listdir(process_dir):
+    sample_dirs = [d for d in os.listdir(process_dir) if os.path.isdir(os.path.join(process_dir, d))]
+
+    for sample_dir in sample_dirs:
+        print(f"Processing {sample_dir}...")
         sample_path = os.path.join(process_dir, sample_dir)
         blast_file = os.path.join(sample_path, 'blastResTop_3.tsv')
         kraken_file = os.path.join(sample_path, 'krakenSelVirReads.tsv')
@@ -126,21 +128,21 @@ def main():
         kraken_df = pd.read_csv(kraken_file, sep=',', quotechar='"')
         merged_df = pd.merge(blast_df, kraken_df, on='Read', how='outer')
         merged_df['Sample'] = sample_dir
-        dfs.append(merged_df)
-    dataframe = pd.concat(dfs, ignore_index=True)
 
-    preprocessed_df = preprocess_dataframe(dataframe)
-    with ProcessPoolExecutor(max_workers=os.cpu_count()) as executor:
-        results = list(executor.map(process_row, [row for _, row in preprocessed_df.iterrows()]))
-    results_df = pd.DataFrame(results, columns=['Main_Read', 'BID1_1', 'BID2_1', 'BID3_1', 'BID1_2', 'BID2_2', 'BID3_2', 'KID1_1', 'KID2_1', 'KID3_1', 'KID1_2', 'KID2_2', 'KID3_2', 'BID_Used', 'KID_Used', 'LCA', 'Sample'])
-    results_df['LCA_Name'] = translate_taxids_to_names(results_df['LCA'])
-    lca_counts_df = results_df.groupby(['Sample', 'LCA']).size().reset_index(name='Count')
-    lca_names_df = results_df[['LCA', 'LCA_Name']].drop_duplicates()
-    lca_summary_df = pd.merge(lca_counts_df, lca_names_df, on='LCA', how='left')
-    lca_summary_df = lca_summary_df[['Sample', 'LCA_Name', 'LCA', 'Count']]
-    lca_summary_df.to_csv('output/lca_summary.csv', sep=',', index=False)
-    results_df.to_csv('output/fullresults.csv', sep=',', index=False)
-    return results_df, lca_summary_df
+        preprocessed_df = preprocess_dataframe(merged_df)
+
+        # Use multiprocessing to process rows within the current sample
+        with ProcessPoolExecutor(max_workers=os.cpu_count()) as executor:
+            results = list(executor.map(process_row, [row for _, row in preprocessed_df.iterrows()]))
+
+        results_df = pd.DataFrame(results, columns=['Main_Read', 'BID1_1', 'BID2_1', 'BID3_1', 'BID1_2', 'BID2_2', 'BID3_2', 'KID1_1', 'KID2_1', 'KID3_1', 'KID1_2', 'KID2_2', 'KID3_2', 'BID_Used', 'KID_Used', 'LCA', 'Sample'])
+        results_df['LCA_Name'] = translate_taxids_to_names(results_df['LCA'])
+
+        lca_counts_df = results_df.groupby(['Sample', 'LCA']).size().reset_index(name='Count')
+        lca_names_df = results_df[['LCA', 'LCA_Name']].drop_duplicates()
+        lca_summary_df = pd.merge(lca_counts_df, lca_names_df, on='LCA', how='left')
+        lca_summary_df[['Sample', 'LCA_Name', 'LCA', 'Count']].to_csv(f'output/lca_summary_{sample_dir}.csv', sep=',', index=False)
+        results_df.to_csv(f'output/fullresults_{sample_dir}.csv', sep=',', index=False)
 
 if __name__ == '__main__':
     main()
