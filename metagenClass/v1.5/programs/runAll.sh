@@ -1,4 +1,4 @@
-bash -i ./programs/bin/prepInput.sh
+time bash -i ./programs/bin/prepInput.sh
 
 time bash -i ./programs/bin/filterMerge.sh 
 
@@ -16,4 +16,4 @@ time sh ./programs/bin/runBlastNt.sh
 
 time Rscript --vanilla ./programs/bin/blastFiltTopSamp.R
 
-python programs/bin/tax.py
+time python programs/bin/tax.py
