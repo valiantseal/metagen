@@ -1,12 +1,12 @@
 cd input
 
-gzip -d *.fastq.gz
-sed -i 's/ 1:N:/\/1 N:/' *_R1_*.fastq
-sed -i 's/ 2:N:/\/2 N:/' *_R2_*.fastq
-gzip *.fastq
+parallel gzip -d ::: *.fastq.gz
+ls *_R1_*.fastq | parallel --verbose "sed -i 's# 1:N:#/1 N:#' {}"
+ls *_R2_*.fastq | parallel "sed -i 's# 2:N:#/2 N:#' {}"
+parallel gzip ::: *.fastq
 
 # Create a list of unique sample prefixes by cutting off the filenames at the '_R1' or '_R2' part
-for i in *R1_001.fastq.gz; do 
+for i in *R1_001.fastq.gz; do
     echo "${i%%_R1_001.fastq.gz}" >> ../newdir.list
 done
 
@@ -36,7 +36,7 @@ for sample in $(cat newdir.list); do
     R2_paired=./process/"$sample"/"${sample}_R2_001_paired.fastq.gz"
     R2_unpaired=./process/"$sample"/"${sample}_R2_001_unpaired.fastq.gz"
 
-    java -jar ~/Trimmomatic-0.39/trimmomatic-0.39.jar PE -phred33 $R1_clumped $R2_clumped $R1_paired $R1_unpaired $R2_paired $R2_unpaired ILLUMINACLIP:/home/ubuntu/trimmom>
+    java -jar ~/Trimmomatic-0.39/trimmomatic-0.39.jar PE -phred33 $R1_clumped $R2_clumped $R1_paired $R1_unpaired $R2_paired $R2_unpaired ILLUMINACLIP:/home/ubuntu/trimmomatic/Trimmomatic-0.39/adapters/NexteraPE-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36
     # Remove intermediate and unpaired files
     rm $R1 $R2 $R1_clumped $R2_clumped $R1_unpaired $R2_unpaired
 
