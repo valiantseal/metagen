@@ -13,7 +13,7 @@ blastNames <- c('staxids', 'qseqid', 'sseqid', 'stitle', 'pident', 'length', 'mi
 filterReads <- function(df_path, blastNames) {
   if (!file.exists(df_path)) {
     warning(paste("File does not exist:", df_path))
-    return(NULL) 
+    return(NULL)  # Skip this file if it doesn't exist
   }
 
   x <- read_delim(df_path, delim = "\t", escape_double = FALSE, col_names = FALSE, comment = "#", trim_ws = TRUE)
@@ -31,7 +31,7 @@ filterReads <- function(df_path, blastNames) {
     return(NULL)
   }
 
-    x <- x %>%
+  x <- x %>%
     filter(!grepl('Synthetic|clone', stitle, ignore.case = TRUE)) %>%
     arrange(qseqid, desc(bitscore)) %>%
     group_by(qseqid) %>%
@@ -42,6 +42,24 @@ filterReads <- function(df_path, blastNames) {
               .groups = 'drop') %>%
     ungroup()
 
+  # Adjust for semicolons in taxonomic IDs
+  x <- x %>%
+      rowwise() %>%
+      mutate(BID_combined = paste(BID1, BID2, BID3, sep = ";")) %>%
+      mutate(BID_combined = str_replace_all(BID_combined, ";NA", ""),
+             BID_combined = str_replace_all(BID_combined, "NA;", ""),
+             BID_combined = str_replace_all(BID_combined, "NA", "")) %>%
+      separate(BID_combined, into = c("BID1", "BID2", "BID3"), sep = ";", remove = FALSE, fill = "right") %>%
+      select(-BID_combined)
+
+  # Correct for duplicated or NA introductions in BID2 and BID3 due to shifting
+  x <- x %>%
+      mutate(BID1 = if_else(str_detect(BID1, ";"),
+                            str_extract(BID1, "^[^;]+"),
+                            BID1),
+             BID2 = if_else(BID2 == BID1, NA_character_, BID2),
+             BID3 = if_else(BID3 == BID1 | BID3 == BID2, NA_character_, BID3))
+  
   return(x)
 }
 
